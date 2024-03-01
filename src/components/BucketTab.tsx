@@ -16,10 +16,10 @@ export default function BucketTab(props: BucketProps) {
     return (
         <div
             data-selected={selected || undefined}
-            className="group w-full flex items-center justify-start py-3 pl-10 data-[selected=true]:bg-sky-500 data-[selected=true]:shadow-lg"
+            className="group w-full flex items-center justify-start py-3 pl-10 cursor-pointer hover:bg-slate-600 data-[selected=true]:bg-sky-500 data-[selected=true]:shadow-lg data-[selected=true]:cursor-default"
             onClick={onClickBucket}
         >
-            <span className="text-ellipsis overflow-hidden whitespace-nowrap text-xs font-medium text-gray-300 group-hover:text-gray-300 group-data-[selected=true]:text-gray-800 group-data-[selected=true]:text-white">
+            <span className="text-ellipsis overflow-hidden whitespace-nowrap text-xs font-medium text-gray-300 group-hover:text-gray-200 group-data-[selected=true]:text-gray-800 group-data-[selected=true]:text-white">
                 {bucket}
             </span>
         </div>
