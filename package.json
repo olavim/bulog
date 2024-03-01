@@ -17,7 +17,7 @@
     "prepack": "npm run build && oclif manifest && oclif readme",
     "prepare": "npx next-ws-cli@latest patch -y && npm run build",
     "version": "oclif readme && git add README.md",
-    "clitest": "node ./cli2.js | node ./bin/run.js my-app -p 3000"
+    "clitest": "node ./dummy-app.js | node ./bin/run.js my-app -p 3000"
   },
   "dependencies": {
     "@oclif/core": "^3",

@@ -165,7 +165,7 @@ export default function BucketLogs(props: BucketLogsProps) {
     }, [columns]);
 
     return (
-        <div className="flex flex-row grow">
+        <div className="flex flex-row grow overflow-hidden">
             <div className="flex flex-col grow overflow-hidden">
                 <div className="flex flex-row items-center justify-between basis-20 shrink-0 grow-0 shadow-lg">
                     <div className="flex grow bg-slate-100 h-full px-12 flex flex-row items-center">
