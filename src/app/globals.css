@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('overlayscrollbars/overlayscrollbars.css');
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+}
+
+input:focus {
+  outline: #0284c7 solid 2px;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+.w-rjv-copied {
+  display: unset;
+}
+
+.os-scrollbar {
+  --os-size: 16px;
+  --os-handle-perpendicular-size: 16px;
+  --os-handle-perpendicular-size-hover: var(--os-handle-perpendicular-size);
+  --os-handle-perpendicular-size-active: var(--os-handle-perpendicular-size);
+  --os-padding-perpendicular: 0;
+  --os-padding-axis: 0;
+  --os-track-border-radius: var(--os-size);
+  --os-track-bg-hover: rgba(0, 0, 0, 0.05);
+  --os-handle-padding: 5px;
+  --os-handle-min-size: calc(33px + 2 * var(--os-handle-padding));
+  --os-handle-bg: content-box rgba(0, 0, 0, 0.3);
+  --os-handle-bg-hover: content-box rgba(0, 0, 0, 0.4);
+  --os-handle-bg-active: content-box rgba(0, 0, 0, 0.5);
+}
+
+.os-scrollbar-handle {
+  padding: var(--os-handle-padding);
+}
+
+.os-scrollbar-horizontal .os-scrollbar-handle {
+  margin-bottom: calc(var(--os-size) / 2 - var(--os-handle-perpendicular-size) / 2);
+}
+
+.os-scrollbar-vertical .os-scrollbar-handle {
+  margin-right: calc(var(--os-size) / 2 - var(--os-handle-perpendicular-size) / 2);
+}
+
+.os-scrollbar-horizontal {
+  bottom: calc(-1 * var(--os-size));
+}
+
+.os-scrollbar-vertical {
+  right: calc(-1 * var(--os-size));
+}

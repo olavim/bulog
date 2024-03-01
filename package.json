@@ -1,0 +1,78 @@
+{
+  "name": "bulog",
+  "version": "1.0.0",
+  "private": true,
+  "bin": {
+    "bulog": "./bin/run.js"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "npm run build:next && npm run build:cli",
+    "build:next": "shx rm -rf dist && next build && shx mkdir -p dist && shx cp -r .next/standalone dist/server && shx mkdir -p dist/server/.next && shx cp -r .next/static dist/server/.next/static && shx cp -r public dist/server",
+    "build:cli": "tsc --project tsconfig.cli.json",
+    "start": "cross-env NEXT_MANUAL_SIG_HANDLE=true node ./dist/server/server.js",
+    "lint": "next lint",
+    "postpack": "shx rm -f oclif.manifest.json",
+    "posttest": "npm run lint",
+    "prepack": "npm run build && oclif manifest && oclif readme",
+    "prepare": "npx next-ws-cli@latest patch -y && npm run build",
+    "version": "oclif readme && git add README.md",
+    "clitest": "node ./cli2.js | node ./bin/run.js my-app -p 3000"
+  },
+  "dependencies": {
+    "@oclif/core": "^3",
+    "@uiw/react-json-view": "^2.0.0-alpha.17",
+    "beautiful-react-hooks": "^5.0.1",
+    "json5": "^2.2.3",
+    "liqe": "^3.8.0",
+    "lodash": "^4.17.21",
+    "next": "14.1.0",
+    "next-ws": "^1.0.1",
+    "overlayscrollbars": "^2.5.0",
+    "overlayscrollbars-react": "^0.5.4",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-icons": "^5.0.1",
+    "react-resize-detector": "^10.0.1",
+    "react-tooltip": "^5.26.3",
+    "react-use-websocket": "^3.0.0",
+    "react-virtuoso": "^4.7.1",
+    "react-window": "^1.8.10",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.202",
+    "@types/node": "^20",
+    "@types/node-ipc": "^9.2.3",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/react-window": "^1.8.8",
+    "@types/ws": "^8.5.10",
+    "atomic-sleep": "^1.0.0",
+    "autoprefixer": "^10.0.1",
+    "cross-env": "^7.0.3",
+    "eslint": "^8",
+    "eslint-config-next": "14.1.0",
+    "oclif": "^4",
+    "postcss": "^8",
+    "shx": "^0.3.4",
+    "tailwindcss": "^3.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "oclif": {
+    "bin": "bulog",
+    "dirname": "bulog",
+    "default": ".",
+    "commands": "./dist/commands",
+    "topicSeparator": " ",
+    "topics": {
+      "hello": {
+        "description": "Say hello to the world and others"
+      }
+    }
+  }
+}

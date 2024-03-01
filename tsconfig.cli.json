@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "module": "commonjs",
+    "outDir": "dist",
+    "rootDir": "src/cli",
+    "strict": true,
+    "target": "es2022"
+  },
+  "include": [
+    "src/cli/**/*"
+  ]
+}
