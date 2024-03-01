@@ -2,6 +2,7 @@ import { WebSocket } from 'ws';
 import { Args, Command, Flags } from '@oclif/core';
 import { fork } from 'child_process';
 import * as JSON5 from 'json5';
+import { set } from 'lodash';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -87,7 +88,17 @@ export class Run extends Command {
     async sendInputToServer() {
         const { args, flags } = await this.parse(Run);
         const { bucket } = args;
-        const { port, host, pipeOutput } = flags;
+        const { port, host, pipeOutput, value } = flags;
+
+        const extraFields: any = {};
+
+        for (const val of value ?? []) {
+            const [key, value] = val.split(':');
+            if (!key || !value) {
+                this.error(`Invalid value "${val}". Use --help for more information`, { exit: 1 });
+            }
+            set(extraFields, key, value);
+        }
 
         process.stdin.pause();
         process.stdin.setEncoding('utf8');
@@ -150,7 +161,7 @@ export class Run extends Command {
             }
 
             for (const message of messages) {
-                socket.send(JSON.stringify({ bucket, message }));
+                socket.send(JSON.stringify({ bucket, message, extraFields }));
             }
 
             prevChunk = lines[lines.length - 1];
@@ -158,7 +169,7 @@ export class Run extends Command {
 
         process.stdin.on("end", () => {
             if (prevChunk) {
-                socket.send(JSON.stringify({ bucket, message: prevChunk }));
+                socket.send(JSON.stringify({ bucket, message: prevChunk, extraFields }));
             }
             process.exit();
         });

@@ -29,7 +29,7 @@ function broadcastDebouncedLogs(bucket: string) {
     };
 }
 
-export function broadcast(bucket: string, message: JSONValue) {
+export function broadcast(bucket: string, message: JSONValue, extraFields?: Record<string, JSONValue>) {
     broadcastedMessages[bucket] = (broadcastedMessages[bucket] ?? 0) + 1;
 
     const firstLogTime = debounceData[bucket]?.firstLogTime ?? Date.now();
@@ -43,7 +43,8 @@ export function broadcast(bucket: string, message: JSONValue) {
     const log: LogData = {
         id: `${bucket}/${broadcastedMessages[bucket]}`,
         timestamp: new Date().toISOString(),
-        message
+        message,
+        ...(extraFields ?? {})
     };
 
     debounceData[bucket] = {

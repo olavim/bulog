@@ -9,8 +9,8 @@ export function SOCKET(
     server: WebSocketServer,
 ) {
     client.on('message', data => {
-        const { bucket, message } = JSON.parse(data.toString());
-        broadcast(bucket, message);
+        const { bucket, message, extraFields } = JSON.parse(data.toString());
+        broadcast(bucket, message, extraFields);
     });
 }
 
