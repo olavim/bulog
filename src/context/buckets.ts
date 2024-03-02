@@ -36,9 +36,9 @@ export const createEvalFn = (code: string): (log: JSONValue) => Promise<JSONValu
 
     try {
         const fn = new Function(...functionModules.map(m => `__${m.name}`), code);
-        return fn(...(functionModules.map(m => m.module)));
+        return async (log: JSONValue) => fn(...(functionModules.map(m => m.module)))(log);
     } catch (err: any) {
-        return () => { throw err; };
+        return async () => { throw err; };
     }
 };
 

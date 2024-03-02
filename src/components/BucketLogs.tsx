@@ -57,21 +57,21 @@ export default function BucketLogs(props: BucketLogsProps) {
         }
     }, [logs, searchStr]);
 
-    useEffect(() => {
-        Promise.all(
-            filteredLogs.map(log => {
-                return Promise.all(
-                    columns.map(col => {
-                        try {
-                            return col.evalFn(log);
-                        } catch (err: any) {
-                            return Promise.resolve(err.message);
-                        }
-                    })
-                ).then(render => ({ log, render }));
-            })
-        ).then(renders => setRenderedLogs(renders));
-    }, [columns, filteredLogs]);
+    // useEffect(() => {
+    //     Promise.all(
+    //         filteredLogs.map(log => {
+    //             return Promise.all(
+    //                 columns.map(col => {
+    //                     try {
+    //                         return col.evalFn(log);
+    //                     } catch (err: any) {
+    //                         return Promise.resolve(err.message);
+    //                     }
+    //                 })
+    //             ).then(render => ({ log, render }));
+    //         })
+    //     ).then(renders => setRenderedLogs(renders));
+    // }, [columns, filteredLogs]);
 
     const logContainerRef = useRef<HTMLDivElement>(null);
 
@@ -175,9 +175,9 @@ export default function BucketLogs(props: BucketLogsProps) {
         setColumnResizeData({ target: id, origin: mouseX, originalWidth: actualWidth });
     }, [columnWidths, logContainerSize]);
 
-    const onSelectLog = useCallback((renderedLog: RenderedLog) => {
+    const onSelectLog = useCallback((log: LogData) => {
         setSelectedColumn(-1);
-        setSelectedLog(renderedLog.log);
+        setSelectedLog(log);
     }, []);
 
     const onSaveSelectedColumn = useCallback(async () => {
@@ -284,7 +284,7 @@ export default function BucketLogs(props: BucketLogsProps) {
                             </div>
                             {logContainerSize && (
                                 <LogList
-                                    logs={renderedLogs}
+                                    logs={filteredLogs}
                                     onScroll={onScroll}
                                     columns={columns}
                                     columnWidths={columnWidths}

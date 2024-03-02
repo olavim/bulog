@@ -62,11 +62,11 @@ const instantClickScrollPlugin: InstancePlugin<'instantClickScrollPlugin'> = {
 OverlayScrollbars.plugin(instantClickScrollPlugin);
 
 interface LogListProps {
-    logs: RenderedLog[];
+    logs: LogData[];
     selectedLog: LogData | null;
     columns: LogColumnData[];
     columnWidths: number[];
-    onSelectLog: (log: RenderedLog) => void;
+    onSelectLog: (log: LogData) => void;
     onScroll: (scrollLeft: number, scrollTop: number) => void;
 }
 
@@ -108,14 +108,14 @@ export default function LogList(props: LogListProps) {
         return () => osInstance()?.destroy();
     }, [scroller, initialize, osInstance]);
 
-    const renderItem = useCallback((index: number, renderedLog: RenderedLog) => {
+    const renderItem = useCallback((index: number, log: LogData) => {
         return (
             <Log
-                log={renderedLog}
+                log={log}
                 columns={columns}
                 columnWidths={columnWidths}
                 onClick={onSelectLog}
-                selected={renderedLog.log.id === selectedLog?.id}
+                selected={log.id === selectedLog?.id}
             />
         );
     }, [columnWidths, columns, onSelectLog, selectedLog]);

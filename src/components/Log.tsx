@@ -1,15 +1,15 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { Fira_Code } from "next/font/google";
-import { JSONValue, LogColumnData, RenderedLog } from "@/types";
+import { JSONValue, LogColumnData, LogData, RenderedLog } from "@/types";
 
 const fira = Fira_Code({ subsets: ["latin"] });
 
 interface LogProps {
-    log: RenderedLog;
+    log: LogData;
     selected: boolean;
     columns: LogColumnData[];
     columnWidths: number[];
-    onClick: (log: RenderedLog) => void;
+    onClick: (log: LogData) => void;
 }
 
 interface LogCellProps {
@@ -67,6 +67,7 @@ function getElement(value: JSONValue) {
 
 function LogCell(props: LogCellProps) {
     const { value, width, grow } = props;
+    const [element, setElement] = useState<JSX.Element | null>(null);
 
     return (
         <div
@@ -85,6 +86,11 @@ function LogCell(props: LogCellProps) {
 
 const Log = memo(function Log(props: LogProps) {
     const { onClick, log, selected, columns } = props;
+    const [render, setRender] = useState<JSONValue[]>([]);
+
+    useEffect(() => {
+        Promise.all(columns.map(col => col.evalFn(log).then(val => val).catch(err => err))).then(setRender);
+    }, [log, columns]);
 
     const onClickLog = useCallback(() => {
         onClick(log);
@@ -92,7 +98,7 @@ const Log = memo(function Log(props: LogProps) {
 
     return (
         <div data-selected={selected || undefined} className={`${fira.className} border-b group-last:border-b-0 border-box flex flex-row group min-w-fit`} style={{ height: 35 }} onClick={onClickLog}>
-            {log.render.map((value, index) => (
+            {render.map((value, index) => (
                 <LogCell
                     key={index}
                     value={value}
