@@ -1,63 +1,89 @@
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 import { Fira_Code } from "next/font/google";
-import get from 'lodash/get';
-import { LogColumnData, LogData } from "@/types";
+import { JSONValue, LogColumnData, RenderedLog } from "@/types";
 
 const fira = Fira_Code({ subsets: ["latin"] });
 
 interface LogProps {
-    log: LogData;
+    log: RenderedLog;
     selected: boolean;
     columns: LogColumnData[];
     columnWidths: number[];
-    onClick: (log: LogData) => void;
+    onClick: (log: RenderedLog) => void;
 }
 
-function getElement(log: LogData, column: LogColumnData) {
-    const value = column.pattern === '' ? log : get(log, column.pattern);
+interface LogCellProps {
+    value: JSONValue;
+    width: number;
+    grow: boolean;
+}
 
-    const getClass = (className?: string) => `text-ellipsis overflow-hidden whitespace-nowrap text-xs ${className ?? ''}`;
+const getElementClass = (className?: string) => `text-ellipsis overflow-hidden whitespace-nowrap text-xs ${className ?? ''}`;
 
-    if (column.format) {
+function getElement(value: JSONValue) {
+    try {
+        if (value instanceof Error) {
+            throw value;
+        }
+
+        if (typeof value === 'object') {
+            return (
+                <div className={getElementClass("text-gray-500")}>
+                    <span>{JSON.stringify(value)}</span>
+                </div>
+            );
+        }
+
+        if (typeof value === 'string') {
+            return (
+                <div className={getElementClass("text-gray-800")}>
+                    <span>{value}</span>
+                </div>
+            );
+        }
+
+        if (typeof value === 'number') {
+            return (
+                <div className={getElementClass("text-sky-700")}>
+                    <span>{value}</span>
+                </div>
+            );
+        }
+
         return (
-            <div className={getClass()}>
-                <span>{column.format(value)}</span>
-            </div>
-        );
-    }
-
-    if (typeof value === 'object') {
-        return (
-            <div className={getClass("text-gray-500")}>
-                <span>{JSON.stringify(value)}</span>
-            </div>
-        );
-    }
-
-    if (typeof value === 'string') {
-        return (
-            <div className={getClass("text-gray-800")}>
+            <div className={getElementClass()}>
                 <span>{value}</span>
             </div>
         );
-    }
-
-    if (typeof value === 'number') {
+    } catch (err: any) {
         return (
-            <div className={getClass("text-sky-700")}>
-                <span>{value}</span>
+            <div className={getElementClass()}>
+                <span className="text-red-700">Formatter error: </span>
+                <span className="text-gray-600">{err.message}</span>
             </div>
         );
     }
+}
+
+function LogCell(props: LogCellProps) {
+    const { value, width, grow } = props;
 
     return (
-        <div className={getClass()}>
-            <span>{value}</span>
+        <div
+            className="flex items-center overflow-hidden pl-6 pr-2 group-hover:bg-slate-50 group-data-[selected]:bg-slate-100"
+            style={{
+                flexGrow: grow ? 1 : 0,
+                flexShrink: 0,
+                flexBasis: width,
+                width
+            }}
+        >
+            {getElement(value)}
         </div>
     );
 }
 
-export default function Log(props: LogProps) {
+const Log = memo(function Log(props: LogProps) {
     const { onClick, log, selected, columns } = props;
 
     const onClickLog = useCallback(() => {
@@ -66,20 +92,16 @@ export default function Log(props: LogProps) {
 
     return (
         <div data-selected={selected || undefined} className={`${fira.className} border-b group-last:border-b-0 border-box flex flex-row group min-w-fit`} style={{ height: 35 }} onClick={onClickLog}>
-            {columns.map((col, index) => (
-                <div
+            {log.render.map((value, index) => (
+                <LogCell
                     key={index}
-                    className="flex items-center overflow-hidden pl-6 pr-2 group-hover:bg-slate-50 group-data-[selected]:bg-slate-100"
-                    style={{
-                        flexGrow: index === columns.length - 1 ? 1 : 0,
-                        flexShrink: 0,
-                        flexBasis: props.columnWidths[index],
-                        width: props.columnWidths[index]
-                    }}
-                >
-                    {getElement(log, col)}
-                </div>
+                    value={value}
+                    width={props.columnWidths[index]}
+                    grow={index === columns.length - 1}
+                />
             ))}
         </div>
     );
-}
+});
+
+export default Log;

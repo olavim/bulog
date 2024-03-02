@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Sandbox</title>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <script>
+        const lodash = window._;
+        delete window._;
+
+        const created = {};
+
+        function createFn(id, code) {
+            const evalCode = `
+                const require = name => {
+                    const m = modules[name];
+                    if (!m) throw new Error('Module not found: ' + name);
+                    return m;
+                };
+
+                ${code}
+            `;
+            try {
+                const result = new Function('modules', evalCode)({ lodash });
+                created[id] = typeof result === 'function' ? result : () => result;
+            } catch (err) {
+                created[id] = () => { throw err; };
+            }
+
+            return { source: 'sandbox', id, type: 'fn-created' };
+        }
+
+        async function evalFn(id, fnId, arg) {
+            let result;
+            try {
+                result = await Promise.resolve(created[fnId](arg));
+            } catch (err) {
+                result = err;
+            }
+
+            return { source: 'sandbox', id, type: 'fn-result', result };
+        }
+
+        window.addEventListener('message', async (evt) => {
+            let response;
+
+            if (evt.data.type === 'create-fn') {
+                const { id, code } = evt.data;
+                response = createFn(id, code);
+            }
+
+            if (evt.data.type === 'eval-fn') {
+                const { id, fnId, arg } = evt.data;
+                response = await evalFn(id, fnId, arg);
+            }
+
+            evt.source.postMessage(response, evt.origin);
+        });
+
+        window.addEventListener('beforeunload', (evt) => {
+            window.parent.postMessage({ source: 'sandbox', type: 'sandbox-unloaded' }, '*');
+        });
+    </script>
+</head>
+
+</html>

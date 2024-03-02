@@ -1,10 +1,9 @@
-import { LogColumnData, LogData } from "@/types";
-import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { LogColumnData, LogData, RenderedLog } from "@/types";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
 import Log from "./Log";
 import { useOverlayScrollbars } from "overlayscrollbars-react";
 import { InstancePlugin, OverlayScrollbars } from 'overlayscrollbars';
-import { useResizeDetector } from "react-resize-detector";
 
 type ClickScrollEventDetails = { direction: 'horizontal' | 'vertical' };
 
@@ -63,11 +62,11 @@ const instantClickScrollPlugin: InstancePlugin<'instantClickScrollPlugin'> = {
 OverlayScrollbars.plugin(instantClickScrollPlugin);
 
 interface LogListProps {
-    logs: LogData[];
-    selectedLog?: LogData;
+    logs: RenderedLog[];
+    selectedLog: LogData | null;
     columns: LogColumnData[];
     columnWidths: number[];
-    onSelectLog: (log: LogData) => void;
+    onSelectLog: (log: RenderedLog) => void;
     onScroll: (scrollLeft: number, scrollTop: number) => void;
 }
 
@@ -109,17 +108,17 @@ export default function LogList(props: LogListProps) {
         return () => osInstance()?.destroy();
     }, [scroller, initialize, osInstance]);
 
-    const renderItem = useCallback((index: number, log: LogData) => {
+    const renderItem = useCallback((index: number, renderedLog: RenderedLog) => {
         return (
             <Log
-                log={log}
+                log={renderedLog}
                 columns={columns}
                 columnWidths={columnWidths}
                 onClick={onSelectLog}
-                selected={log.id === selectedLog?.id}
+                selected={renderedLog.log.id === selectedLog?.id}
             />
         );
-    }, [columnWidths, columns, onSelectLog, selectedLog?.id]);
+    }, [columnWidths, columns, onSelectLog, selectedLog]);
 
     return (
         <>

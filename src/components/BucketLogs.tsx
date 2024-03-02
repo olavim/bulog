@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { LogData } from "@/types";
+import { JSONValue, LogData, RenderedLog } from "@/types";
 import { filter as liqeFilter, parse as liqeParse, SyntaxError as LiqeSyntaxError } from 'liqe';
 import { useResizeDetector } from "react-resize-detector";
 import useGlobalEvent from "beautiful-react-hooks/useGlobalEvent";
@@ -11,7 +11,13 @@ import LogList from "./LogList";
 import LogColumn from "./LogColumn";
 import { RiInsertColumnRight } from "react-icons/ri";
 import ReactDOMServer from "react-dom/server";
-import { useColumns, useLogs } from "@/context/buckets";
+import { createSimpleFormatter, useColumns, useLogs } from "@/context/buckets";
+import CodeMirror from '@uiw/react-codemirror';
+import { javascript } from '@codemirror/lang-javascript';
+import { v4 as uuidv4 } from 'uuid';
+import { useSandbox } from "@/context/codeSandbox";
+
+const defaultFormatter = createSimpleFormatter();
 
 interface BucketLogsProps {
     bucket: string;
@@ -20,16 +26,19 @@ interface BucketLogsProps {
 export default function BucketLogs(props: BucketLogsProps) {
     const { bucket } = props;
     const logs = useLogs(bucket);
+    const [renderedLogs, setRenderedLogs] = useState<RenderedLog[]>([]);
     const { columns, columnWidths, setColumns, setColumnWidths } = useColumns(bucket);
 
-    const [selectedLog, setSelectedLog] = useState<LogData>();
+    const [selectedLog, setSelectedLog] = useState<LogData | null>(null);
     const [selectedColumn, setSelectedColumn] = useState<number>(-1);
     const [scrollLeft, setScrollLeft] = useState<number>(0);
     const [columnResizeData, setColumnResizeData] = useState<{ target: number, origin: number; originalWidth: number }>();
     const [logContainerSize, setLogContainerSize] = useState<{ width: number; height: number }>();
     const [columnNameStr, setColumnNameStr] = useState<string>('');
     const [columnPatternStr, setColumnPatternStr] = useState<string>('');
+    const [columnFormatterStr, setColumnFormatterStr] = useState<string>('');
     const [searchStr, setSearchStr] = useState<string>('');
+    const { createFn } = useSandbox();
 
     const [filteredLogs, searchError] = useMemo(() => {
         if (searchStr === '') {
@@ -44,10 +53,25 @@ export default function BucketLogs(props: BucketLogsProps) {
                 return [[] as LogData[], err.message];
             }
 
-            console.error(err);
             return [logs, null];
         }
     }, [logs, searchStr]);
+
+    useEffect(() => {
+        Promise.all(
+            filteredLogs.map(log => {
+                return Promise.all(
+                    columns.map(col => {
+                        try {
+                            return col.evalFn(log);
+                        } catch (err: any) {
+                            return Promise.resolve(err.message);
+                        }
+                    })
+                ).then(render => ({ log, render }));
+            })
+        ).then(renders => setRenderedLogs(renders));
+    }, [columns, filteredLogs]);
 
     const logContainerRef = useRef<HTMLDivElement>(null);
 
@@ -62,21 +86,40 @@ export default function BucketLogs(props: BucketLogsProps) {
         setScrollLeft(scrollLeft);
     }, []);
 
-    const onAddEmptyColumn = useCallback(() => {
+    const onAddEmptyColumn = useCallback(async () => {
         setSelectedColumn(columns.length);
-        setSelectedLog(undefined);
-        setColumns([...columns, { name: 'New Column', pattern: '' }]);
-        setColumnWidths([...columnWidths, 200]);
-    }, [columnWidths, setColumnWidths, columns, setColumns]);
+        setSelectedLog(null);
 
-    const onAddColumn = useCallback((name: string, pattern: string, select: boolean) => {
+        const id = uuidv4();
+
+        setColumns([...columns, {
+            id,
+            name: 'New Column',
+            pattern: '',
+            evalStr: defaultFormatter,
+            evalFn: await createFn(id, defaultFormatter)
+        }]);
+        setColumnWidths([...columnWidths, 200]);
+    }, [columns, setColumns, createFn, setColumnWidths, columnWidths]);
+
+    const onAddColumn = useCallback(async (name: string, pattern: string, select: boolean) => {
         if (select) {
             setSelectedColumn(columns.length);
-            setSelectedLog(undefined);
+            setSelectedLog(null);
         }
-        setColumns([...columns, { name, pattern }]);
+
+        const id = uuidv4();
+        const evalStr = createSimpleFormatter(pattern ? `log${pattern}` : 'log');
+
+        setColumns([...columns, {
+            id,
+            name,
+            pattern,
+            evalStr,
+            evalFn: await createFn(id, evalStr)
+        }]);
         setColumnWidths([...columnWidths, 200]);
-    }, [columnWidths, columns, setColumnWidths, setColumns]);
+    }, [columnWidths, columns, createFn, setColumnWidths, setColumns]);
 
     useResizeDetector({
         targetRef: logContainerRef,
@@ -113,7 +156,7 @@ export default function BucketLogs(props: BucketLogsProps) {
     });
 
     const onDeselect = useCallback(() => {
-        setSelectedLog(undefined);
+        setSelectedLog(null);
         setSelectedColumn(-1);
     }, []);
 
@@ -132,16 +175,23 @@ export default function BucketLogs(props: BucketLogsProps) {
         setColumnResizeData({ target: id, origin: mouseX, originalWidth: actualWidth });
     }, [columnWidths, logContainerSize]);
 
-    const onSelectLog = useCallback((log: LogData) => {
+    const onSelectLog = useCallback((renderedLog: RenderedLog) => {
         setSelectedColumn(-1);
-        setSelectedLog(log);
+        setSelectedLog(renderedLog.log);
     }, []);
 
-    const onSaveSelectedColumn = useCallback(() => {
+    const onSaveSelectedColumn = useCallback(async () => {
         const cols = [...columns];
-        cols[selectedColumn] = { name: columnNameStr, pattern: columnPatternStr };
+
+        cols[selectedColumn] = {
+            id: cols[selectedColumn].id,
+            name: columnNameStr,
+            pattern: columnPatternStr,
+            evalStr: columnFormatterStr,
+            evalFn: await createFn(cols[selectedColumn].id, columnFormatterStr)
+        };
         setColumns(cols);
-    }, [columnNameStr, columnPatternStr, columns, selectedColumn, setColumns]);
+    }, [columnFormatterStr, columnNameStr, columnPatternStr, columns, createFn, selectedColumn, setColumns]);
 
     const onDeleteSelectedColumn = useCallback(() => {
         const cols = columns.toSpliced(selectedColumn, 1);
@@ -159,9 +209,10 @@ export default function BucketLogs(props: BucketLogsProps) {
 
     const onSelectColumn = useCallback((id: number) => {
         setSelectedColumn(id);
-        setSelectedLog(undefined);
+        setSelectedLog(null);
         setColumnNameStr(columns[id].name);
         setColumnPatternStr(columns[id].pattern);
+        setColumnFormatterStr(columns[id].evalStr);
     }, [columns]);
 
     return (
@@ -233,7 +284,7 @@ export default function BucketLogs(props: BucketLogsProps) {
                             </div>
                             {logContainerSize && (
                                 <LogList
-                                    logs={filteredLogs}
+                                    logs={renderedLogs}
                                     onScroll={onScroll}
                                     columns={columns}
                                     columnWidths={columnWidths}
@@ -256,63 +307,72 @@ export default function BucketLogs(props: BucketLogsProps) {
                                 </button>
                             </div>
                             <div className="overflow-auto w-full items-start justify-between border-t font-mono flex py-6 px-2">
-                                {selectedLog && (
-                                    <JsonView
-                                        value={selectedLog}
-                                        displayDataTypes={false}
-                                        className="grow"
-                                    >
-                                        <JsonView.Copied<'svg'>
-                                            render={({ style, onClick, ...props }, { keys }) => {
-                                                const copied = (props as any)['data-copied'];
-                                                const columnName = keys ? String(keys[keys.length - 1]) : 'log';
-                                                const columnPattern = keys ? keys.join('.') : '';
-                                                return (
-                                                    <>
-                                                        {!copied && <FaClipboard style={style} className="inline text-gray-500 hover:text-gray-400" onClick={onClick} />}
-                                                        {copied && <FaClipboardCheck style={style} className="inline text-emerald-500" />}
-                                                        <MdAddCircle
-                                                            style={style}
-                                                            className="inline text-gray-500 hover:text-gray-400"
-                                                            onClick={() => onAddColumn(columnName, columnPattern, false)}
-                                                        />
-                                                    </>
-                                                );
-                                            }}
-                                        />
-                                    </JsonView>
-                                )}
+                                <JsonView
+                                    value={selectedLog}
+                                    displayDataTypes={false}
+                                    className="grow"
+                                >
+                                    <JsonView.Copied<'svg'>
+                                        render={({ style, onClick, ...props }, { keys }) => {
+                                            const copied = (props as any)['data-copied'];
+                                            const columnName = keys ? String(keys[keys.length - 1]) : 'log';
+                                            const columnPattern = keys
+                                                ? keys.map(k => /^[a-zA-Z][a-zA-Z0-9]*$/.test(String(k)) ? `.${k}` : `.['${k}']`).join('?')
+                                                : '';
+                                            return (
+                                                <>
+                                                    {!copied && <FaClipboard style={style} className="inline text-gray-500 hover:text-gray-400" onClick={onClick} />}
+                                                    {copied && <FaClipboardCheck style={style} className="inline text-emerald-500" />}
+                                                    <MdAddCircle
+                                                        style={style}
+                                                        className="inline text-gray-500 hover:text-gray-400"
+                                                        onClick={() => onAddColumn(columnName, columnPattern, false)}
+                                                    />
+                                                </>
+                                            );
+                                        }}
+                                    />
+                                </JsonView>
                             </div>
                         </div>
                     )}
                     {selectedColumn !== -1 && (
-                        <div className="flex flex-col min-w-[25rem] px-4">
+                        <div className="flex flex-col w-[35rem] px-4">
                             <div className="flex px-2 basis-20 shrink-0 grow-0 items-center justify-between">
                                 <h1 className="text-lg font-medium text-slate-600">{'Column details'}</h1>
                                 <button className="p-2 rounded-full hover:bg-gray-200 cursor-pointer" onClick={onDeselect}>
                                     <MdClose className="text-xl text-slate-600" />
                                 </button>
                             </div>
-                            <div className="items-startflex py-6 px-2 border-t space-y-4">
-                                <div className="flex flex-col space-y-2">
-                                    <label htmlFor="column-name-input" className="text-xs text-gray-800 font-medium">Name</label>
+                            <div className="items-start flex flex-col grow py-6 px-2 border-t space-y-4">
+                                <div className="flex flex-col w-full space-y-2">
+                                    <label htmlFor="column-name-input" className="text-xs text-gray-800 font-medium">{'Name'}</label>
                                     <input
                                         value={columnNameStr}
                                         onChange={evt => setColumnNameStr(evt.target.value)}
                                         id="column-name-input"
-                                        className="text-xs h-[35px] border border-gray-300 shadow rounded py-1 px-3 text-gray-600"
+                                        className="text-xs basis-[35px] w-full border border-gray-300 shadow rounded py-1 px-3 text-gray-600"
                                     />
                                 </div>
-                                <div className="flex flex-col space-y-2">
-                                    <label htmlFor="column-pattern-input" className="text-xs text-gray-800 font-medium">Pattern</label>
-                                    <input
-                                        value={columnPatternStr}
-                                        onChange={evt => setColumnPatternStr(evt.target.value)}
-                                        id="column-pattern-input"
-                                        className="text-xs h-[35px] border border-gray-300 shadow rounded py-1 px-3 text-gray-600"
+                                <div className="flex flex-col grow w-full space-y-2">
+                                    <label htmlFor="column-pattern-input" className="text-xs text-gray-800 font-medium">{'Formatter'}</label>
+                                    <CodeMirror
+                                        className="basis-40 border rounded shadow p-2 outline-none"
+                                        height="100%"
+                                        extensions={[javascript()]}
+                                        value={columnFormatterStr}
+                                        onChange={setColumnFormatterStr}
+                                        basicSetup={{
+                                            lineNumbers: false,
+                                            foldGutter: false,
+                                            highlightActiveLineGutter: false
+                                        }}
+                                        onCreateEditor={view => {
+                                            view.dom.style.outline = 'none';
+                                        }}
                                     />
                                 </div>
-                                <div className="flex flex-row justify-between pt-4">
+                                <div className="flex flex-row w-full justify-between pt-4">
                                     <button
                                         className="h-[30px] inline-flex flex-row items-center bg-sky-500 hover:bg-sky-400 disabled:bg-gray-300 text-sm text-white font-medium pl-3 pr-4 rounded shadow"
                                         onClick={onSaveSelectedColumn}

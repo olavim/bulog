@@ -1,5 +1,7 @@
-import { Dispatch, Reducer, createContext, useCallback, useContext, useEffect, useMemo, useReducer, useState } from "react";
-import { JSONValue, LogColumnData, LogData, LogMessage } from "@/types";
+import { Dispatch, Reducer, createContext, useCallback, useContext, useMemo, useReducer } from "react";
+import { JSONValue, LogColumnData, LogData } from "@/types";
+import lodash from 'lodash';
+import { v4 as uuidv4 } from 'uuid';
 
 type BucketsContextType = {
     buckets: Map<string, {
@@ -14,11 +16,43 @@ type BucketsReducerActionType =
     | { type: 'setColumns', bucket: string; columns: LogColumnData[] }
     | { type: 'setColumnWidths', bucket: string; columnWidths: number[] };
 
+export const createSimpleFormatter = (pattern?: string) => {
+    const str = `
+const _ = require('lodash');
+
+return log => {
+  return ${pattern ?? 'log'};
+};`;
+    return str.trim();
+};
+
+const functionModules = [{ name: 'lodash', module: lodash }];
+
+export const createEvalFn = (code: string): (log: JSONValue) => Promise<JSONValue> => {
+    code = functionModules.reduce(
+        (str, module) => str.replace(new RegExp(`require\\(.${module.name}.\\)`), `__${module.name}`),
+        code
+    );
+
+    try {
+        const fn = new Function(...functionModules.map(m => `__${m.name}`), code);
+        return fn(...(functionModules.map(m => m.module)));
+    } catch (err: any) {
+        return () => { throw err; };
+    }
+};
+
+const defaultTimestampFormatter = createSimpleFormatter('new Date(log.timestamp).toLocaleString()');
+const defaultTimestampEvalFn = createEvalFn(defaultTimestampFormatter);
+
+const defaultMessageFormatter = createSimpleFormatter('log.message');
+const defaultMessageEvalFn = createEvalFn(defaultMessageFormatter);
+
 const initialBucket = {
     logs: [],
     columns: [
-        { name: 'timestamp', pattern: 'timestamp', format: (val: JSONValue) => new Date(val as string).toLocaleString() },
-        { name: 'message', pattern: 'message' }
+        { id: uuidv4(), name: 'timestamp', pattern: 'timestamp', evalStr: defaultTimestampFormatter, evalFn: defaultTimestampEvalFn },
+        { id: uuidv4(), name: 'message', pattern: 'message', evalStr: defaultMessageFormatter, evalFn: defaultMessageEvalFn }
     ],
     columnWidths: [220, 200]
 };

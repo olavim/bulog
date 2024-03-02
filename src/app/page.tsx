@@ -9,6 +9,7 @@ import { useBuckets } from "@/context/buckets";
 export default function Home() {
   const buckets = useBuckets();
   const [selectedBucket, setSelectedBucket] = useState<string>();
+
   const bucketNames = Array.from(buckets.keys());
 
   useEffect(() => {

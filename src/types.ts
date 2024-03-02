@@ -1,7 +1,9 @@
 export interface LogColumnData {
+    id: string;
     name: string;
     pattern: string;
-    format?: (value: JSONValue) => string;
+    evalStr: string;
+    evalFn: (log: JSONValue) => Promise<JSONValue>;
 }
 
 export type JSONValue =
@@ -21,4 +23,9 @@ export interface LogData extends Record<string, JSONValue> {
 export interface LogMessage {
     bucket: string;
     logs: LogData[];
+}
+
+export interface RenderedLog {
+    log: LogData;
+    render: JSONValue[];
 }
