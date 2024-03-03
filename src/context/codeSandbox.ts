@@ -1,6 +1,6 @@
 import { JSONValue, LogData } from "@/types";
 import useGlobalEvent from "beautiful-react-hooks/useGlobalEvent";
-import lodash from "lodash";
+import lodash, { memoize } from "lodash";
 import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -36,19 +36,19 @@ export function useSandbox() {
 
         delete pendingCreates.current[fnId];
 
-        return async (value: JSONValue) => {
+        return memoize(async (log: LogData) => {
             const evalId = uuidv4();
             const evalPromise = new Promise<JSONValue>(resolve => {
                 pendingEvals.current[evalId] = resolve;
             });
 
-            iframe.contentWindow?.postMessage({ id: evalId, fnId, arg: value, type: 'eval-fn' }, '*');
+            iframe.contentWindow?.postMessage({ id: evalId, fnId, arg: log, type: 'eval-fn' }, '*');
             const result = await evalPromise;
 
             delete pendingEvals.current[evalId];
 
             return result;
-        };
+        }, log => log.id);
     }, [iframe.contentWindow]);
 
     return { createFn };

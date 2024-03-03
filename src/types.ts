@@ -3,7 +3,7 @@ export interface LogColumnData {
     name: string;
     pattern: string;
     evalStr: string;
-    evalFn: (log: JSONValue) => Promise<JSONValue>;
+    evalFn: (log: LogData) => Promise<JSONValue>;
 }
 
 export type JSONValue =

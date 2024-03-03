@@ -1,6 +1,6 @@
-import { LogColumnData, LogData, RenderedLog } from "@/types";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
+import { LogColumnData, LogData } from "@/types";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ItemContent, Virtuoso, VirtuosoHandle } from "react-virtuoso";
 import Log from "./Log";
 import { useOverlayScrollbars } from "overlayscrollbars-react";
 import { InstancePlugin, OverlayScrollbars } from 'overlayscrollbars';
@@ -61,6 +61,10 @@ const instantClickScrollPlugin: InstancePlugin<'instantClickScrollPlugin'> = {
 
 OverlayScrollbars.plugin(instantClickScrollPlugin);
 
+const VirtuosoItem = memo(function VirtuosoItem(props: React.HTMLAttributes<HTMLDivElement>) {
+    return <div className="group" {...props} />;
+});
+
 interface LogListProps {
     logs: LogData[];
     selectedLog: LogData | null;
@@ -68,10 +72,6 @@ interface LogListProps {
     columnWidths: number[];
     onSelectLog: (log: LogData) => void;
     onScroll: (scrollLeft: number, scrollTop: number) => void;
-}
-
-function VirtuosoItem(props: React.HTMLAttributes<HTMLDivElement>) {
-    return <div className="group" {...props} />;
 }
 
 export default function LogList(props: LogListProps) {
@@ -108,18 +108,6 @@ export default function LogList(props: LogListProps) {
         return () => osInstance()?.destroy();
     }, [scroller, initialize, osInstance]);
 
-    const renderItem = useCallback((index: number, log: LogData) => {
-        return (
-            <Log
-                log={log}
-                columns={columns}
-                columnWidths={columnWidths}
-                onClick={onSelectLog}
-                selected={log.id === selectedLog?.id}
-            />
-        );
-    }, [columnWidths, columns, onSelectLog, selectedLog]);
-
     return (
         <>
             <div ref={rootRef} data-overlayscrollbars="" className="h-full overflow-visible" />
@@ -128,10 +116,18 @@ export default function LogList(props: LogListProps) {
                 data={logs}
                 scrollerRef={setScroller}
                 components={{ Item: VirtuosoItem }}
-                followOutput={'smooth'}
+                followOutput="smooth"
                 initialTopMostItemIndex={logs.length - 1}
                 onScroll={handleScroll}
-                itemContent={renderItem}
+                itemContent={(index, data) => (
+                    <Log
+                        log={data}
+                        columns={columns}
+                        columnWidths={columnWidths}
+                        onClick={onSelectLog}
+                        selected={data.id === selectedLog?.id}
+                    />
+                )}
             />
         </>
     );

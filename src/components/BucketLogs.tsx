@@ -57,22 +57,6 @@ export default function BucketLogs(props: BucketLogsProps) {
         }
     }, [logs, searchStr]);
 
-    // useEffect(() => {
-    //     Promise.all(
-    //         filteredLogs.map(log => {
-    //             return Promise.all(
-    //                 columns.map(col => {
-    //                     try {
-    //                         return col.evalFn(log);
-    //                     } catch (err: any) {
-    //                         return Promise.resolve(err.message);
-    //                     }
-    //                 })
-    //             ).then(render => ({ log, render }));
-    //         })
-    //     ).then(renders => setRenderedLogs(renders));
-    // }, [columns, filteredLogs]);
-
     const logContainerRef = useRef<HTMLDivElement>(null);
 
     const onMouseMove = useGlobalEvent<MouseEvent>('mousemove');
@@ -282,16 +266,14 @@ export default function BucketLogs(props: BucketLogsProps) {
                                     ))}
                                 </div>
                             </div>
-                            {logContainerSize && (
-                                <LogList
-                                    logs={filteredLogs}
-                                    onScroll={onScroll}
-                                    columns={columns}
-                                    columnWidths={columnWidths}
-                                    onSelectLog={onSelectLog}
-                                    selectedLog={selectedLog}
-                                />
-                            )}
+                            <LogList
+                                logs={filteredLogs}
+                                onScroll={onScroll}
+                                columns={columns}
+                                columnWidths={columnWidths}
+                                onSelectLog={onSelectLog}
+                                selectedLog={selectedLog}
+                            />
                         </div>
                     </Card>
                 </div>
@@ -310,6 +292,7 @@ export default function BucketLogs(props: BucketLogsProps) {
                                 <JsonView
                                     value={selectedLog}
                                     displayDataTypes={false}
+
                                     className="grow"
                                 >
                                     <JsonView.Copied<'svg'>
