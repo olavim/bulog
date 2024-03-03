@@ -35,10 +35,18 @@ input:focus {
   }
 }
 
+.w-json-view-container {
+  position: relative;
+  padding-left: 21px;
+}
 .w-rjv-copied {
   display: unset;
 }
 
+.w-rjv-arrow {
+  position: absolute;
+  left: 0;
+}
 .os-scrollbar {
   --os-size: 16px;
   --os-handle-perpendicular-size: 16px;
