@@ -1,8 +1,8 @@
 import { WebSocket } from 'ws';
 import { Args, Command, Flags } from '@oclif/core';
 import { fork } from 'child_process';
-import * as JSON5 from 'json5';
-import { set } from 'lodash';
+import JSON5 from 'json5';
+import _ from 'lodash';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -97,7 +97,7 @@ export class Run extends Command {
             if (!key || !value) {
                 this.error(`Invalid value "${val}". Use --help for more information`, { exit: 1 });
             }
-            set(extraFields, key, value);
+            _.set(extraFields, key, value);
         }
 
         process.stdin.pause();

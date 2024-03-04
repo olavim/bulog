@@ -37,4 +37,5 @@ yarn-error.log*
 next-env.d.ts
 
 dummy-app.js
+test-data.js
 1MB.json

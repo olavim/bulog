@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "composite": true,
     "target": "ES2020",
     "esModuleInterop": true,
     "useDefineForClassFields": true,
@@ -11,11 +10,14 @@
       "esnext"
     ],
     "module": "ESNext",
-    "skipLibCheck": true,
     "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
-    "strict": true,
+    "isolatedModules": true,
     "jsx": "react-jsx",
+    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
@@ -27,8 +29,6 @@
   },
   "include": [
     "src/app",
-    "src/server",
-    "src/cli",
     "src/types.d.ts"
   ]
 }
