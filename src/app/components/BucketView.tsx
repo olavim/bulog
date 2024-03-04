@@ -179,7 +179,7 @@ export default function BucketLogs(props: BucketLogsProps) {
         if (selectedColumn === 0) {
             cols[selectedColumn].width = columns[0].width + columns[1].width;
         } else {
-            cols[selectedColumn].width = columns[selectedColumn - 1].width + columns[selectedColumn].width;
+            cols[selectedColumn - 1].width = columns[selectedColumn - 1].width + columns[selectedColumn].width;
         }
 
         setColumns(cols);

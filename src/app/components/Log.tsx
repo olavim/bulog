@@ -26,11 +26,11 @@ function Log(props: LogProps) {
 
     return (
         <div data-selected={selected || undefined} className="font-['Fira_Code'] border-b group-last:border-b-0 border-box flex flex-row group min-w-fit" style={{ height: 35 }} onClick={onClickLog}>
-            {render.map((value, index) => (
+            {columns.map((col, index) => (
                 <LogCell
                     key={index}
-                    value={value}
-                    width={props.columns[index].width}
+                    value={render[index]}
+                    width={col.width}
                     grow={index === columns.length - 1}
                 />
             ))}

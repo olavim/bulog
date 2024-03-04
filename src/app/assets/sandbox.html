@@ -34,6 +34,10 @@
             let result;
             try {
                 result = await Promise.resolve(created[fnId](arg));
+
+                if (typeof result === 'function') {
+                    throw new Error('Cannot return a function');
+                }
             } catch (err) {
                 result = err;
             }
