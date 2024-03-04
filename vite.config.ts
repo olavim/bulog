@@ -3,18 +3,19 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import url from 'url';
 
-const __filename = url.fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const filename = url.fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 // https://vitejs.dev/config/
 export default defineConfig({
   root: 'src/app',
   build: {
-    outDir: '../../dist/app',
+    outDir: path.resolve(dirname, 'dist/app'),
     emptyOutDir: true,
+    chunkSizeWarningLimit: 2000
   },
   plugins: [react()],
   resolve: {
-    alias: { '@': path.resolve(__dirname, 'src/app') },
+    alias: { '@': path.resolve(dirname, 'src/app') },
   }
 });

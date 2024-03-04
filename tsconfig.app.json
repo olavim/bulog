@@ -1,9 +1,6 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "esModuleInterop": true,
-    "useDefineForClassFields": true,
-    "allowSyntheticDefaultImports": true,
     "lib": [
       "dom",
       "dom.iterable",
@@ -13,6 +10,8 @@
     "moduleResolution": "bundler",
     "skipLibCheck": true,
     "noEmit": true,
+    "useDefineForClassFields": true,
+    "allowSyntheticDefaultImports": true,
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,

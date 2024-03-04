@@ -1,29 +1,7 @@
 import { WebSocket } from 'ws';
 import { Args, Command, Flags } from '@oclif/core';
-import { fork } from 'child_process';
 import JSON5 from 'json5';
 import _ from 'lodash';
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-const retryFetch = async (url: string, retries = 3, retryDelay = 1000) => {
-    return new Promise((resolve, reject) => {
-        const wrapper = (n: number) => {
-            fetch(url)
-                .then((res) => resolve(res))
-                .catch(async (err) => {
-                    if (n > 0) {
-                        await delay(retryDelay);
-                        wrapper(--n);
-                    } else {
-                        reject(err);
-                    }
-                });
-        };
-
-        wrapper(retries);
-    });
-};
 
 export class Run extends Command {
     static args = {
@@ -61,28 +39,14 @@ export class Run extends Command {
     }
 
     async startServer() {
+        const { getServer } = await import('../server/index.js');
         const { flags } = await this.parse(Run);
         const { port, host } = flags;
 
-        fork('dist/server/server.js', {
-            stdio: 'ignore',
-            env: {
-                ...process.env,
-                PORT: String(port),
-                HOST: host,
-                NEXT_PUBLIC_PORT: String(port),
-                NEXT_PUBLIC_HOST: host,
-                NEXT_MANUAL_SIG_HANDLE: 'true'
-            }
+        const server = await getServer();
+        server.listen(port, host, () => {
+            this.log(`Bulog is running at ${host}:${port}`);
         });
-
-        try {
-            await retryFetch(`http://${host}:${port}/api/health`, 10);
-        } catch (err: any) {
-            this.error('Failed to start Bulog server', { exit: 1 });
-        }
-
-        this.log(`Bulog is running at ${host}:${port}`);
     }
 
     async sendInputToServer() {

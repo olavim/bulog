@@ -1,19 +1,18 @@
 {
   "compilerOptions": {
     "composite": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "target": "ES2020",
-    "esModuleInterop": true,
-    "useDefineForClassFields": true,
-    "allowSyntheticDefaultImports": true,
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
-    "module": "ESNext",
+    "esModuleInterop": true,
+    "useDefineForClassFields": true,
+    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
     "strict": true,
     "jsx": "react-jsx",
     "noUnusedLocals": true,

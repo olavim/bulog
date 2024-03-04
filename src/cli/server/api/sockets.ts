@@ -1,6 +1,6 @@
 import { Server } from 'http';
 import { WebSocketServer } from 'ws';
-import Comms from './comms.js';
+import Comms from '../comms.js';
 
 export default function setupWebSocketServer(server: Server) {
     const wssIn = new WebSocketServer({ noServer: true });

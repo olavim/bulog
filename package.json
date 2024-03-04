@@ -7,13 +7,12 @@
   },
   "version": "0.0.0",
   "scripts": {
-    "start": "cross-env NODE_ENV=production node ./dist/server/index.js",
-    "dev": "tsx watch --clear-screen=false --ignore vite.config.ts.* ./src/server",
+    "start": "node ./bin/run.js -p 3000",
+    "dev": "tsx watch --ignore vite.config.ts.* ./bin/dev.js -p 3000",
     "clean": "shx rm -rf dist",
-    "build": "npm run clean && npm run build:app && npm run build:server && npm run build:cli",
-    "build:app": "tsc --project tsconfig.app.json && vite build",
-    "build:server": "tsc --project tsconfig.server.json",
-    "build:cli": "tsc --project tsconfig.cli.json",
+    "build": "npm run build:app && npm run build:cli",
+    "build:app": "tsc -p tsconfig.app.json && shx rm -rf dist/app && vite build",
+    "build:cli": "shx rm -rf dist/cli && tsc -p tsconfig.cli.json",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "clitest": "node ./dummy-app.js | node ./bin/run.js my-app -p 3000"
@@ -81,11 +80,6 @@
     "dirname": "bulog",
     "default": ".",
     "commands": "./dist/cli/commands",
-    "topicSeparator": " ",
-    "topics": {
-      "hello": {
-        "description": "Say hello to the world and others"
-      }
-    }
+    "topicSeparator": " "
   }
 }

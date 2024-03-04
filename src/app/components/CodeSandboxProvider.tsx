@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CodeSandboxContext } from "@/context/codeSandbox";
 import useGlobalEvent from "beautiful-react-hooks/useGlobalEvent";
+import sandboxSrc from "@/assets/sandbox.html?url";
 
 interface CodeSandboxProviderProps {
     children: React.ReactNode;
@@ -19,7 +20,7 @@ export function CodeSandboxProvider({ children }: CodeSandboxProviderProps) {
 
     return (
         <>
-            <iframe key={iframeKey} ref={setRef} className="h-0" id="code-sandbox" sandbox="allow-scripts" src="assets/sandbox.html" />
+            <iframe key={iframeKey} ref={setRef} className="h-0" id="code-sandbox" sandbox="allow-scripts" src={sandboxSrc} />
             {ref && (
                 <CodeSandboxContext.Provider value={ref}>
                     {children}
