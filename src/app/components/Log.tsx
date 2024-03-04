@@ -4,14 +4,14 @@ import LogCell from "./LogCell";
 interface LogProps {
     log: LogData;
     selected: boolean;
+    placeholderRender: JSONValue[];
     columns: LogColumnData[];
-    columnWidths: number[];
     onClick: (log: LogData) => void;
 }
 
 function Log(props: LogProps) {
-    const { onClick, log, selected, columns } = props;
-    const [render, setRender] = useState<JSONValue[]>([]);
+    const { onClick, log, selected, columns, placeholderRender } = props;
+    const [render, setRender] = useState<JSONValue[]>(placeholderRender);
 
     useEffect(() => {
         (async () => {
@@ -30,7 +30,7 @@ function Log(props: LogProps) {
                 <LogCell
                     key={index}
                     value={value}
-                    width={props.columnWidths[index]}
+                    width={props.columns[index].width}
                     grow={index === columns.length - 1}
                 />
             ))}

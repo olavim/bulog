@@ -64,21 +64,23 @@ function VirtuosoItem(props: React.HTMLAttributes<HTMLDivElement>) {
     return <div className="group" {...props} />;
 }
 
+const maxPlaceholderRenders = 5;
+
 interface LogListProps {
     logs: LogData[];
     selectedLog: LogData | null;
     columns: LogColumnData[];
-    columnWidths: number[];
     onSelectLog: (log: LogData) => void;
     onScroll: (scrollLeft: number, scrollTop: number) => void;
 }
 
 export default function LogList(props: LogListProps) {
-    const { logs, columns, columnWidths, onSelectLog, onScroll, selectedLog } = props;
+    const { logs, columns, onSelectLog, onScroll, selectedLog } = props;
 
     const rootRef = useRef<HTMLDivElement>(null);
     const virtuosoRef = useRef<VirtuosoHandle>(null);
     const [scroller, setScroller] = useState<HTMLElement | Window | null>(null);
+    const [placeholderRenders, setPlaceholderRenders] = useState<JSONValue[][]>([]);
     const [initialize, osInstance] = useOverlayScrollbars({
         defer: false,
         options: {
@@ -88,6 +90,18 @@ export default function LogList(props: LogListProps) {
             }
         }
     });
+
+    useEffect(() => {
+        (async () => {
+            const logsToRender = logs.slice(0, maxPlaceholderRenders);
+            const renders = await Promise.all(
+                logsToRender.map(log => Promise.all(
+                    columns.map(col => col.evalFn(log).then(val => val).catch(err => err))
+                ))
+            );
+            setPlaceholderRenders(renders);
+        })();
+    }, [logs, columns]);
 
     const handleScroll = useCallback((evt: React.UIEvent<HTMLElement>) => {
         const target = evt.target as HTMLElement;
@@ -118,11 +132,12 @@ export default function LogList(props: LogListProps) {
                 followOutput="smooth"
                 initialTopMostItemIndex={logs.length - 1}
                 onScroll={handleScroll}
-                itemContent={(_index, data) => (
+                computeItemKey={index => logs[index].id}
+                itemContent={(index, data) => (
                     <Log
                         log={data}
                         columns={columns}
-                        columnWidths={columnWidths}
+                        placeholderRender={placeholderRenders[index % placeholderRenders.length] ?? []}
                         onClick={onSelectLog}
                         selected={data.id === selectedLog?.id}
                     />

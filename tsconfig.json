@@ -26,8 +26,8 @@
   },
   "include": [
     "src/app",
-    "src/server",
     "src/cli",
-    "src/types.d.ts"
+    "src/types.d.ts",
+    "src/*.ts"
   ]
 }

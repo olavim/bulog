@@ -1,20 +1,24 @@
 import { useState, useEffect } from "react";
 import BucketTab from "@/components/BucketTab";
 import { Tooltip } from "react-tooltip";
-import BucketLogs from "@/components/BucketLogs";
+import BucketView from "@/components/BucketView";
 import { useBuckets } from "@/context/buckets";
 
 export default function Home() {
-  const buckets = useBuckets();
+  const { buckets, loadConfig } = useBuckets();
   const [selectedBucket, setSelectedBucket] = useState<string>();
 
-  const bucketNames = Array.from(buckets.keys());
+  const bucketNames = Array.from(buckets.keys()).filter(bucket => buckets.get(bucket)?.logs);
 
   useEffect(() => {
     if (!selectedBucket && bucketNames.length > 0) {
       setSelectedBucket(bucketNames[0]);
     }
   }, [bucketNames, buckets, selectedBucket]);
+
+  useEffect(() => {
+    loadConfig();
+  }, [loadConfig]);
 
   return (
     <main className="font-[Inter] flex min-h-screen max-h-screen max-w-[100vw] p-0 overflow-hidden">
@@ -35,7 +39,7 @@ export default function Home() {
           ))}
         </div>
       </div>
-      {selectedBucket && <BucketLogs bucket={selectedBucket} />}
+      {selectedBucket && <BucketView bucket={selectedBucket} />}
     </main >
   );
 }

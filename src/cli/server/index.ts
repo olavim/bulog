@@ -2,7 +2,7 @@ import http from 'http';
 import express from 'express';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import healthRouter from './api/health.js';
+import apiRouter from './api/index.js';
 import setupWebSocketServer from './api/sockets.js';
 
 const filename = fileURLToPath(import.meta.url);
@@ -29,7 +29,7 @@ async function serveVite(app: express.Express) {
 export async function getServer() {
     const app = express();
 
-    app.use(healthRouter);
+    app.use('/api', apiRouter);
 
     if (process.env.NODE_ENV === 'production') {
         serveStatic(app);

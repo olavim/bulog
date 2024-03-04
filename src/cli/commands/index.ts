@@ -2,6 +2,7 @@ import { WebSocket } from 'ws';
 import { Args, Command, Flags } from '@oclif/core';
 import JSON5 from 'json5';
 import _ from 'lodash';
+import { validateConfigs } from '../config.js';
 
 export class Run extends Command {
     static args = {
@@ -39,6 +40,12 @@ export class Run extends Command {
     }
 
     async startServer() {
+        try {
+            await validateConfigs();
+        } catch (e: any) {
+            this.error(e.message, { exit: 1 });
+        }
+
         const { getServer } = await import('../server/index.js');
         const { flags } = await this.parse(Run);
         const { port, host } = flags;

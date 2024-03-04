@@ -25,7 +25,7 @@ interface BucketLogsProps {
 export default function BucketLogs(props: BucketLogsProps) {
     const { bucket } = props;
     const logs = useLogs(bucket);
-    const { columns, columnWidths, setColumns, setColumnWidths } = useColumns(bucket);
+    const { columns, setColumns } = useColumns(bucket);
 
     const [selectedLog, setSelectedLog] = useState<LogData | null>(null);
     const [selectedColumn, setSelectedColumn] = useState<number>(-1);
@@ -33,7 +33,6 @@ export default function BucketLogs(props: BucketLogsProps) {
     const [columnResizeData, setColumnResizeData] = useState<{ target: number, origin: number; originalWidth: number }>();
     const [logContainerSize, setLogContainerSize] = useState<{ width: number; height: number }>();
     const [columnNameStr, setColumnNameStr] = useState<string>('');
-    const [columnPatternStr, setColumnPatternStr] = useState<string>('');
     const [columnFormatterStr, setColumnFormatterStr] = useState<string>('');
     const [searchStr, setSearchStr] = useState<string>('');
     const { createFn } = useSandbox();
@@ -79,14 +78,13 @@ export default function BucketLogs(props: BucketLogsProps) {
         setColumns([...columns, {
             id,
             name,
-            pattern: '',
+            width: 200,
             evalStr,
             evalFn: await createFn(id, defaultFormatter)
         }]);
-        setColumnWidths([...columnWidths, 200]);
         setColumnNameStr(name);
         setColumnFormatterStr(evalStr);
-    }, [columns, setColumns, createFn, setColumnWidths, columnWidths]);
+    }, [columns, setColumns, createFn]);
 
     const onAddColumn = useCallback(async (name: string, pattern: string, select: boolean) => {
         if (select) {
@@ -100,12 +98,11 @@ export default function BucketLogs(props: BucketLogsProps) {
         setColumns([...columns, {
             id,
             name,
-            pattern,
+            width: 200,
             evalStr,
             evalFn: await createFn(id, evalStr)
         }]);
-        setColumnWidths([...columnWidths, 200]);
-    }, [columnWidths, columns, createFn, setColumnWidths, setColumns]);
+    }, [columns, createFn, setColumns]);
 
     useResizeDetector({
         targetRef: logContainerRef,
@@ -114,11 +111,11 @@ export default function BucketLogs(props: BucketLogsProps) {
 
     onMouseUp(() => {
         if (columnResizeData && logContainerSize) {
-            const widthSum = columnWidths.reduce((acc, cur) => acc + cur, 0);
-            if (widthSum <= logContainerSize.width && columnWidths[columnWidths.length - 1] > 200) {
-                const widths = [...columnWidths];
-                widths[columnWidths.length - 1] = 200;
-                setColumnWidths(widths);
+            const widthSum = columns.reduce((acc, col) => acc + col.width, 0);
+            if (widthSum <= logContainerSize.width && columns[columns.length - 1].width > 200) {
+                const cols = [...columns];
+                cols[cols.length - 1].width = 200;
+                setColumns(cols);
             }
         }
 
@@ -134,11 +131,11 @@ export default function BucketLogs(props: BucketLogsProps) {
 
         const { target, origin, originalWidth } = columnResizeData;
 
-        const widths = [...columnWidths];
+        const cols = [...columns];
         const newWidth = originalWidth + (evt.clientX - origin);
 
-        widths[target] = Math.max(100, newWidth);
-        setColumnWidths(widths);
+        cols[target].width = Math.max(100, newWidth);
+        setColumns(cols);
     });
 
     const onDeselect = useCallback(() => {
@@ -154,12 +151,12 @@ export default function BucketLogs(props: BucketLogsProps) {
         document.body.style.cursor = "col-resize";
         document.body.style.userSelect = "none";
 
-        const widthSum = columnWidths.reduce((acc, cur) => acc + cur, 0);
-        const actualWidth = widthSum <= logContainerSize.width && id === columnWidths.length - 1
-            ? logContainerSize.width - widthSum + columnWidths[id]
-            : columnWidths[id];
+        const widthSum = columns.reduce((acc, col) => acc + col.width, 0);
+        const actualWidth = widthSum <= logContainerSize.width && id === columns.length - 1
+            ? logContainerSize.width - widthSum + columns[id].width
+            : columns[id].width;
         setColumnResizeData({ target: id, origin: mouseX, originalWidth: actualWidth });
-    }, [columnWidths, logContainerSize]);
+    }, [columns, logContainerSize]);
 
     const onSelectLog = useCallback((log: LogData) => {
         setSelectedColumn(-1);
@@ -168,36 +165,31 @@ export default function BucketLogs(props: BucketLogsProps) {
 
     const onSaveSelectedColumn = useCallback(async () => {
         const cols = [...columns];
-
         cols[selectedColumn] = {
-            id: cols[selectedColumn].id,
+            ...cols[selectedColumn],
             name: columnNameStr,
-            pattern: columnPatternStr,
             evalStr: columnFormatterStr,
             evalFn: await createFn(cols[selectedColumn].id, columnFormatterStr)
         };
         setColumns(cols);
-    }, [columnFormatterStr, columnNameStr, columnPatternStr, columns, createFn, selectedColumn, setColumns]);
+    }, [columnFormatterStr, columnNameStr, columns, createFn, selectedColumn, setColumns]);
 
     const onDeleteSelectedColumn = useCallback(() => {
         const cols = columns.toSpliced(selectedColumn, 1);
-        let widths: number[];
         if (selectedColumn === 0) {
-            widths = columnWidths.toSpliced(0, 2, columnWidths[0] + columnWidths[1]);
+            cols[selectedColumn].width = columns[0].width + columns[1].width;
         } else {
-            widths = columnWidths.toSpliced(selectedColumn - 1, 2, columnWidths[selectedColumn - 1] + columnWidths[selectedColumn]);
+            cols[selectedColumn].width = columns[selectedColumn - 1].width + columns[selectedColumn].width;
         }
 
         setColumns(cols);
-        setColumnWidths(widths);
         setSelectedColumn(-1);
-    }, [columnWidths, columns, selectedColumn, setColumnWidths, setColumns]);
+    }, [columns, selectedColumn, setColumns]);
 
     const onSelectColumn = useCallback((id: number) => {
         setSelectedColumn(id);
         setSelectedLog(null);
         setColumnNameStr(columns[id].name);
-        setColumnPatternStr(columns[id].pattern);
         setColumnFormatterStr(columns[id].evalStr);
     }, [columns]);
 
@@ -257,7 +249,7 @@ export default function BucketLogs(props: BucketLogsProps) {
                                         <LogColumn
                                             key={index}
                                             id={index}
-                                            width={columnWidths[index]}
+                                            width={columns[index].width}
                                             last={index === columns.length - 1}
                                             name={col.name}
                                             onClick={onSelectColumn}
@@ -272,7 +264,6 @@ export default function BucketLogs(props: BucketLogsProps) {
                                 logs={filteredLogs}
                                 onScroll={onScroll}
                                 columns={columns}
-                                columnWidths={columnWidths}
                                 onSelectLog={onSelectLog}
                                 selectedLog={selectedLog}
                             />
@@ -283,7 +274,7 @@ export default function BucketLogs(props: BucketLogsProps) {
             {(selectedLog || selectedColumn !== -1) && (
                 <div className="basis-auto grow-0 shrink-0 max-h-full min-h-full overflow-hidden flex flex-col bg-white shadow-xl">
                     {selectedLog && (
-                        <div className="flex flex-col pl-4 w-[35rem] justify-items-center overflow-hidden">
+                        <div className="flex flex-col px-4 w-[35rem] justify-items-center overflow-hidden">
                             <div className="flex px-2 basis-20 shrink-0 grow-0 items-center justify-between">
                                 <h1 className="text-lg font-medium text-slate-600">{'Log details'}</h1>
                                 <button className="p-2 rounded-full hover:bg-gray-200 cursor-pointer" onClick={onDeselect}>

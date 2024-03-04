@@ -1,7 +1,15 @@
-interface LogColumnData {
+interface BucketConfig {
+    columns: Array<{
+        name: string;
+        formatter: string;
+        width: number;
+    }>;
+}
+
+interface LogColumnData extends LogColumnConfig {
     id: string;
     name: string;
-    pattern: string;
+    width: number;
     evalStr: string;
     evalFn: (log: LogData) => Promise<JSONValue>;
 }
