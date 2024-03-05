@@ -43,15 +43,15 @@ input:focus {
 }
 
 .os-scrollbar {
-  --os-size: 16px;
-  --os-handle-perpendicular-size: 16px;
+  --os-size: 12px;
+    --os-handle-perpendicular-size: 12px;
   --os-handle-perpendicular-size-hover: var(--os-handle-perpendicular-size);
   --os-handle-perpendicular-size-active: var(--os-handle-perpendicular-size);
   --os-padding-perpendicular: 0;
   --os-padding-axis: 0;
   --os-track-border-radius: var(--os-size);
   --os-track-bg-hover: rgba(0, 0, 0, 0.05);
-  --os-handle-padding: 5px;
+  --os-handle-padding: 3px;
   --os-handle-min-size: calc(33px + 2 * var(--os-handle-padding));
   --os-handle-bg: content-box rgba(0, 0, 0, 0.3);
   --os-handle-bg-hover: content-box rgba(0, 0, 0, 0.4);
@@ -71,11 +71,11 @@ input:focus {
 }
 
 .os-scrollbar-horizontal {
-  bottom: calc(-1 * var(--os-size));
+  bottom: calc(-1 * (var(--os-size) + 0.25rem));
 }
 
 .os-scrollbar-vertical {
-  right: calc(-1 * var(--os-size));
+  right: calc(-1 * (var(--os-size) + 0.5rem));
 }
 .react-tooltip {
   --rt-color-dark: #334155;

@@ -1,13 +1,10 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { filter as liqeFilter, parse as liqeParse, SyntaxError as LiqeSyntaxError } from 'liqe';
-import { useResizeDetector } from "react-resize-detector";
-import useGlobalEvent from "beautiful-react-hooks/useGlobalEvent";
 import { MdAddCircle, MdCheckCircle, MdClose, MdRemoveCircle, MdSearch } from "react-icons/md";
 import JsonView from "@uiw/react-json-view";
 import { FaClipboard, FaClipboardCheck, FaQuestionCircle } from "react-icons/fa";
 import Card from "./Card";
 import LogList from "./LogList";
-import LogColumn from "./LogColumn";
 import { RiInsertColumnRight } from "react-icons/ri";
 import ReactDOMServer from "react-dom/server";
 import { createSimpleFormatter, useColumns, useLogs } from "@/context/buckets";
@@ -15,6 +12,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { v4 as uuidv4 } from 'uuid';
 import { useSandbox } from "@/context/codeSandbox";
+import { arrayMove } from "@dnd-kit/sortable";
 
 const defaultFormatter = createSimpleFormatter();
 
@@ -28,10 +26,7 @@ export default function BucketLogs(props: BucketLogsProps) {
     const { columns, setColumns } = useColumns(bucket);
 
     const [selectedLog, setSelectedLog] = useState<LogData | null>(null);
-    const [selectedColumn, setSelectedColumn] = useState<number>(-1);
-    const [scrollLeft, setScrollLeft] = useState<number>(0);
-    const [columnResizeData, setColumnResizeData] = useState<{ target: number, origin: number; originalWidth: number }>();
-    const [logContainerSize, setLogContainerSize] = useState<{ width: number; height: number }>();
+    const [selectedColumn, setSelectedColumn] = useState<LogColumnData | null>(null);
     const [columnNameStr, setColumnNameStr] = useState<string>('');
     const [columnFormatterStr, setColumnFormatterStr] = useState<string>('');
     const [searchStr, setSearchStr] = useState<string>('');
@@ -54,21 +49,8 @@ export default function BucketLogs(props: BucketLogsProps) {
         }
     }, [logs, searchStr]);
 
-    const logContainerRef = useRef<HTMLDivElement>(null);
-
-    const onMouseMove = useGlobalEvent<MouseEvent>('mousemove');
-    const onMouseUp = useGlobalEvent<MouseEvent>('mouseup');
-
-    const onLogContainerResize = useCallback((width?: number, height?: number) => {
-        setLogContainerSize({ width: width ?? 0, height: height ?? 0 });
-    }, []);
-
-    const onScroll = useCallback((scrollLeft: number) => {
-        setScrollLeft(scrollLeft);
-    }, []);
-
     const onAddEmptyColumn = useCallback(async () => {
-        setSelectedColumn(columns.length);
+        setSelectedColumn(columns[columns.length - 1]);
         setSelectedLog(null);
 
         const id = uuidv4();
@@ -88,7 +70,7 @@ export default function BucketLogs(props: BucketLogsProps) {
 
     const onAddColumn = useCallback(async (name: string, pattern: string, select: boolean) => {
         if (select) {
-            setSelectedColumn(columns.length);
+            setSelectedColumn(columns[columns.length - 1]);
             setSelectedLog(null);
         }
 
@@ -104,94 +86,58 @@ export default function BucketLogs(props: BucketLogsProps) {
         }]);
     }, [columns, createFn, setColumns]);
 
-    useResizeDetector({
-        targetRef: logContainerRef,
-        onResize: onLogContainerResize
-    });
-
-    onMouseUp(() => {
-        if (columnResizeData && logContainerSize) {
-            const widthSum = columns.reduce((acc, col) => acc + col.width, 0);
-            if (widthSum <= logContainerSize.width && columns[columns.length - 1].width > 200) {
-                const cols = [...columns];
-                cols[cols.length - 1].width = 200;
-                setColumns(cols);
-            }
-        }
-
-        document.body.style.cursor = "auto";
-        document.body.style.userSelect = "auto";
-        setColumnResizeData(undefined);
-    });
-
-    onMouseMove((evt: MouseEvent) => {
-        if (!columnResizeData) {
-            return;
-        }
-
-        const { target, origin, originalWidth } = columnResizeData;
-
-        const cols = [...columns];
-        const newWidth = originalWidth + (evt.clientX - origin);
-
-        cols[target].width = Math.max(100, newWidth);
-        setColumns(cols);
-    });
-
     const onDeselect = useCallback(() => {
         setSelectedLog(null);
-        setSelectedColumn(-1);
+        setSelectedColumn(null);
     }, []);
 
-    const onResizeColumnStart = useCallback((id: number, mouseX: number) => {
-        if (!logContainerSize) {
-            return;
-        }
-
-        document.body.style.cursor = "col-resize";
-        document.body.style.userSelect = "none";
-
-        const widthSum = columns.reduce((acc, col) => acc + col.width, 0);
-        const actualWidth = widthSum <= logContainerSize.width && id === columns.length - 1
-            ? logContainerSize.width - widthSum + columns[id].width
-            : columns[id].width;
-        setColumnResizeData({ target: id, origin: mouseX, originalWidth: actualWidth });
-    }, [columns, logContainerSize]);
+    const onResizeColumn = useCallback((col: LogColumnData, newWidth: number) => {
+        const cols = [...columns];
+        const idx = cols.findIndex(c => c.id === col.id);
+        cols[idx] = { ...cols[idx], width: Math.max(100, newWidth) };
+        setColumns(cols);
+    }, [columns, setColumns]);
 
     const onSelectLog = useCallback((log: LogData) => {
-        setSelectedColumn(-1);
+        setSelectedColumn(null);
         setSelectedLog(log);
     }, []);
 
     const onSaveSelectedColumn = useCallback(async () => {
         const cols = [...columns];
-        cols[selectedColumn] = {
-            ...cols[selectedColumn],
+        const idx = cols.findIndex(col => col.id === selectedColumn?.id);
+        cols[idx] = {
+            ...cols[idx],
             name: columnNameStr,
             evalStr: columnFormatterStr,
-            evalFn: await createFn(cols[selectedColumn].id, columnFormatterStr)
+            evalFn: await createFn(cols[idx].id, columnFormatterStr)
         };
         setColumns(cols);
     }, [columnFormatterStr, columnNameStr, columns, createFn, selectedColumn, setColumns]);
 
     const onDeleteSelectedColumn = useCallback(() => {
-        const cols = columns.toSpliced(selectedColumn, 1);
-        if (selectedColumn === 0) {
-            cols[selectedColumn].width = columns[0].width + columns[1].width;
+        const idx = columns.findIndex(col => col.id === selectedColumn?.id);
+        const cols = columns.toSpliced(idx, 1);
+        if (idx === 0) {
+            cols[idx].width = columns[0].width + columns[1].width;
         } else {
-            cols[selectedColumn - 1].width = columns[selectedColumn - 1].width + columns[selectedColumn].width;
+            cols[idx - 1].width = columns[idx - 1].width + columns[idx].width;
         }
 
         setColumns(cols);
-        setSelectedColumn(-1);
+        setSelectedColumn(null);
     }, [columns, selectedColumn, setColumns]);
 
-    const onSelectColumn = useCallback((id: number) => {
-        setSelectedColumn(id);
+    const onSelectColumn = useCallback((col: LogColumnData) => {
+        setSelectedColumn(col);
         setSelectedLog(null);
-        setColumnNameStr(columns[id].name);
-        setColumnFormatterStr(columns[id].evalStr);
-    }, [columns]);
+        setColumnNameStr(col.name);
+        setColumnFormatterStr(col.evalStr);
+    }, []);
+
+    const onMoveColumn = useCallback((oldIndex: number, newIndex: number) => {
+        setColumns(arrayMove(columns, oldIndex, newIndex));
+    }, [columns, setColumns]);
 
     return (
         <div className="flex flex-row grow overflow-hidden">
@@ -237,42 +183,20 @@ export default function BucketLogs(props: BucketLogsProps) {
                 </div>
                 <div className="flex flex-row basis-full grow-1 shrink-1 w-full max-w-full overflow-hidden justify-center bg-slate-200 px-12 py-8">
                     <Card className="grow h-full max-w-full">
-                        <div className="grow w-full max-w-full min-w-full flex flex-col" ref={logContainerRef}>
-                            <div className="flex flex-col max-w-full overflow-hidden border-b">
-                                <div
-                                    className="flex flex-row min-w-fit max-w-full overflow-hidden shrink-0 grow-0 h-[35px]"
-                                    style={{
-                                        position: 'relative',
-                                        left: -scrollLeft
-                                    }}
-                                >
-                                    {columns.map((col, index) => (
-                                        <LogColumn
-                                            key={index}
-                                            id={index}
-                                            width={columns[index].width}
-                                            last={index === columns.length - 1}
-                                            name={col.name}
-                                            onClick={onSelectColumn}
-                                            onResizeStart={onResizeColumnStart}
-                                            resizing={columnResizeData?.target === index}
-                                            selected={selectedColumn === index}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                            <LogList
-                                logs={filteredLogs}
-                                onScroll={onScroll}
-                                columns={columns}
-                                onSelectLog={onSelectLog}
-                                selectedLog={selectedLog}
-                            />
-                        </div>
+                        <LogList
+                            logs={filteredLogs}
+                            columns={columns}
+                            selectedLog={selectedLog}
+                            selectedColumn={selectedColumn}
+                            onSelectLog={onSelectLog}
+                            onSelectColumn={onSelectColumn}
+                            onResizeColumn={onResizeColumn}
+                            onMoveColumn={onMoveColumn}
+                        />
                     </Card>
                 </div>
             </div>
-            {(selectedLog || selectedColumn !== -1) && (
+            {(selectedLog || selectedColumn) && (
                 <div className="basis-auto grow-0 shrink-0 max-h-full min-h-full overflow-hidden flex flex-col bg-white shadow-xl">
                     {selectedLog && (
                         <div className="flex flex-col px-4 w-[35rem] justify-items-center overflow-hidden">
@@ -313,7 +237,7 @@ export default function BucketLogs(props: BucketLogsProps) {
                             </div>
                         </div>
                     )}
-                    {selectedColumn !== -1 && (
+                    {selectedColumn && (
                         <div className="flex flex-col w-[35rem] px-4">
                             <div className="flex px-2 basis-20 shrink-0 grow-0 items-center justify-between">
                                 <h1 className="text-lg font-medium text-slate-600">{'Column details'}</h1>
