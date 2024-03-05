@@ -94,7 +94,6 @@ export class Run extends Command {
         let prevChunk = '';
 
         process.stdin.on("data", data => {
-            console.log(data);
             if (pipeOutput) {
                 process.stdout.write(data);
             }
