@@ -1,11 +1,17 @@
 {
   "name": "bulog",
-  "private": true,
+  "description": "Stream application logs into a central web-based UI.",
+  "homepage": "https://github.com/olavim/bulog#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/olavim/bulog.git"
+  },
+  "license": "MIT",
   "type": "module",
   "bin": {
-    "bulog": "./bin/run.js"
+    "bulog": "bin/run.js"
   },
-  "version": "0.0.0",
+  "version": "0.1.0",
   "scripts": {
     "start": "node ./bin/run.js -p 3000",
     "dev": "tsx watch --ignore vite.config.ts.* ./bin/dev.js -p 3000",
@@ -74,6 +80,11 @@
     "typescript": "^5.2.2",
     "vite": "^5.1.4"
   },
+  "files": [
+    "bin",
+    "dist",
+    "node_modules"
+  ],
   "engines": {
     "node": ">=18.0.0"
   },

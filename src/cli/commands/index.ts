@@ -6,27 +6,27 @@ import { validateConfigs } from '../config.js';
 
 export class Run extends Command {
     static args = {
-        bucket: Args.string({ description: 'Bucket name. Logs are separated by buckets in Bulog UI.' })
+        bucket: Args.string({ description: 'Bucket name. Logs are separated by buckets in the Web UI.' })
     };
 
-    static description = 'Starts the Bulog server';
+    static description = 'Starts the Bulog server or sends logs to it';
 
     static usage = [
-        '\b\b[-p <port>] [-h <host>]',
-        '\b\b[BUCKET] [-p <port>] [-h <host>] [-v <value>....] [-o]'
+        '\b[-p <port>] [-h <host>]',
+        '\b[BUCKET] [-p <port>] [-h <host>] [-v <value>....] [-o]'
     ];
 
     static examples = [
         'Start the Bulog server at port 3000\n$ bulog -p 3000',
-        'Send stdin to Bulog running at port 3000\n$ bulog my-bucket -p 3000',
-        'Send stdin to Bulog with additional log fields\n$ bulog my-bucket -v name:MyApp1 group:MyApps'
+        'Send logs to Bulog running at port 3000\n  $ echo "example" | bulog my-app -p 3000',
+        'Send logs to Bulog with additional log fields\n  $ echo "example" | bulog my-app -v name:MyApp1 group:MyApps'
     ];
 
     static flags = {
         port: Flags.integer({ char: 'p', helpValue: '<port>', default: 3100, description: 'Server port to bind or connect to' }),
-        host: Flags.string({ char: 'h', helpValue: '<host>', default: '0.0.0.0', description: 'Server hostname to bind or connect to' }),
+        host: Flags.string({ char: 'h', helpValue: '<host>', default: 'localhost', description: 'Server hostname to bind or connect to' }),
         value: Flags.string({ char: 'v', helpValue: '<value>', multiple: true, description: 'Value added to logs' }),
-        pipeOutput: Flags.boolean({ char: 'o', description: 'Pipe stdin to stdout in addition to sending it to Bulog server' })
+        pipeOutput: Flags.boolean({ char: 'o', description: 'Echo logs in addition to sending them to Bulog server' })
     };
 
     async run(): Promise<void> {
@@ -52,7 +52,7 @@ export class Run extends Command {
 
         const server = await getServer();
         server.listen(port, host, () => {
-            this.log(`Bulog is running at ${host}:${port}`);
+            this.log(`Bulog is running at http://${host}:${port}`);
         });
     }
 
@@ -94,6 +94,7 @@ export class Run extends Command {
         let prevChunk = '';
 
         process.stdin.on("data", data => {
+            console.log(data);
             if (pipeOutput) {
                 process.stdout.write(data);
             }
