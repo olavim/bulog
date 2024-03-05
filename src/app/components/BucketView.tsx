@@ -225,11 +225,12 @@ export default function BucketLogs(props: BucketLogsProps) {
                                 </a>
                             </div>
                             <button
-                                className="h-[35px] inline-flex flex-row items-center bg-sky-500 hover:bg-sky-400 text-white font-medium pl-2 pr-4 rounded shadow ml-2"
+                                className="h-[35px] inline-flex flex-row items-center bg-sky-500 hover:bg-sky-400 text-white font-medium px-2 rounded shadow ml-2"
+                                data-tooltip-id="tooltip"
+                                data-tooltip-content="New column"
                                 onClick={onAddEmptyColumn}
                             >
-                                <RiInsertColumnRight className="mr-2 text-2xl" />
-                                <span className="text-sm mb-px">{'Add column'}</span>
+                                <RiInsertColumnRight className="text-2xl" />
                             </button>
                         </div>
                     </div>

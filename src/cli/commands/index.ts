@@ -24,7 +24,7 @@ export class Run extends Command {
 
     static flags = {
         port: Flags.integer({ char: 'p', helpValue: '<port>', default: 3100, description: 'Server port to bind or connect to' }),
-        host: Flags.string({ char: 'h', helpValue: '<host>', default: 'localhost', description: 'Server hostname to bind or connect to' }),
+        host: Flags.string({ char: 'h', helpValue: '<host>', default: '0.0.0.0', description: 'Server hostname to bind or connect to' }),
         value: Flags.string({ char: 'v', helpValue: '<value>', multiple: true, description: 'Value added to logs' }),
         pipeOutput: Flags.boolean({ char: 'o', description: 'Echo logs in addition to sending them to Bulog server' })
     };
@@ -52,7 +52,8 @@ export class Run extends Command {
 
         const server = await getServer();
         server.listen(port, host, () => {
-            this.log(`Bulog is running at http://${host}:${port}`);
+            const friendlyHost = ['0.0.0.0', '127.0.0.1', 'localhost'].includes(host) ? 'localhost' : host;
+            this.log(`Bulog is running at http://${friendlyHost}:${port}`);
         });
     }
 

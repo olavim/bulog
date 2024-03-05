@@ -1,4 +1,4 @@
-import { Dispatch, Reducer, createContext, useCallback, useContext, useEffect, useMemo, useReducer } from "react";
+import { Dispatch, Reducer, createContext, useCallback, useContext, useMemo, useReducer, useState } from "react";
 import lodash, { debounce } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 import { getBucketsConfig, saveBucketsConfig } from "@/api/config";
@@ -87,8 +87,13 @@ export function useBuckets() {
     const ctx = useContext(BucketsContext);
     const dispatch = useContext(BucketsDispatchContext);
     const { createFn } = useSandbox();
+    const [configLoaded, setConfigLoaded] = useState(false);
 
     const saveConfig = useCallback(async () => {
+        if (!configLoaded) {
+            return;
+        }
+
         const buckets = Array.from(ctx.buckets.keys());
         const bucketConfigs = buckets.reduce((acc, bucket) => {
             const config = ctx.buckets.get(bucket)!;
@@ -103,10 +108,11 @@ export function useBuckets() {
         }, {} as { [bucket: string]: BucketConfig });
 
         await saveBucketsConfigDebounced(bucketConfigs);
-    }, [ctx]);
+    }, [configLoaded, ctx.buckets]);
 
     const loadConfig = useCallback(async () => {
         const config = await getBucketsConfig();
+
         const keys = Object.keys(config?.buckets);
 
         for (const key of keys) {
@@ -130,9 +136,12 @@ export function useBuckets() {
 
             dispatch!({ type: 'setColumns', bucket: key, columns });
         }
+
+        // console.log('config loaded');
+        setConfigLoaded(true);
     }, [createFn, dispatch]);
 
-    return { buckets: ctx.buckets, saveConfig, loadConfig };
+    return { buckets: ctx.buckets, saveConfig, loadConfig, configLoaded };
 }
 
 export function useLogs(bucket: string) {
@@ -144,7 +153,6 @@ export function useLogs(bucket: string) {
 export function useColumns(bucket: string) {
     const ctx = useContext(BucketsContext);
     const dispatch = useContext(BucketsDispatchContext);
-    const { saveConfig } = useBuckets();
 
     const ctxColumns = ctx.buckets.get(bucket)?.columns;
 
@@ -153,10 +161,6 @@ export function useColumns(bucket: string) {
     const setColumns = useCallback((columns: LogColumnData[]) => {
         dispatch!({ type: 'setColumns', bucket, columns });
     }, [dispatch, bucket]);
-
-    useEffect(() => {
-        saveConfig();
-    }, [columns, saveConfig]);
 
     return { columns, setColumns };
 }

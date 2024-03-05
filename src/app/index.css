@@ -77,3 +77,58 @@ input:focus {
 .os-scrollbar-vertical {
   right: calc(-1 * var(--os-size));
 }
+.react-tooltip {
+  --rt-color-dark: #334155;
+  --rt-color-white: #f8fafc;
+}
+
+.react-tooltip-arrow {
+  width: 8px;
+  height: 8px;
+}
+
+[class*='react-tooltip__place-top']>.react-tooltip-arrow {
+  transform: rotate(45deg);
+}
+
+[class*='react-tooltip__place-right']>.react-tooltip-arrow {
+  transform: rotate(135deg);
+}
+
+[class*='react-tooltip__place-bottom']>.react-tooltip-arrow {
+  transform: rotate(225deg);
+}
+
+[class*='react-tooltip__place-left']>.react-tooltip-arrow {
+  transform: rotate(315deg);
+}
+
+.react-tooltip[class*='styles-module_dark'] {
+  background: var(--rt-color-dark);
+  color: var(--rt-color-white);
+}
+
+.react-tooltip[class*='styles-module_light'] {
+  background-color: var(--rt-color-white);
+  color: var(--rt-color-dark);
+}
+
+.react-tooltip[class*='styles-module_success'] {
+  background-color: var(--rt-color-success);
+  color: var(--rt-color-white);
+}
+
+.react-tooltip[class*='styles-module_warning'] {
+  background-color: var(--rt-color-warning);
+  color: var(--rt-color-white);
+}
+
+.react-tooltip[class*='styles-module_error'] {
+  background-color: var(--rt-color-error);
+  color: var(--rt-color-white);
+}
+
+.react-tooltip[class*='styles-module_info'] {
+  background-color: var(--rt-color-info);
+  color: var(--rt-color-white);
+}

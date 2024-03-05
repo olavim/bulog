@@ -5,7 +5,7 @@ import BucketView from "@/components/BucketView";
 import { useBuckets } from "@/context/buckets";
 
 export default function Home() {
-  const { buckets, loadConfig } = useBuckets();
+  const { buckets, loadConfig, configLoaded, saveConfig } = useBuckets();
   const [selectedBucket, setSelectedBucket] = useState<string>();
 
   const bucketNames = Array.from(buckets.keys()).filter(bucket => buckets.get(bucket)?.logs);
@@ -17,12 +17,22 @@ export default function Home() {
   }, [bucketNames, buckets, selectedBucket]);
 
   useEffect(() => {
-    loadConfig();
+    (async () => {
+      await loadConfig();
+    })();
   }, [loadConfig]);
+
+  useEffect(() => {
+    (async () => {
+      if (configLoaded) {
+        await saveConfig();
+      }
+    })();
+  }, [buckets, configLoaded, saveConfig]);
 
   return (
     <main className="font-[Inter] flex min-h-screen max-h-screen max-w-[100vw] p-0 overflow-hidden">
-      <Tooltip id="tooltip" clickable />
+      <Tooltip id="tooltip" className="text-xs px-3 py-1 rounded" disableStyleInjection clickable />
       <div className="flex flex-col basis-[15rem] grow-0 shrink-0 shadow-xl z-10">
         <div className="shrink-0 grow-0 basis-20 bg-slate-800 flex items-center pl-6 text-3xl">
           <span className="text-sky-500">{'Bu'}</span>
@@ -34,7 +44,7 @@ export default function Home() {
               {'BUCKETS'}
             </span>
           </div>
-          {bucketNames.map((bucket, index) => (
+          {configLoaded && bucketNames.map((bucket, index) => (
             <BucketTab key={index} bucket={bucket} selected={bucket === selectedBucket} onClick={setSelectedBucket} />
           ))}
         </div>
