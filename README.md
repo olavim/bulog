@@ -8,6 +8,7 @@ Stream application logs into a central web-based UI.
 - View individual logs with a JSON viewer.
 - Search and filter logs with [liqe](https://github.com/gajus/liqe), a lucene-like query language.
 - Add columns and configure them with a flexible JavaScript formatter.
+- Combine data from multiple buckets into custom views.
 
 ## Installation
 
