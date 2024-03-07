@@ -37,9 +37,9 @@ export function LogColumnOverlay(props: LogColumnOverlayProps) {
 }
 
 interface LogColumnProps {
-    column: LogColumnData;
-    onClick: (column: LogColumnData) => void;
-    onResizeStart: (column: LogColumnData, mouseX: number) => void;
+    column: ColumnData;
+    onClick: (column: ColumnData) => void;
+    onResizeStart: (column: ColumnData, mouseX: number) => void;
     resizing: boolean;
     selected: boolean;
 }
@@ -65,7 +65,7 @@ export default function LogColumn(props: LogColumnProps) {
     }, [column, onResizeStart]);
 
     return (
-        <div
+        <th
             className="group flex text-left items-center text-slate-600 hover:text-slate-500"
             data-resizing={resizing || undefined}
             data-selected={selected || undefined}
@@ -115,6 +115,6 @@ export default function LogColumn(props: LogColumnProps) {
                     </div>
                 )}
             </div>
-        </div>
+        </th>
     );
 }

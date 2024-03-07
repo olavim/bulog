@@ -10,3 +10,16 @@ export async function saveBucketsConfig(config: { [bucket: string]: BucketConfig
         body: JSON.stringify(config),
     });
 }
+
+export async function getFiltersConfig() {
+    const res = await fetch('/api/config/filters');
+    return await res.json() as { filters: { [filter: string]: FilterConfig } };
+}
+
+export async function saveFiltersConfig(config: { [filter: string]: FilterConfig }) {
+    await fetch('/api/config/filters', {
+        method: 'post',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+    });
+}

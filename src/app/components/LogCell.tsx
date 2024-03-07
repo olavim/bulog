@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from "react";
+
 const getElementClass = (className?: string) => `text-ellipsis overflow-hidden whitespace-nowrap text-xs ${className ?? ''}`;
 
 function getElement(value: JSONValue) {
@@ -46,25 +48,34 @@ function getElement(value: JSONValue) {
 }
 
 interface LogCellProps {
-    value: JSONValue;
-    width: number;
+    log: LogData;
+    column: ColumnData;
     grow: boolean;
 }
 
 export default function LogCell(props: LogCellProps) {
-    const { value, width, grow } = props;
+    const { column, log, grow } = props;
+    const [render, setRender] = useState<JSONValue>('-');
+    const formatterFunction = useMemo(() => column.formatterFunction, [column.formatterFunction]);
+
+    useEffect(() => {
+        (async () => {
+            const render = await formatterFunction([log]).then(val => val[0]).catch(err => err);
+            setRender(render);
+        })();
+    }, [log, formatterFunction]);
 
     return (
-        <div
+        <td
             className="flex items-center overflow-hidden pl-6 pr-2 group-hover:bg-slate-50 group-data-[selected]:bg-slate-100"
             style={{
                 flexGrow: grow ? 1 : 0,
                 flexShrink: 0,
-                flexBasis: width,
-                width
+                flexBasis: column.width,
+                width: column.width
             }}
         >
-            {getElement(value)}
-        </div>
+            {getElement(render)}
+        </td>
     );
 }

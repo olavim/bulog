@@ -1,40 +1,24 @@
-import { useCallback, useEffect, useState } from "react";
 import LogCell from "./LogCell";
 
 interface LogProps {
     log: LogData;
-    selected: boolean;
-    placeholderRender: JSONValue[];
-    columns: LogColumnData[];
-    onClick: (log: LogData) => void;
+    columns: ColumnData[];
 }
 
 function Log(props: LogProps) {
-    const { onClick, log, selected, columns, placeholderRender } = props;
-    const [render, setRender] = useState<JSONValue[]>(placeholderRender);
-
-    useEffect(() => {
-        (async () => {
-            const render = await Promise.all(columns.map(col => col.evalFn(log).then(val => val).catch(err => err)));
-            setRender(render);
-        })();
-    }, [log, columns]);
-
-    const onClickLog = useCallback(() => {
-        onClick(log);
-    }, [onClick, log]);
+    const { log, columns } = props;
 
     return (
-        <div data-selected={selected || undefined} className="font-['Fira_Code'] border-b group-last:border-b-0 border-box flex flex-row group min-w-fit" style={{ height: 35 }} onClick={onClickLog}>
+        <>
             {columns.map((col, index) => (
                 <LogCell
                     key={index}
-                    value={render[index]}
-                    width={col.width}
+                    log={log}
+                    column={col}
                     grow={index === columns.length - 1}
                 />
             ))}
-        </div>
+        </>
     );
 }
 

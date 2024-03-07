@@ -11,7 +11,7 @@
         const created = {};
 
         function createFn(id, code) {
-            const evalCode = `
+            const wrapperCode = `
                 const require = name => {
                     const m = modules[name];
                     if (!m) throw new Error('Module not found: ' + name);
@@ -21,7 +21,7 @@
                 ${code}
             `;
             try {
-                const result = new Function('modules', evalCode)({ lodash });
+                const result = new Function('modules', wrapperCode)({ lodash });
                 created[id] = typeof result === 'function' ? result : () => result;
             } catch (err) {
                 created[id] = () => { throw err; };
@@ -30,15 +30,20 @@
             return { source: 'sandbox', id, type: 'fn-created' };
         }
 
-        async function evalFn(id, fnId, arg) {
+            async function evalFn(id, fnId, args) {
             let result;
             try {
-                result = await Promise.resolve(created[fnId](arg));
+                result = await Promise.all(args.map(async arg => {
+                    const res = await created[fnId](arg);
 
-                if (typeof result === 'function') {
-                    throw new Error('Cannot return a function');
-                }
+                    if (typeof res === 'function') {
+                        throw new Error('Cannot return a function');
+                    }
+
+                    return res;
+                }));
             } catch (err) {
+                console.error(err);
                 result = err;
             }
 
@@ -58,12 +63,18 @@
                 response = await evalFn(id, fnId, arg);
             }
 
+            if (evt.data.type === 'ping') {
+                response = { source: 'sandbox', type: 'pong' };
+            }
+
             evt.source.postMessage(response, evt.origin);
         });
 
         window.addEventListener('beforeunload', (evt) => {
             window.parent.postMessage({ source: 'sandbox', type: 'sandbox-unloaded' }, '*');
         });
+
+    window.parent.postMessage({ source: 'sandbox', type: 'sandbox-loaded' }, '*');
     </script>
 </head>
 

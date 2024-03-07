@@ -54,3 +54,14 @@ export async function saveBucketsConfig(config: { [bucket: string]: BucketConfig
     await ensureConfigs();
     await fs.promises.writeFile(bucketsConfigPath, stringify(config as any));
 }
+
+export async function getFiltersConfig() {
+    await ensureConfigs();
+    const config = parse(await fs.promises.readFile(filtersConfigPath, 'utf-8'));
+    return config as unknown as { [filter: string]: FilterConfig[] };
+}
+
+export async function saveFiltersConfig(config: { [filter: string]: FilterConfig[] }) {
+    await ensureConfigs();
+    await fs.promises.writeFile(filtersConfigPath, stringify(config as any));
+}

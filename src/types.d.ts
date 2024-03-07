@@ -1,17 +1,36 @@
-interface BucketConfig {
-    columns: Array<{
-        name: string;
-        formatter: string;
-        width: number;
-    }>;
+interface ColumnConfig {
+    name: string;
+    formatter: string;
+    width: number;
 }
 
-interface LogColumnData extends LogColumnConfig {
+interface BucketConfig {
+    columns: ColumnConfig[];
+}
+
+interface BucketData {
+    columns: ColumnData[];
+    logs?: LogData[];
+}
+
+interface FilterConfig {
+    filter: string;
+    columns: ColumnConfig[];
+}
+
+interface FilterData {
+    filterString: string;
+    filterFunction: (log: LogData[]) => Promise<boolean[]>;
+    logs?: LogData[];
+    columns?: ColumnData[];
+}
+
+interface ColumnData {
     id: string;
     name: string;
     width: number;
-    evalStr: string;
-    evalFn: (log: LogData) => Promise<JSONValue>;
+    formatterString: string;
+    formatterFunction: (log: LogData[]) => Promise<JSONValue[]>;
 }
 
 type JSONValue =
@@ -23,7 +42,8 @@ type JSONValue =
     | null;
 
 interface LogData extends Record<string, JSONValue> {
-    id: string | number;
+    id: string;
+    bucket: string;
     timestamp: string;
     message: JSONValue;
 }

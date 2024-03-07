@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { TableComponents, TableVirtuoso, VirtuosoHandle } from "react-virtuoso";
 import Log from "./Log";
 import { useOverlayScrollbars } from "overlayscrollbars-react";
 import { InstancePlugin, OverlayScrollbars } from 'overlayscrollbars';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter } from "@dnd-kit/core";
-import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable";
+import { SortableContext, arrayMove, horizontalListSortingStrategy } from "@dnd-kit/sortable";
 import LogColumn, { LogColumnOverlay } from "./LogColumn";
 import { useResizeDetector } from "react-resize-detector";
 import useGlobalEvent from "beautiful-react-hooks/useGlobalEvent";
@@ -65,34 +65,36 @@ const instantClickScrollPlugin: InstancePlugin<'instantClickScrollPlugin'> = {
 
 OverlayScrollbars.plugin(instantClickScrollPlugin);
 
-function VirtuosoItem(props: React.HTMLAttributes<HTMLDivElement>) {
-    return <div className="group" {...props} />;
-}
-
-const maxPlaceholderRenders = 5;
+const VirtuosoTable: TableComponents<LogData>['Table'] = memo(props => {
+    return (
+        <table
+            className="w-full border-box"
+            style={{ width: '100%' }}
+            {...props}
+        />
+    );
+});
 
 interface LogListProps {
     logs: LogData[];
-    columns: LogColumnData[];
+    columns: ColumnData[];
     selectedLog: LogData | null;
-    selectedColumn: LogColumnData | null;
+    selectedColumn: ColumnData | null;
     onSelectLog: (log: LogData) => void;
-    onSelectColumn: (log: LogColumnData) => void;
-    onResizeColumn: (col: LogColumnData, newWidth: number) => void;
-    onMoveColumn: (oldIndex: number, newIndex: number) => void;
+    onSelectColumn: (log: ColumnData) => void;
+    onChangeColumns: (columns: ColumnData[]) => void;
 }
 
 export default function LogList(props: LogListProps) {
-    const { logs, columns, selectedLog, selectedColumn, onSelectLog, onResizeColumn, onSelectColumn, onMoveColumn } = props;
+    const { logs, columns, selectedLog, selectedColumn, onSelectLog, onChangeColumns, onSelectColumn } = props;
 
     const rootRef = useRef<HTMLDivElement>(null);
     const virtuosoRef = useRef<VirtuosoHandle>(null);
     const logContainerRef = useRef<HTMLDivElement>(null);
     const [logContainerSize, setLogContainerSize] = useState<{ width: number; height: number }>();
-    const [dragColumn, setDragColumn] = useState<LogColumnData | null>(null);
-    const [columnResizeData, setColumnResizeData] = useState<{ target: LogColumnData, origin: number; originalWidth: number } | null>(null);
+    const [dragColumn, setDragColumn] = useState<ColumnData | null>(null);
+    const [columnResizeData, setColumnResizeData] = useState<{ target: ColumnData, origin: number; originalWidth: number } | null>(null);
     const [scroller, setScroller] = useState<HTMLElement | Window | null>(null);
-    const [placeholderRenders, setPlaceholderRenders] = useState<JSONValue[][]>([]);
     const [initialize, osInstance] = useOverlayScrollbars({
         defer: false,
         options: {
@@ -115,19 +117,7 @@ export default function LogList(props: LogListProps) {
         onResize: onLogContainerResize
     });
 
-    useEffect(() => {
-        (async () => {
-            const logsToRender = logs.slice(0, maxPlaceholderRenders);
-            const renders = await Promise.all(
-                logsToRender.map(log => Promise.all(
-                    columns.map(col => col.evalFn(log).then(val => val).catch(err => err))
-                ))
-            );
-            setPlaceholderRenders(renders);
-        })();
-    }, [logs, columns]);
-
-    const onResizeColumnStart = useCallback((col: LogColumnData, mouseX: number) => {
+    const onResizeColumnStart = useCallback((col: ColumnData, mouseX: number) => {
         if (!logContainerSize) {
             return;
         }
@@ -151,7 +141,11 @@ export default function LogList(props: LogListProps) {
 
         const { target, origin, originalWidth } = columnResizeData;
         const newWidth = originalWidth + (evt.clientX - origin);
-        onResizeColumn(target, newWidth);
+
+        const cols = [...columns];
+        const idx = cols.findIndex(c => c.id === target.id);
+        cols[idx] = { ...cols[idx], width: Math.max(100, newWidth) };
+        onChangeColumns(cols);
     });
 
     useEffect(() => {
@@ -181,8 +175,24 @@ export default function LogList(props: LogListProps) {
 
         const activeIdx = columns.findIndex(col => col.id === activeId);
         const overIdx = columns.findIndex(col => col.id === overId);
-        onMoveColumn(activeIdx, overIdx);
-    }, [columns, onMoveColumn]);
+        onChangeColumns(arrayMove(columns, activeIdx, overIdx));
+    }, [columns, onChangeColumns]);
+
+    const VirtuosoTableRow = useMemo(() => {
+        const VirtuosoTableRow: TableComponents<LogData>['TableRow'] = props => {
+            const { style, ...rest } = props;
+            return (
+                <tr
+                    className="group font-['Fira_Code'] border-b last:border-b-0 border-box flex flex-row group min-w-fit h-[35px]"
+                    style={{ ...style, height: 35 }}
+                    onClick={() => onSelectLog(props.item)}
+                    data-selected={props.item.id === selectedLog?.id ? true : undefined}
+                    {...rest}
+                />
+            );
+        };
+        return VirtuosoTableRow;
+    }, [onSelectLog, selectedLog?.id]);
 
     return (
         <div className="grow w-full max-w-full min-w-full flex flex-col px-1" ref={logContainerRef}>
@@ -196,18 +206,22 @@ export default function LogList(props: LogListProps) {
                     {dragColumn && <LogColumnOverlay width={dragColumn.width} name={dragColumn.name} />}
                 </DragOverlay>
                 <div ref={rootRef} data-overlayscrollbars="" className="h-full overflow-visible" />
-                <Virtuoso
+                <TableVirtuoso
                     ref={virtuosoRef}
                     data={logs}
-                    totalCount={logs.length + 1}
-                    topItemCount={1}
+                    totalCount={logs.length}
                     scrollerRef={setScroller}
-                    components={{ Item: VirtuosoItem }}
+                    width="100%"
+                    components={{
+                        Table: VirtuosoTable,
+                        TableRow: VirtuosoTableRow
+                    }}
                     followOutput="smooth"
+                    overscan={{ main: 100, reverse: 100 }}
                     initialTopMostItemIndex={logs.length}
-                    computeItemKey={index => index === 0 ? 'header' : logs[index - 1].id}
-                    itemContent={(index, data) => index === 0 ? (
-                        <div className="flex flex-row min-w-fit border-b bg-white h-[35px]">
+                    computeItemKey={(_, log) => log.id}
+                    fixedHeaderContent={() => (
+                        <tr className="flex flex-row min-w-fit border-b bg-white" style={{ height: 35 }}>
                             <SortableContext
                                 items={columns.map(c => c.id)}
                                 strategy={horizontalListSortingStrategy}
@@ -224,16 +238,9 @@ export default function LogList(props: LogListProps) {
                                     />
                                 ))}
                             </SortableContext>
-                        </div>
-                    ) : (
-                        <Log
-                            log={data}
-                            columns={columns}
-                            placeholderRender={placeholderRenders[index % placeholderRenders.length] ?? []}
-                            onClick={onSelectLog}
-                            selected={data.id === selectedLog?.id}
-                        />
+                        </tr>
                     )}
+                    itemContent={(_, log) => <Log log={log} columns={columns} />}
                 />
             </DndContext >
         </div>

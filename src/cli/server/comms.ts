@@ -50,6 +50,7 @@ export default class Comms {
 
         const log: LogData = {
             id: `${bucket}/${this.broadcastedMessages[bucket]}`,
+            bucket,
             timestamp: new Date().toISOString(),
             message,
             ...(extraFields ?? {})
