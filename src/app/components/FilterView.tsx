@@ -57,7 +57,6 @@ export default function FilterView(props: FilterViewProps) {
             const filteredLogs = [];
             const predicate = filterFunction || ((arr) => arr.map(() => true));
             const chunkSize = Math.ceil(allLogs.length / 10);
-            console.log('chunkSize', chunkSize);
             let processed = 0;
 
             while (processed < allLogs.length) {

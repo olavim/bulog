@@ -154,7 +154,7 @@ export default function Home() {
             </span>
           </div>
           {bucketConfigLoaded && bucketNames.map((bucket, index) => (
-            <Tab key={index} title={bucket} selected={bucket === selectedBucket} onClick={onSelectBucket} />
+            <Tab key={index} title={bucket} count={buckets.get(bucket)?.logs?.length ?? 0} selected={bucket === selectedBucket} onClick={onSelectBucket} />
           ))}
         </div>
         <div className="py-6 grow overflow-y-auto flex flex-col bg-slate-700 shadow-lg z-10">
@@ -166,8 +166,8 @@ export default function Home() {
               <MdAddCircle className="text-slate-400 hover:text-slate-300 text-md" />
             </button>
           </div>
-          {filterConfigLoaded && filterNames.map((_filter, index) => (
-            <Tab key={index} title={filterNames[index]} selected={index === selectedFilter} onClick={onSelectFilter} />
+          {filterConfigLoaded && filterNames.map((filter, index) => (
+            <Tab key={index} title={filter} count={filters.get(filter)?.logs?.length ?? 0} selected={index === selectedFilter} onClick={onSelectFilter} />
           ))}
         </div>
       </div>
