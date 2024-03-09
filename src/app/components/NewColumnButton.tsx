@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { RiInsertColumnRight } from 'react-icons/ri';
-import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid';
 
 interface NewColumnButtonProps {
 	onClick: (id: string, data: Partial<ColumnData> | null) => void;
@@ -10,7 +10,7 @@ export default function NewColumnButton(props: NewColumnButtonProps) {
 	const { onClick } = props;
 
 	const handleClick = useCallback(() => {
-		onClick(uuidv4(), {});
+		onClick(nanoid(16), {});
 	}, [onClick]);
 
 	return (

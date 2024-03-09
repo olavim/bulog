@@ -1,5 +1,4 @@
 import { createContext, useEffect, useRef, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { memoize } from 'lodash';
 import useGlobalEvent from 'beautiful-react-hooks/useGlobalEvent';
 
@@ -13,13 +12,22 @@ export class Sandbox {
 	private readyLockResolve: (() => void) | null = null;
 	private unloadListeners: (() => void)[] = [];
 
+	private previousId: number = 0;
+
 	constructor() {
 		this.postMessage = this.postMessage.bind(this);
 		this.createCallback = this.createCallback.bind(this);
 		this.onUnload = this.onUnload.bind(this);
 		this.resetLock = this.resetLock.bind(this);
+		this.init = this.init.bind(this);
+		this.nextId = this.nextId.bind(this);
 
 		this.resetLock();
+	}
+
+	private nextId() {
+		this.previousId++;
+		return String(this.previousId);
 	}
 
 	private resetLock() {
@@ -70,7 +78,7 @@ export class Sandbox {
 	public async createCallback<T extends LogData, K extends JSONValue>(code: string) {
 		await this.readyLock;
 
-		const fnId = uuidv4();
+		const fnId = this.nextId();
 
 		const createPromise = new Promise<void>((resolve) => {
 			this.pendingCreates[fnId] = resolve;
@@ -83,7 +91,7 @@ export class Sandbox {
 
 		return memoize(
 			async (logs: T[]) => {
-				const evalId = uuidv4();
+				const evalId = this.nextId();
 				const evalPromise = new Promise<K[]>((resolve) => {
 					this.pendingFunctions[evalId] = resolve;
 				});
@@ -115,7 +123,7 @@ export class Sandbox {
 	}) {
 		await this.readyLock;
 
-		const groupId = uuidv4();
+		const groupId = this.nextId();
 
 		const createPromise = new Promise<void>((resolve) => {
 			this.pendingCreateGroups[groupId] = resolve;
@@ -128,7 +136,7 @@ export class Sandbox {
 
 		return memoize(
 			async (logs: T[]) => {
-				const groupEvalId = uuidv4();
+				const groupEvalId = this.nextId();
 				const evalPromise = new Promise<Array<{ [id: string]: K }>>((resolve) => {
 					this.pendingFunctionGroups[groupEvalId] = resolve;
 				});

@@ -13,7 +13,7 @@ module.exports = {
 		'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
 		'@typescript-eslint/no-explicit-any': 'off',
 		semi: ['error', 'always'],
-		'@stylistic/quotes': ['error', 'single'],
+		'@stylistic/quotes': ['error', 'single', { avoidEscape: true }],
 		'@stylistic/comma-dangle': ['error', 'never'],
 		'no-mixed-spaces-and-tabs': 'off',
 		'@stylistic/no-mixed-spaces-and-tabs': ['error', 'smart-tabs']

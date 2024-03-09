@@ -31,8 +31,13 @@ async function serveVite(app: express.Express) {
 	app.use(viteServer.middlewares);
 }
 
-export async function getServer() {
+export async function getServer(options: ServerOptions) {
 	const app = express();
+
+	app.use((req, _res, next) => {
+		req.bulogOptions = options;
+		next();
+	});
 
 	app.use('/api', apiRouter);
 

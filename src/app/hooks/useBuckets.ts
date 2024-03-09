@@ -40,18 +40,24 @@ export default function useBuckets() {
 	const loadConfig = useCallback(async () => {
 		const config = await getBucketsConfig();
 
-		for (const bucket of Object.keys(config?.buckets)) {
-			const bucketConfig = config.buckets[bucket];
-			if (!bucketConfig.columns) {
-				continue;
-			}
+		const keys = Object.keys(config?.buckets);
 
-			const data = await bucketConfigToData(bucketConfig, sandbox);
-			dispatch({ type: 'loadConfig', bucket, config: data });
+		const buckets = new Map<string, BucketData>(
+			await Promise.all(
+				keys.map(
+					async (key) =>
+						[key, await bucketConfigToData(config.buckets[key], sandbox)] as [string, BucketData]
+				)
+			)
+		);
+
+		dispatch({ type: 'loadConfig', buckets });
+
+		for (const key of keys) {
 			dispatch({
 				type: 'setLogRenderer',
-				bucket,
-				logRenderer: await sandbox.createLogRenderer(data.columns)
+				bucket: key,
+				logRenderer: await sandbox.createLogRenderer(buckets.get(key)?.columns ?? [])
 			});
 		}
 	}, [sandbox, dispatch]);

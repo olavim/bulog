@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid';
 import { useCallback } from 'react';
 
 export const createSimpleFormatter = (pattern?: string) => {
@@ -27,7 +27,7 @@ export const defaultLogRenderer =
 export default function useColumnUtils() {
 	const createColumn = useCallback(async (data: Partial<ColumnData> | null) => {
 		return {
-			id: data?.id ?? uuidv4(),
+			id: data?.id ?? nanoid(16),
 			name: data?.name ?? 'New Column',
 			width: data?.width ?? 200,
 			formatterString: data?.formatterString ?? defaultFormatterString

@@ -24,7 +24,7 @@
 		"check:ts:cli": "tsc -p tsconfig.cli.json --noEmit",
 		"lint": "eslint . --report-unused-disable-directives --max-warnings 0 --fix",
 		"format": "prettier . --write --log-level warn",
-		"clitest": "node ./dummy-app.js | node ./bin/run.js my-app -p 3000",
+		"clitest": "node ./dummy-app.js | tsx ./bin/dev.js my-app -p 3000",
 		"prepare": "husky",
 		"prepublishOnly": "npm run build"
 	},
@@ -45,6 +45,7 @@
 		"json5": "^2.2.3",
 		"liqe": "^3.8.0",
 		"lodash": "^4.17.21",
+		"nanoid": "^5.0.6",
 		"overlayscrollbars": "^2.5.0",
 		"overlayscrollbars-react": "^0.5.4",
 		"react": "^18.2.0",
@@ -55,7 +56,6 @@
 		"react-use-websocket": "^3.0.0",
 		"react-virtuoso": "^4.7.1",
 		"react-window": "^1.8.10",
-		"uuid": "^9.0.1",
 		"vite-express": "^0.15.0",
 		"ws": "^8.16.0"
 	},

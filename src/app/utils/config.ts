@@ -1,9 +1,9 @@
 import { Sandbox } from '@/context/SandboxContext';
-import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid';
 
 export function columnConfigToData(config: ColumnConfig): ColumnData {
 	return {
-		id: uuidv4(),
+		id: nanoid(16),
 		name: config.name,
 		width: config.width,
 		formatterString: config.formatter

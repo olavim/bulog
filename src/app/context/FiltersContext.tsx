@@ -5,7 +5,7 @@ import {
 } from '@/hooks/useColumnUtils';
 import { createSimpleFunction } from '@/hooks/useSandbox';
 import { Dispatch, Reducer, createContext, useReducer } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid';
 
 export type FilterConfigInput = {
 	name?: string;
@@ -30,7 +30,7 @@ type FiltersReducerActionType =
 			filterString: string;
 			filterFunction: (logs: LogData[]) => Promise<boolean[]>;
 	  }
-	| { type: 'loadConfig'; filter: string; config: FilterData }
+	| { type: 'loadConfig'; filters: FiltersContextType['filters'] }
 	| { type: 'addLogs'; filter: string; logs: LogData[] }
 	| { type: 'setLogs'; filter: string; logs: LogData[] }
 	| { type: 'setColumns'; filter: string; columns: ColumnData[] }
@@ -67,8 +67,8 @@ const filtersReducer: Reducer<FiltersContextType, FiltersReducerActionType> = (c
 				i++;
 			}
 
-			const defaultTimestampColumnId = uuidv4();
-			const defaultMessageColumnId = uuidv4();
+			const defaultTimestampColumnId = nanoid(16);
+			const defaultMessageColumnId = nanoid(16);
 
 			ctxCopy.filters.set(name, {
 				filterString: defaultFilterString,
@@ -127,8 +127,7 @@ const filtersReducer: Reducer<FiltersContextType, FiltersReducerActionType> = (c
 			return ctxCopy;
 		}
 		case 'loadConfig': {
-			const filter = ctxCopy.filters.get(action.filter)!;
-			ctxCopy.filters.set(action.filter, { ...action.config, logs: filter?.logs ?? [] });
+			ctxCopy.filters = action.filters;
 			ctxCopy.configLoaded = true;
 			return ctxCopy;
 		}
