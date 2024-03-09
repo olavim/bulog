@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { filter as liqeFilter, LiqeQuery } from 'liqe';
-import LogList from "./LogList";
-import useBucket from "@/hooks/useBucket";
-import LogView from "./LogView";
-import ColumnView from "./ColumnView";
-import Drawer from "./Drawer";
-import Search from "./Search";
-import NewColumnButton from "./NewColumnButton";
-import useBuckets from "@/hooks/useBuckets";
+import LogList from './LogList';
+import useBucket from '@/hooks/useBucket';
+import LogView from './LogView';
+import ColumnView from './ColumnView';
+import Drawer from './Drawer';
+import Search from './Search';
+import NewColumnButton from './NewColumnButton';
+import useBuckets from '@/hooks/useBuckets';
 
 interface BucketLogsProps {
     bucket: string;

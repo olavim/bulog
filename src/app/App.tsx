@@ -1,8 +1,8 @@
-import { BucketsProvider } from "@/context/BucketsContext";
-import { SandboxProvider } from "@/context/SandboxContext";
-import Home from "./Home";
-import { FiltersProvider } from "./context/FiltersContext";
-import { LogProvider } from "./context/LogContext";
+import { BucketsProvider } from '@/context/BucketsContext';
+import { SandboxProvider } from '@/context/SandboxContext';
+import Home from './Home';
+import { FiltersProvider } from './context/FiltersContext';
+import { LogProvider } from './context/LogContext';
 
 function App() {
   return (

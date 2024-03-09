@@ -1,10 +1,10 @@
-import { useCallback, useContext } from "react";
+import { useCallback, useContext } from 'react';
 import { debounce } from 'lodash';
-import { getFiltersConfig, saveFiltersConfig } from "@/api/config";
-import useLogs from "./useLogs";
-import useSandbox from "./useSandbox";
-import { FiltersContext } from "../context/FiltersContext";
-import { filterConfigToData } from "@/utils/config";
+import { getFiltersConfig, saveFiltersConfig } from '@/api/config';
+import useLogs from './useLogs';
+import useSandbox from './useSandbox';
+import { FiltersContext } from '../context/FiltersContext';
+import { filterConfigToData } from '@/utils/config';
 
 const saveFiltersConfigDebounced = debounce(saveFiltersConfig, 500);
 

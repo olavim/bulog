@@ -1,16 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { filter as liqeFilter, LiqeQuery } from 'liqe';
-import LogList from "./LogList";
-import useFilter from "@/hooks/useFilter";
-import LogView from "./LogView";
-import ColumnView from "./ColumnView";
-import Drawer from "./Drawer";
-import Search from "./Search";
-import NewColumnButton from "./NewColumnButton";
-import { IoMdSettings } from "react-icons/io";
-import FilterSettings from "./FilterSettings";
-import useLogs from "@/hooks/useLogs";
-import useFilters from "@/hooks/useFilters";
+import LogList from './LogList';
+import useFilter from '@/hooks/useFilter';
+import LogView from './LogView';
+import ColumnView from './ColumnView';
+import Drawer from './Drawer';
+import Search from './Search';
+import NewColumnButton from './NewColumnButton';
+import { IoMdSettings } from 'react-icons/io';
+import FilterSettings from './FilterSettings';
+import useLogs from '@/hooks/useLogs';
+import useFilters from '@/hooks/useFilters';
 
 interface FilterViewProps {
     filter: string;

@@ -1,7 +1,7 @@
-import { useCallback, useContext, useMemo } from "react";
-import useColumnUtils from "./useColumnUtils";
-import { FiltersContext } from "../context/FiltersContext";
-import useSandbox from "./useSandbox";
+import { useCallback, useContext, useMemo } from 'react';
+import useColumnUtils from './useColumnUtils';
+import { FiltersContext } from '../context/FiltersContext';
+import useSandbox from './useSandbox';
 
 export default function useFilter(filter: string) {
     const [ctx, dispatch] = useContext(FiltersContext);

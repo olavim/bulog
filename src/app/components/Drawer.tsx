@@ -1,4 +1,4 @@
-import { MdClose } from "react-icons/md";
+import { MdClose } from 'react-icons/md';
 
 interface DrawerProps {
     title: string;

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import LogCell from "./LogCell";
+import { useEffect, useState } from 'react';
+import LogCell from './LogCell';
 
 interface LogProps {
     log: LogData;

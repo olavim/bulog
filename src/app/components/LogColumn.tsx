@@ -1,6 +1,6 @@
 import { CSS } from '@dnd-kit/utilities';
-import { useSortable } from "@dnd-kit/sortable";
-import { MouseEventHandler, useCallback } from "react";
+import { useSortable } from '@dnd-kit/sortable';
+import { MouseEventHandler, useCallback } from 'react';
 import { MdDragIndicator } from 'react-icons/md';
 
 interface LogColumnOverlayProps {

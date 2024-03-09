@@ -1,7 +1,7 @@
-import { createContext, useEffect, useRef, useState } from "react";
+import { createContext, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { memoize } from "lodash";
-import useGlobalEvent from "beautiful-react-hooks/useGlobalEvent";
+import { memoize } from 'lodash';
+import useGlobalEvent from 'beautiful-react-hooks/useGlobalEvent';
 
 export class Sandbox {
     private iframe: HTMLIFrameElement | null = null;
@@ -152,7 +152,7 @@ export function SandboxProvider({ children }: CodeSandboxProviderProps) {
     }, [sandbox]);
 
     onMessage((evt: MessageEvent) => {
-        if (evt.origin === "null" && evt.source === ref?.contentWindow) {
+        if (evt.origin === 'null' && evt.source === ref?.contentWindow) {
             sandbox.current.postMessage(evt.data);
         }
     });

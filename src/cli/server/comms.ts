@@ -1,5 +1,5 @@
-import { WebSocket, WebSocketServer } from "ws";
-import Denque from "denque";
+import { WebSocket, WebSocketServer } from 'ws';
+import Denque from 'denque';
 
 interface DebounceData {
     [bucket: string]: {

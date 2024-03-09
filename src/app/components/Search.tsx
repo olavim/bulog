@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
-import ReactDOMServer from "react-dom/server";
-import { FaQuestionCircle } from "react-icons/fa";
-import { MdSearch } from "react-icons/md";
+import { useCallback, useEffect, useState } from 'react';
+import ReactDOMServer from 'react-dom/server';
+import { FaQuestionCircle } from 'react-icons/fa';
+import { MdSearch } from 'react-icons/md';
 import { LiqeQuery, parse as liqeParse } from 'liqe';
 
 interface SearchProps {

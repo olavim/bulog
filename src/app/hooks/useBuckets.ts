@@ -1,9 +1,9 @@
-import { getBucketsConfig, saveBucketsConfig } from "@/api/config";
-import { BucketsContext } from "@/context/BucketsContext";
-import { useCallback, useContext } from "react";
-import { debounce } from "lodash";
-import useSandbox from "./useSandbox";
-import { bucketConfigToData } from "@/utils/config";
+import { getBucketsConfig, saveBucketsConfig } from '@/api/config';
+import { BucketsContext } from '@/context/BucketsContext';
+import { useCallback, useContext } from 'react';
+import { debounce } from 'lodash';
+import useSandbox from './useSandbox';
+import { bucketConfigToData } from '@/utils/config';
 
 const saveBucketsConfigDebounced = debounce(saveBucketsConfig, 500);
 

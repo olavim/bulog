@@ -12,7 +12,7 @@ class ConfigValidationError extends Error {
 
     constructor(message: string, configPath: string) {
         super(`Config file ${configPath} is invalid:\n\n${message.trim().split('\n').map(line => `\t${line}`).join('\n')}\n\nPlease fix or delete the file and try again.`);
-        this.name = "ConfigValidationError";
+        this.name = 'ConfigValidationError';
         this.configPath = configPath;
     }
 }

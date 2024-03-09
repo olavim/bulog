@@ -8,7 +8,7 @@ function getElement(value: JSONValue) {
 
         if (typeof value === 'object') {
             return (
-                <div className={getElementClass("text-gray-500")}>
+                <div className={getElementClass('text-gray-500')}>
                     <span>{JSON.stringify(value)}</span>
                 </div>
             );
@@ -16,7 +16,7 @@ function getElement(value: JSONValue) {
 
         if (typeof value === 'string') {
             return (
-                <div className={getElementClass("text-gray-800")}>
+                <div className={getElementClass('text-gray-800')}>
                     <span>{value}</span>
                 </div>
             );
@@ -24,7 +24,7 @@ function getElement(value: JSONValue) {
 
         if (typeof value === 'number') {
             return (
-                <div className={getElementClass("text-sky-700")}>
+                <div className={getElementClass('text-sky-700')}>
                     <span>{value}</span>
                 </div>
             );

@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useState } from 'react';
 
 export const LogsContext = createContext<[LogData[], (logs: LogData[]) => void]>([[], () => { }]);
 

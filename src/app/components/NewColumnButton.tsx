@@ -1,5 +1,5 @@
-import { useCallback } from "react";
-import { RiInsertColumnRight } from "react-icons/ri";
+import { useCallback } from 'react';
+import { RiInsertColumnRight } from 'react-icons/ri';
 import { v4 as uuidv4 } from 'uuid';
 
 interface NewColumnButtonProps {

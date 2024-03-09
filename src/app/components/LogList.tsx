@@ -1,13 +1,13 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { TableComponents, TableVirtuoso, VirtuosoHandle } from "react-virtuoso";
-import Log from "./Log";
-import { useOverlayScrollbars } from "overlayscrollbars-react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { TableComponents, TableVirtuoso, VirtuosoHandle } from 'react-virtuoso';
+import Log from './Log';
+import { useOverlayScrollbars } from 'overlayscrollbars-react';
 import { InstancePlugin, OverlayScrollbars } from 'overlayscrollbars';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter } from "@dnd-kit/core";
-import { SortableContext, arrayMove, horizontalListSortingStrategy } from "@dnd-kit/sortable";
-import LogColumn, { LogColumnOverlay } from "./LogColumn";
-import { useResizeDetector } from "react-resize-detector";
-import useGlobalEvent from "beautiful-react-hooks/useGlobalEvent";
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter } from '@dnd-kit/core';
+import { SortableContext, arrayMove, horizontalListSortingStrategy } from '@dnd-kit/sortable';
+import LogColumn, { LogColumnOverlay } from './LogColumn';
+import { useResizeDetector } from 'react-resize-detector';
+import useGlobalEvent from 'beautiful-react-hooks/useGlobalEvent';
 
 type ClickScrollEventDetails = { direction: 'horizontal' | 'vertical' };
 
@@ -175,15 +175,15 @@ export default function LogList(props: LogListProps) {
             return;
         }
 
-        document.body.style.cursor = "col-resize";
-        document.body.style.userSelect = "none";
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
 
         setColumnResizeData({ target: col, origin: mouseX, originalWidth: col.width });
     }, [logContainerSize]);
 
     onMouseUp(() => {
-        document.body.style.cursor = "auto";
-        document.body.style.userSelect = "auto";
+        document.body.style.cursor = 'auto';
+        document.body.style.userSelect = 'auto';
         setColumnResizeData(null);
     });
 

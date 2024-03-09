@@ -1,6 +1,6 @@
-import { javascript } from "@codemirror/lang-javascript";
-import { useCallback, useEffect, useState } from "react";
-import { MdCheckCircle, MdRemoveCircle } from "react-icons/md";
+import { javascript } from '@codemirror/lang-javascript';
+import { useCallback, useEffect, useState } from 'react';
+import { MdCheckCircle, MdRemoveCircle } from 'react-icons/md';
 import CodeMirror from '@uiw/react-codemirror';
 
 interface FilterSettingsProps {
@@ -63,14 +63,14 @@ export default function ColumnView(props: FilterSettingsProps) {
                     disabled={nameStr === ''}
                 >
                     <MdCheckCircle className="mr-2" />
-                    <span className="mb-px">{"Save"}</span>
+                    <span className="mb-px">{'Save'}</span>
                 </button>
                 <button
                     className="h-[30px] inline-flex flex-row items-center bg-red-500 hover:bg-red-400 text-sm text-white font-medium pl-3 pr-4 rounded shadow"
                     onClick={onDelete}
                 >
                     <MdRemoveCircle className="mr-2" />
-                    <span className="mb-px">{"Delete"}</span>
+                    <span className="mb-px">{'Delete'}</span>
                 </button>
             </div>
         </div>

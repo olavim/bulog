@@ -1,7 +1,7 @@
-import { createSimpleFormatter } from "@/hooks/useColumnUtils";
-import JsonView from "@uiw/react-json-view";
-import { FaClipboard, FaClipboardCheck } from "react-icons/fa";
-import { MdAddCircle } from "react-icons/md";
+import { createSimpleFormatter } from '@/hooks/useColumnUtils';
+import JsonView from '@uiw/react-json-view';
+import { FaClipboard, FaClipboardCheck } from 'react-icons/fa';
+import { MdAddCircle } from 'react-icons/md';
 import { v4 as uuidv4 } from 'uuid';
 
 interface LogViewProps {

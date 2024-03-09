@@ -94,7 +94,7 @@ export class Run extends Command {
 
         let prevChunk = '';
 
-        process.stdin.on("data", data => {
+        process.stdin.on('data', data => {
             if (pipeOutput) {
                 process.stdout.write(data);
             }
@@ -139,7 +139,7 @@ export class Run extends Command {
             prevChunk = lines[lines.length - 1];
         });
 
-        process.stdin.on("end", () => {
+        process.stdin.on('end', () => {
             if (prevChunk) {
                 socket.send(JSON.stringify({ bucket, message: prevChunk, extraFields }));
             }

@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
-import Tab from "@/components/Tab";
-import { Tooltip } from "react-tooltip";
-import BucketView from "@/components/BucketView";
-import useBuckets from "@/hooks/useBuckets";
-import useFilters from "@/hooks/useFilters";
+import { useState, useEffect, useCallback } from 'react';
+import Tab from '@/components/Tab';
+import { Tooltip } from 'react-tooltip';
+import BucketView from '@/components/BucketView';
+import useBuckets from '@/hooks/useBuckets';
+import useFilters from '@/hooks/useFilters';
 import { MdAddCircleOutline } from 'react-icons/md';
-import FilterView from "./components/FilterView";
-import useLogs from "./hooks/useLogs";
-import useWebSocket from "react-use-websocket";
+import FilterView from './components/FilterView';
+import useLogs from './hooks/useLogs';
+import useWebSocket from 'react-use-websocket';
 
 export default function Home() {
   const [host, setHost] = useState<string>();
