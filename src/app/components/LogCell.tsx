@@ -63,7 +63,7 @@ export default function LogCell(props: LogCellProps) {
                 flexShrink: 0,
                 flexBasis: width,
                 width,
-                animation: last ? 'fadeIn 0.5s' : undefined
+                animation: last ? 'fadeIn 0.1s' : undefined
             }}
         >
             {getElement(value)}

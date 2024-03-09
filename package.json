@@ -11,7 +11,7 @@
   "bin": {
     "bulog": "bin/run.js"
   },
-  "version": "0.3.0",
+  "version": "0.3.1",
   "scripts": {
     "start": "node ./bin/run.js -p 3000",
     "dev": "tsx watch --ignore vite.config.ts.* ./bin/dev.js -p 3000",

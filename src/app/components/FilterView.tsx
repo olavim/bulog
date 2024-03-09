@@ -10,7 +10,6 @@ import NewColumnButton from "./NewColumnButton";
 import { IoMdSettings } from "react-icons/io";
 import FilterSettings from "./FilterSettings";
 import useLogs from "@/hooks/useLogs";
-import { FilterConfigInput } from "@/context/FiltersContext";
 import useFilters from "@/hooks/useFilters";
 
 interface FilterViewProps {
@@ -40,9 +39,9 @@ export default function FilterView(props: FilterViewProps) {
         }
     }, [saveConfig, shouldSave]);
 
-    const handleSetFilterConfig = useCallback((config: FilterConfigInput) => {
+    const handleSetFilterConfig = useCallback((name: string, filterString: string) => {
         setShouldReadLogs(true);
-        setConfig(config);
+        setConfig(name, filterString);
     }, [setConfig]);
 
     const onDeleteFilter = useCallback(() => {

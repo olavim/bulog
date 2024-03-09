@@ -1,6 +1,6 @@
 import { useCallback, useContext, useMemo } from "react";
 import useColumnUtils from "./useColumnUtils";
-import { FilterConfigInput, FiltersContext } from "../context/FiltersContext";
+import { FiltersContext } from "../context/FiltersContext";
 import useSandbox from "./useSandbox";
 
 export default function useFilter(filter: string) {
@@ -49,9 +49,10 @@ export default function useFilter(filter: string) {
         }
     }, [columns, createColumn, dispatch, filter, sandbox, deleteColumn]);
 
-    const setConfig = useCallback(async (config: FilterConfigInput) => {
-        dispatch({ type: 'setConfig', filter, config });
-    }, [dispatch, filter]);
+    const setConfig = useCallback(async (name: string, filterString: string) => {
+        const filterFunction = await sandbox.createCallback(filterString) as (log: LogData[]) => Promise<boolean[]>;
+        dispatch({ type: 'setConfig', filter, name, filterString, filterFunction });
+    }, [dispatch, filter, sandbox]);
 
     const deleteFilter = useCallback(() => {
         dispatch({ type: 'deleteFilter', filter });

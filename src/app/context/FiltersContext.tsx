@@ -5,10 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 export type FilterConfigInput = {
     name?: string,
-    columns?: ColumnData[],
     filterString: string,
-    filterFunction: (logs: LogData[]) => Promise<boolean[]>,
-    logRenderer?: (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>>
+    filterFunction: (logs: LogData[]) => Promise<boolean[]>
 };
 
 type FiltersContextType = {

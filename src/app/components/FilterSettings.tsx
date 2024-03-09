@@ -2,13 +2,11 @@ import { javascript } from "@codemirror/lang-javascript";
 import { useCallback, useEffect, useState } from "react";
 import { MdCheckCircle, MdRemoveCircle } from "react-icons/md";
 import CodeMirror from '@uiw/react-codemirror';
-import useSandbox from "@/hooks/useSandbox";
-import { FilterConfigInput } from "@/context/FiltersContext";
 
 interface FilterSettingsProps {
     filter: string;
     filterString?: string;
-    onChange: (config: FilterConfigInput) => void;
+    onChange: (name: string, filterString: string) => void;
     onDelete: () => void;
 }
 
@@ -16,7 +14,6 @@ export default function ColumnView(props: FilterSettingsProps) {
     const { filter, filterString, onChange, onDelete } = props;
     const [nameStr, setNameStr] = useState('');
     const [tempFilterString, setTempFilterString] = useState('');
-    const sandbox = useSandbox();
 
     useEffect(() => {
         setNameStr(filter);
@@ -27,11 +24,8 @@ export default function ColumnView(props: FilterSettingsProps) {
     }, [filterString]);
 
     const handleSave = useCallback(() => {
-        (async () => {
-            const fn = await sandbox.createCallback(tempFilterString) as (log: LogData[]) => Promise<boolean[]>;
-            onChange({ name: nameStr, filterString: tempFilterString, filterFunction: fn });
-        })();
-    }, [onChange, nameStr, tempFilterString, sandbox]);
+        onChange(nameStr, tempFilterString);
+    }, [onChange, nameStr, tempFilterString]);
 
     return (
         <div className="w-full items-start flex flex-col grow space-y-4">

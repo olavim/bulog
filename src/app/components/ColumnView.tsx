@@ -2,7 +2,6 @@ import { javascript } from "@codemirror/lang-javascript";
 import { useCallback, useEffect, useState } from "react";
 import { MdCheckCircle, MdRemoveCircle } from "react-icons/md";
 import CodeMirror from '@uiw/react-codemirror';
-import useSandbox from "@/hooks/useSandbox";
 
 interface ColumnViewProps {
     column: ColumnData;
@@ -13,7 +12,6 @@ export default function ColumnView(props: ColumnViewProps) {
     const { column, onChange } = props;
     const [nameStr, setColumnNameStr] = useState('');
     const [formatterStr, setColumnFormatterStr] = useState('');
-    const sandbox = useSandbox();
 
     useEffect(() => {
         setColumnNameStr(column.name);
@@ -28,11 +26,10 @@ export default function ColumnView(props: ColumnViewProps) {
             onChange(column.id, {
                 ...column,
                 name: nameStr,
-                formatterString: formatterStr,
-                formatterFunction: await sandbox.createCallback(formatterStr)
+                formatterString: formatterStr
             });
         })();
-    }, [onChange, column, nameStr, formatterStr, sandbox]);
+    }, [onChange, column, nameStr, formatterStr]);
 
     const handleDelete = useCallback(() => {
         onChange(column.id, null);
