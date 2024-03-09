@@ -8,21 +8,23 @@ interface BucketConfig {
     columns: ColumnConfig[];
 }
 
-interface BucketData {
-    columns: ColumnData[];
-    logs?: LogData[];
-}
-
 interface FilterConfig {
     filter: string;
     columns: ColumnConfig[];
 }
 
+interface BucketData {
+    columns: ColumnData[];
+    logs?: LogData[];
+    logRenderer: (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>>;
+}
+
 interface FilterData {
     filterString: string;
     filterFunction: (log: LogData[]) => Promise<boolean[]>;
-    logs?: LogData[];
     columns?: ColumnData[];
+    logs?: LogData[];
+    logRenderer: (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>>;
 }
 
 interface ColumnData {
@@ -30,7 +32,6 @@ interface ColumnData {
     name: string;
     width: number;
     formatterString: string;
-    formatterFunction: (log: LogData[]) => Promise<JSONValue[]>;
 }
 
 type JSONValue =

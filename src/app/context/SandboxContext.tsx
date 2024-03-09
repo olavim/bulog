@@ -1,5 +1,5 @@
 import { createContext, useEffect, useRef, useState } from "react";
-import sandboxSrc from "@/assets/sandbox.html?url";
+import sandboxSrc from "@/sandbox/index.html?url";
 import { v4 as uuidv4 } from 'uuid';
 import { memoize } from "lodash";
 import useGlobalEvent from "beautiful-react-hooks/useGlobalEvent";
@@ -8,6 +8,8 @@ export class Sandbox {
     private iframe: HTMLIFrameElement | null = null;
     private pendingCreates: Record<string, () => void> = {};
     private pendingFunctions: Record<string, (value: any[]) => void> = {};
+    private pendingCreateGroups: Record<string, () => void> = {};
+    private pendingFunctionGroups: Record<string, (value: Array<{ [id: string]: any }>) => void> = {};
     private readyLock: Promise<any> | null = null;
     private readyLockResolve: (() => void) | null = null;
     private unloadListeners: (() => void)[] = [];
@@ -45,9 +47,19 @@ export class Sandbox {
             this.pendingCreates[fnId]?.();
         }
 
+        if (data?.type === 'fn-group-created') {
+            const groupId = data.id;
+            this.pendingCreateGroups[groupId]?.();
+        }
+
         if (data?.type === 'fn-result') {
             const evalId = data.id;
             this.pendingFunctions[evalId]?.(data.result);
+        }
+
+        if (data?.type === 'fn-group-result') {
+            const groupEvalId = data.id;
+            this.pendingFunctionGroups[groupEvalId]?.(data.result);
         }
 
         if (data?.type === 'sandbox-unloaded') {
@@ -62,7 +74,7 @@ export class Sandbox {
         const fnId = uuidv4();
 
         const createPromise = new Promise<void>(resolve => {
-            this.pendingCreates[fnId] = resolve;//
+            this.pendingCreates[fnId] = resolve;
         });
 
         this.iframe?.contentWindow?.postMessage({ id: fnId, code, type: 'create-fn' }, '*');
@@ -82,6 +94,40 @@ export class Sandbox {
             delete this.pendingFunctions[evalId];
 
             return result as K[];
+        }, logs => logs.map(log => log.id).join(','));
+    }
+
+    public async createLogRenderer(columns: ColumnData[]) {
+        const codes = columns.reduce((obj, col) => ({ ...obj, [col.id]: col.formatterString }), {} as { [id: string]: string });
+        return this.createCallbackGroup(codes);
+    }
+
+    public async createCallbackGroup<T extends LogData, K extends JSONValue>(codes: { [id: string]: string }) {
+        await this.readyLock;
+
+        const groupId = uuidv4();
+
+        const createPromise = new Promise<void>(resolve => {
+            this.pendingCreateGroups[groupId] = resolve;
+        });
+
+        this.iframe?.contentWindow?.postMessage({ id: groupId, codes, type: 'create-fn-group' }, '*');
+        await createPromise;
+
+        delete this.pendingCreateGroups[groupId];
+
+        return memoize(async (logs: T[]) => {
+            const groupEvalId = uuidv4();
+            const evalPromise = new Promise<Array<{ [id: string]: K }>>(resolve => {
+                this.pendingFunctionGroups[groupEvalId] = resolve;
+            });
+
+            this.iframe?.contentWindow?.postMessage({ id: groupEvalId, groupId, arg: logs, type: 'eval-fn-group' }, '*');
+            const result = await evalPromise;
+
+            delete this.pendingFunctionGroups[groupEvalId];
+
+            return result as Array<{ [id: string]: K }>;
         }, logs => logs.map(log => log.id).join(','));
     }
 

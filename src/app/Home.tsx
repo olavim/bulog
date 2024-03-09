@@ -4,7 +4,7 @@ import { Tooltip } from "react-tooltip";
 import BucketView from "@/components/BucketView";
 import useBuckets from "@/hooks/useBuckets";
 import useFilters from "@/hooks/useFilters";
-import { MdAddCircle } from 'react-icons/md';
+import { MdAddCircleOutline } from 'react-icons/md';
 import FilterView from "./components/FilterView";
 import useLogs from "./hooks/useLogs";
 import useWebSocket from "react-use-websocket";
@@ -24,7 +24,6 @@ export default function Home() {
     buckets,
     loadConfig: loadBucketConfig,
     configLoaded: bucketConfigLoaded,
-    saveConfig: saveBucketConfig,
     addLogs: addLogsToBucket
   } = useBuckets();
 
@@ -32,7 +31,6 @@ export default function Home() {
     filters,
     loadConfig: loadFilterConfig,
     configLoaded: filterConfigLoaded,
-    saveConfig: saveFilterConfig,
     createFilter,
     addLogs: addLogsToFilter
   } = useFilters();
@@ -82,21 +80,21 @@ export default function Home() {
     })();
   }, [loadBucketConfig, loadFilterConfig]);
 
-  useEffect(() => {
-    (async () => {
-      if (bucketConfigLoaded) {
-        await saveBucketConfig();
-      }
-    })();
-  }, [buckets, bucketConfigLoaded, saveBucketConfig]);
+  // useEffect(() => {
+  //   (async () => {
+  //     if (bucketConfigLoaded) {
+  //       await saveBucketConfig();
+  //     }
+  //   })();
+  // }, [buckets, bucketConfigLoaded, saveBucketConfig]);
 
-  useEffect(() => {
-    (async () => {
-      if (filterConfigLoaded) {
-        await saveFilterConfig();
-      }
-    })();
-  }, [filters, filterConfigLoaded, saveFilterConfig]);
+  // useEffect(() => {
+  //   (async () => {
+  //     if (filterConfigLoaded) {
+  //       await saveFilterConfig();
+  //     }
+  //   })();
+  // }, [filters, filterConfigLoaded, saveFilterConfig]);
 
   const [processed, setProcessed] = useState(0);
 
@@ -162,13 +160,25 @@ export default function Home() {
             <span className="text-xs font-medium text-white/50">
               {'FILTERS'}
             </span>
-            <button onClick={onCreateFilter} className="ml-4">
-              <MdAddCircle className="text-slate-400 hover:text-slate-300 text-md" />
-            </button>
           </div>
           {filterConfigLoaded && filterNames.map((filter, index) => (
             <Tab key={index} title={filter} count={filters.get(filter)?.logs?.length ?? 0} selected={index === selectedFilter} onClick={onSelectFilter} />
           ))}
+          <div className="w-full flex items-center justify-start pl-10 pr-6 text-slate-400">
+            <div
+              className="grow flex items-center justify-start pr-4"
+              style={filterNames.length === 0 ? undefined : {
+                paddingTop: '0.75rem',
+                marginTop: '0.75rem',
+                borderTop: '1px solid rgb(71, 85, 105)'
+              }}
+            >
+              <div className="grow flex items-center justify-start py-3 hover:text-sky-400 cursor-pointer" onClick={onCreateFilter}>
+                <MdAddCircleOutline className="text-md" />
+                <span className="text-xs ml-2 relative top-[-1px]">{'Add filter'}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       {selectedBucket && <BucketView bucket={selectedBucket} />}

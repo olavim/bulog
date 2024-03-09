@@ -67,17 +67,14 @@ OverlayScrollbars.plugin(instantClickScrollPlugin);
 
 const VirtuosoTable: TableComponents<LogData>['Table'] = memo(props => {
     return (
-        <table
-            className="w-full border-box"
-            style={{ width: '100%' }}
-            {...props}
-        />
+        <table className="w-full" {...props} />
     );
 });
 
 interface LogListProps {
     logs: LogData[];
     columns: ColumnData[];
+    logRenderer: (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>>;
     selectedLog: LogData | null;
     selectedColumn: ColumnData | null;
     onSelectLog: (log: LogData) => void;
@@ -86,7 +83,63 @@ interface LogListProps {
 }
 
 export default function LogList(props: LogListProps) {
-    const { logs, columns, selectedLog, selectedColumn, onSelectLog, onChangeColumns, onSelectColumn } = props;
+    const { logs, columns, logRenderer, selectedLog, selectedColumn, onSelectLog, onChangeColumns, onSelectColumn } = props;
+    const [renders, setRenders] = useState<JSONValue[][]>([]);
+    const [shouldRenderAll, setShouldRenderAll] = useState(false);
+    const [renderInProgress, setRenderInProgress] = useState(false);
+
+    useEffect(() => {
+        setRenderInProgress(false);
+        setShouldRenderAll(true);
+    }, [logRenderer]);
+
+    useEffect(() => {
+        if (!renderInProgress && logs.length < renders.length) {
+            setShouldRenderAll(true);
+        }
+    }, [logs.length, renderInProgress, renders.length]);
+
+    useEffect(() => {
+        if (!shouldRenderAll || renderInProgress) {
+            return;
+        }
+
+        setRenderInProgress(true);
+        setShouldRenderAll(false);
+        setRenders([]);
+
+        (async () => {
+            const maxChunk = 1000;
+            const newRenders: JSONValue[][] = [];
+
+            while (newRenders.length < logs.length) {
+                await new Promise(resolve => setTimeout(resolve, 0));
+                const renderGroups = await logRenderer(logs.slice(newRenders.length, newRenders.length + maxChunk));
+                newRenders.push(...renderGroups.map(group => columns.map(col => group[col.id])));
+                setRenders(newRenders);
+            }
+
+            setRenderInProgress(false);
+        })();
+    }, [columns, logRenderer, logs, renderInProgress, shouldRenderAll]);
+
+    useEffect(() => {
+        if (shouldRenderAll || renders.length >= logs.length || renderInProgress) {
+            return;
+        }
+
+        setRenderInProgress(true);
+
+        (async () => {
+            const renderGroups = await logRenderer(logs.slice(renders.length));
+            setRenders([
+                ...renders,
+                ...renderGroups.map(group => columns.map(col => group[col.id]))
+            ]);
+
+            setRenderInProgress(false);
+        })();
+    }, [columns, logRenderer, logs, renderInProgress, renders, renders.length, shouldRenderAll]);
 
     const rootRef = useRef<HTMLDivElement>(null);
     const virtuosoRef = useRef<VirtuosoHandle>(null);
@@ -175,6 +228,7 @@ export default function LogList(props: LogListProps) {
 
         const activeIdx = columns.findIndex(col => col.id === activeId);
         const overIdx = columns.findIndex(col => col.id === overId);
+        setRenders(renders => renders.map(render => arrayMove(render, activeIdx, overIdx)));
         onChangeColumns(arrayMove(columns, activeIdx, overIdx));
     }, [columns, onChangeColumns]);
 
@@ -183,7 +237,7 @@ export default function LogList(props: LogListProps) {
             const { style, ...rest } = props;
             return (
                 <tr
-                    className="group font-['Fira_Code'] border-b last:border-b-0 border-box flex flex-row group min-w-fit h-[35px]"
+                    className="group font-['Fira_Code'] border-b last:border-b-0 border-box flex flex-row min-w-fit h-[35px]"
                     style={{ ...style, height: 35 }}
                     onClick={() => onSelectLog(props.item)}
                     data-selected={props.item.id === selectedLog?.id ? true : undefined}
@@ -195,7 +249,7 @@ export default function LogList(props: LogListProps) {
     }, [onSelectLog, selectedLog?.id]);
 
     return (
-        <div className="grow w-full max-w-full min-w-full flex flex-col px-1" ref={logContainerRef}>
+        <div className="grow w-full max-w-full min-w-full flex flex-col" ref={logContainerRef}>
             <DndContext
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
@@ -211,19 +265,19 @@ export default function LogList(props: LogListProps) {
                     data={logs}
                     totalCount={logs.length}
                     scrollerRef={setScroller}
+                    className="bg-white rounded"
                     width="100%"
                     components={{
                         Table: VirtuosoTable,
                         TableRow: VirtuosoTableRow
                     }}
-                    followOutput="smooth"
-                    overscan={{ main: 100, reverse: 100 }}
+                    followOutput="auto"
                     initialTopMostItemIndex={logs.length}
                     computeItemKey={(_, log) => log.id}
                     fixedHeaderContent={() => (
                         <tr className="flex flex-row min-w-fit border-b bg-white" style={{ height: 35 }}>
                             <SortableContext
-                                items={columns.map(c => c.id)}
+                                items={columns.map(col => col.id)}
                                 strategy={horizontalListSortingStrategy}
                                 disabled={columnResizeData !== null}
                             >
@@ -240,9 +294,9 @@ export default function LogList(props: LogListProps) {
                             </SortableContext>
                         </tr>
                     )}
-                    itemContent={(_, log) => <Log log={log} columns={columns} />}
+                    itemContent={(index, log) => <Log prerender={renders[index]} log={log} columns={columns} renderer={logRenderer} last={index === logs.length - 1} />}
                 />
-            </DndContext >
+            </DndContext>
         </div>
     );
 }

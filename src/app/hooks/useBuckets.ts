@@ -1,6 +1,6 @@
 import { getBucketsConfig, saveBucketsConfig } from "@/api/config";
 import { BucketsContext } from "@/context/BucketsContext";
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useContext } from "react";
 import { debounce } from "lodash";
 import useSandbox from "./useSandbox";
 import { bucketConfigToData } from "@/utils/config";
@@ -10,12 +10,13 @@ const saveBucketsConfigDebounced = debounce(saveBucketsConfig, 500);
 export default function useBuckets() {
     const [ctx, dispatch] = useContext(BucketsContext);
     const sandbox = useSandbox();
-    const [configLoaded, setConfigLoaded] = useState(false);
 
     const saveConfig = useCallback(async () => {
-        if (!configLoaded) {
+        if (!ctx.configLoaded) {
             return;
         }
+
+        dispatch({ type: 'setShouldSave', shouldSave: false });
 
         const buckets = Array.from(ctx.buckets.keys());
         const bucketConfigs = buckets.reduce((acc, bucket) => {
@@ -31,29 +32,26 @@ export default function useBuckets() {
         }, {} as { [bucket: string]: BucketConfig });
 
         await saveBucketsConfigDebounced(bucketConfigs);
-    }, [configLoaded, ctx.buckets]);
+    }, [ctx.configLoaded, ctx.buckets, dispatch]);
 
     const loadConfig = useCallback(async () => {
         const config = await getBucketsConfig();
 
-        const keys = Object.keys(config?.buckets);
-
-        for (const key of keys) {
-            const bucketConfig = config.buckets[key];
+        for (const bucket of Object.keys(config?.buckets)) {
+            const bucketConfig = config.buckets[bucket];
             if (!bucketConfig.columns) {
                 continue;
             }
 
             const data = await bucketConfigToData(bucketConfig, sandbox);
-            dispatch!({ type: 'setColumns', bucket: key, columns: data.columns });
+            dispatch({ type: 'loadConfig', bucket, config: data });
+            dispatch({ type: 'setLogRenderer', bucket, logRenderer: await sandbox.createLogRenderer(data.columns) });
         }
-
-        setConfigLoaded(true);
     }, [sandbox, dispatch]);
 
     const addLogs = useCallback((bucket: string, logs: LogData[]) => {
         dispatch!({ type: 'addLogs', bucket, logs });
     }, [dispatch]);
 
-    return { buckets: ctx.buckets, saveConfig, loadConfig, configLoaded, addLogs };
+    return { buckets: ctx.buckets, saveConfig, loadConfig, addLogs, shouldSave: ctx.shouldSave, configLoaded: ctx.configLoaded };
 }

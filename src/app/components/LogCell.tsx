@@ -1,5 +1,3 @@
-import { useEffect, useMemo, useState } from "react";
-
 const getElementClass = (className?: string) => `text-ellipsis overflow-hidden whitespace-nowrap text-xs ${className ?? ''}`;
 
 function getElement(value: JSONValue) {
@@ -34,7 +32,7 @@ function getElement(value: JSONValue) {
 
         return (
             <div className={getElementClass()}>
-                <span>{value}</span>
+                <span>{'-'}</span>
             </div>
         );
     } catch (err: any) {
@@ -48,22 +46,14 @@ function getElement(value: JSONValue) {
 }
 
 interface LogCellProps {
-    log: LogData;
-    column: ColumnData;
+    value: JSONValue;
+    width: number;
     grow: boolean;
+    last?: boolean;
 }
 
 export default function LogCell(props: LogCellProps) {
-    const { column, log, grow } = props;
-    const [render, setRender] = useState<JSONValue>('-');
-    const formatterFunction = useMemo(() => column.formatterFunction, [column.formatterFunction]);
-
-    useEffect(() => {
-        (async () => {
-            const render = await formatterFunction([log]).then(val => val[0]).catch(err => err);
-            setRender(render);
-        })();
-    }, [log, formatterFunction]);
+    const { value, width, grow, last } = props;
 
     return (
         <td
@@ -71,11 +61,12 @@ export default function LogCell(props: LogCellProps) {
             style={{
                 flexGrow: grow ? 1 : 0,
                 flexShrink: 0,
-                flexBasis: column.width,
-                width: column.width
+                flexBasis: width,
+                width,
+                animation: last ? 'fadeIn 0.5s' : undefined
             }}
         >
-            {getElement(render)}
+            {getElement(value)}
         </td>
     );
 }

@@ -1,11 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
-import 'overlayscrollbars/overlayscrollbars.css';
-import './index.css';
+import SandboxApp from './SandboxApp';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <SandboxApp />
   </React.StrictMode>,
 );

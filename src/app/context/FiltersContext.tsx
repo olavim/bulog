@@ -1,4 +1,4 @@
-import { defaultFormatterFunction, defaultFormatterString, defaultTimestampFormatterFunction, defaultTimestampFormatterString } from "@/hooks/useColumnUtils";
+import { defaultFormatterString, defaultLogRenderer, defaultTimestampFormatterString } from "@/hooks/useColumnUtils";
 import { createSimpleFunction } from "@/hooks/useSandbox";
 import { Dispatch, Reducer, createContext, useReducer } from "react";
 import { v4 as uuidv4 } from 'uuid';
@@ -7,23 +7,28 @@ export type FilterConfigInput = {
     name?: string,
     columns?: ColumnData[],
     filterString: string,
-    filterFunction: (log: LogData[]) => Promise<boolean[]>
+    filterFunction: (logs: LogData[]) => Promise<boolean[]>,
+    logRenderer?: (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>>
 };
 
 type FiltersContextType = {
-    filters: Map<string, FilterData>
+    filters: Map<string, FilterData>,
+    shouldSave: boolean,
+    configLoaded: boolean
 };
 
 type FiltersReducerActionType =
     { type: 'createFilter'; logs: LogData[] }
+    | { type: 'setShouldSave', shouldSave: boolean; }
     | { type: 'deleteFilter'; filter: string }
-    | { type: 'setConfig', filter: string, config: FilterConfigInput }
+    | { type: 'setConfig', filter: string, name: string; filterString: string; filterFunction: (logs: LogData[]) => Promise<boolean[]>; }
+    | { type: 'loadConfig', filter: string, config: FilterData }
     | { type: 'addLogs', filter: string; logs: LogData[] }
     | { type: 'setLogs', filter: string; logs: LogData[] }
-    | { type: 'setColumns', filter: string; columns: ColumnData[] }
-    | { type: 'setColumnWidths', filter: string; columnWidths: number[] };
+    | { type: 'setColumns', filter: string; columns: ColumnData[]; }
+    | { type: 'setLogRenderer', filter: string; logRenderer: (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>> };
 
-const initialContext = { filters: new Map() };
+const initialContext = { filters: new Map(), shouldSave: false, configLoaded: false };
 
 export const FiltersContext = createContext<[FiltersContextType, Dispatch<FiltersReducerActionType>]>([initialContext, () => { }]);
 
@@ -37,7 +42,7 @@ return log => {
 const defaultFilterFunction = createSimpleFunction<LogData, boolean>(defaultFilterString);
 
 const filtersReducer: Reducer<FiltersContextType, FiltersReducerActionType> = (ctx, action) => {
-    const ctxCopy = { filters: new Map(ctx.filters) };
+    const ctxCopy = { ...ctx, filters: new Map(ctx.filters) };
 
     switch (action.type) {
         case 'createFilter': {
@@ -48,19 +53,29 @@ const filtersReducer: Reducer<FiltersContextType, FiltersReducerActionType> = (c
                 i++;
             }
 
+            const defaultTimestampColumnId = uuidv4();
+            const defaultMessageColumnId = uuidv4();
+
             ctxCopy.filters.set(name, {
                 filterString: defaultFilterString,
                 filterFunction: defaultFilterFunction,
                 logs: action.logs,
                 columns: [
-                    { id: uuidv4(), name: 'timestamp', formatterString: defaultTimestampFormatterString, formatterFunction: defaultTimestampFormatterFunction, width: 220 },
-                    { id: uuidv4(), name: 'message', formatterString: defaultFormatterString, formatterFunction: defaultFormatterFunction, width: 200 }
-                ]
+                    { id: defaultTimestampColumnId, name: 'timestamp', formatterString: defaultTimestampFormatterString, width: 220 },
+                    { id: defaultMessageColumnId, name: 'message', formatterString: defaultFormatterString, width: 200 }
+                ],
+                logRenderer: defaultLogRenderer(defaultTimestampColumnId, defaultMessageColumnId)
             });
+            ctxCopy.shouldSave = true;
             return ctxCopy;
         }
         case 'deleteFilter': {
             ctxCopy.filters.delete(action.filter);
+            ctxCopy.shouldSave = true;
+            return ctxCopy;
+        }
+        case 'setShouldSave': {
+            ctxCopy.shouldSave = action.shouldSave;
             return ctxCopy;
         }
         case 'addLogs': {
@@ -76,19 +91,30 @@ const filtersReducer: Reducer<FiltersContextType, FiltersReducerActionType> = (c
         case 'setColumns': {
             const filter = ctxCopy.filters.get(action.filter)!;
             ctxCopy.filters.set(action.filter, { ...filter, columns: action.columns });
+            ctxCopy.shouldSave = true;
+            return ctxCopy;
+        }
+        case 'setLogRenderer': {
+            const filter = ctxCopy.filters.get(action.filter)!;
+            ctxCopy.filters.set(action.filter, { ...filter, logRenderer: action.logRenderer });
+            return ctxCopy;
+        }
+        case 'loadConfig': {
+            const filter = ctxCopy.filters.get(action.filter)!;
+            ctxCopy.filters.set(action.filter, { ...action.config, logs: filter?.logs ?? [] });
+            ctxCopy.configLoaded = true;
             return ctxCopy;
         }
         case 'setConfig': {
             const filter = ctxCopy.filters.get(action.filter)!;
-            const name = action.config.name ?? action.filter;
+            const name = action.name ?? action.filter;
             if (name !== action.filter) {
                 ctxCopy.filters.delete(action.filter);
             }
             ctxCopy.filters.set(name, {
-                logs: filter?.logs ?? [],
-                columns: action.config.columns ?? filter.columns,
-                filterString: action.config.filterString,
-                filterFunction: action.config.filterFunction
+                ...filter,
+                filterString: action.filterString,
+                filterFunction: action.filterFunction
             });
             return ctxCopy;
         }

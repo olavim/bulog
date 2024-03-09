@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { filter as liqeFilter, LiqeQuery } from 'liqe';
-import Card from "./Card";
 import LogList from "./LogList";
 import useBucket from "@/hooks/useBucket";
 import LogView from "./LogView";
@@ -8,6 +7,7 @@ import ColumnView from "./ColumnView";
 import Drawer from "./Drawer";
 import Search from "./Search";
 import NewColumnButton from "./NewColumnButton";
+import useBuckets from "@/hooks/useBuckets";
 
 interface BucketLogsProps {
     bucket: string;
@@ -15,7 +15,8 @@ interface BucketLogsProps {
 
 export default function BucketLogs(props: BucketLogsProps) {
     const { bucket } = props;
-    const { logs, columns, setColumn, setColumns } = useBucket(bucket);
+    const { saveConfig, shouldSave } = useBuckets();
+    const { logs, columns, setColumn, setColumns, logRenderer } = useBucket(bucket);
     const [query, setQuery] = useState<LiqeQuery | null>(null);
     const [searchedLogs, setSearchedLogs] = useState<LogData[]>(logs);
     const [selectedLog, setSelectedLog] = useState<LogData | null>(null);
@@ -24,6 +25,12 @@ export default function BucketLogs(props: BucketLogsProps) {
         () => columns.find(c => c.id === selectedColumnId) ?? null,
         [columns, selectedColumnId]
     );
+
+    useEffect(() => {
+        if (shouldSave) {
+            saveConfig();
+        }
+    }, [saveConfig, shouldSave]);
 
     const onAddColumn = useCallback(async (id: string, data: Partial<ColumnData> | null) => {
         setSelectedColumnId(id);
@@ -64,17 +71,16 @@ export default function BucketLogs(props: BucketLogsProps) {
                     </div>
                 </div>
                 <div className="flex flex-row basis-full grow-1 shrink-1 w-full max-w-full overflow-hidden justify-center bg-slate-200 px-12 py-8">
-                    <Card className="grow h-full max-w-full">
-                        <LogList
-                            logs={searchedLogs}
-                            columns={columns}
-                            selectedLog={selectedLog}
-                            selectedColumn={selectedColumn}
-                            onSelectLog={onSelectLog}
-                            onSelectColumn={onSelectColumn}
-                            onChangeColumns={setColumns}
-                        />
-                    </Card>
+                    <LogList
+                        logs={searchedLogs}
+                        columns={columns}
+                        logRenderer={logRenderer}
+                        selectedLog={selectedLog}
+                        selectedColumn={selectedColumn}
+                        onSelectLog={onSelectLog}
+                        onSelectColumn={onSelectColumn}
+                        onChangeColumns={setColumns}
+                    />
                 </div>
             </div>
             {selectedLog && (

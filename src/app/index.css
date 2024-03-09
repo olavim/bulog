@@ -22,6 +22,17 @@ input:focus {
   outline: #0284c7 solid 2px;
 }
 
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+}
 @layer utilities {
   .text-balance {
     text-wrap: balance;

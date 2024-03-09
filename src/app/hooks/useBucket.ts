@@ -1,9 +1,11 @@
 import { BucketsContext } from "@/context/BucketsContext";
 import useColumnUtils from "@/hooks/useColumnUtils";
 import { useCallback, useContext, useMemo } from "react";
+import useSandbox from "./useSandbox";
 
 export default function useBucket(bucket: string) {
     const [ctx, dispatch] = useContext(BucketsContext);
+    const sandbox = useSandbox();
     const { createColumn, deleteColumn } = useColumnUtils();
 
     const ctxLogs = ctx.buckets.get(bucket)?.logs;
@@ -12,9 +14,13 @@ export default function useBucket(bucket: string) {
     const ctxColumns = ctx.buckets.get(bucket)?.columns;
     const columns = useMemo(() => ctxColumns ?? [], [ctxColumns]);
 
-    const setColumns = useCallback((columns: ColumnData[]) => {
-        dispatch!({ type: 'setColumns', bucket, columns });
-    }, [dispatch, bucket]);
+    const ctxLogRenderer = ctx.buckets.get(bucket)?.logRenderer;
+    const logRenderer = useMemo(() => ctxLogRenderer ?? (async (logs: LogData[]) => logs.map(() => ({}))), [ctxLogRenderer]);
+
+    const setColumns = useCallback(async (newColumns: ColumnData[]) => {
+        dispatch({ type: 'setColumns', bucket, columns: newColumns });
+        dispatch({ type: 'setLogRenderer', bucket, logRenderer: await sandbox.createLogRenderer(newColumns) });
+    }, [dispatch, bucket, sandbox]);
 
     const setColumn = useCallback(async (id: string, partialData: Partial<ColumnData> | null) => {
         const idx = columns.findIndex(c => c.id === id);
@@ -25,14 +31,20 @@ export default function useBucket(bucket: string) {
 
         if (idx === -1) {
             const col = await createColumn({ id, ...partialData });
-            dispatch!({ type: 'setColumns', bucket, columns: [...columns, col] });
+            const newColumns = [...columns, col];
+            dispatch({ type: 'setColumns', bucket, columns: newColumns });
+            dispatch({ type: 'setLogRenderer', bucket, logRenderer: await sandbox.createLogRenderer(newColumns) });
         } else if (partialData === null) {
-            dispatch!({ type: 'setColumns', bucket, columns: deleteColumn(columns, id) });
+            const newColumns = deleteColumn(columns, id);
+            dispatch({ type: 'setColumns', bucket, columns: newColumns });
+            dispatch({ type: 'setLogRenderer', bucket, logRenderer: await sandbox.createLogRenderer(newColumns) });
         } else {
             const col = await createColumn({ id, ...partialData });
-            dispatch!({ type: 'setColumns', bucket, columns: columns.toSpliced(idx, 1, col) });
+            const newColumns = columns.toSpliced(idx, 1, col);
+            dispatch({ type: 'setColumns', bucket, columns: newColumns });
+            dispatch({ type: 'setLogRenderer', bucket, logRenderer: await sandbox.createLogRenderer(newColumns) });
         }
-    }, [columns, dispatch, bucket, createColumn, deleteColumn]);
+    }, [columns, createColumn, dispatch, bucket, sandbox, deleteColumn]);
 
-    return { logs, columns, setColumns, setColumn };
+    return { logs, columns, setColumns, setColumn, logRenderer };
 }

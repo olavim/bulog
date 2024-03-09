@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from 'uuid';
-import useSandbox, { createSimpleFunction } from "./useSandbox";
 import { useCallback } from 'react';
 
 export const createSimpleFormatter = (pattern?: string) => {
@@ -13,23 +12,24 @@ return log => {
 };
 
 export const defaultTimestampFormatterString = createSimpleFormatter('new Date(log.timestamp).toLocaleString()');
-export const defaultTimestampFormatterFunction = createSimpleFunction(defaultTimestampFormatterString);
-
 export const defaultFormatterString = createSimpleFormatter('log.message');
-export const defaultFormatterFunction = createSimpleFunction(defaultFormatterString);
+
+export const defaultLogRenderer = (timestampColumnId: string, messageColumnId: string) => async (logs: LogData[]) => {
+    return logs.map(log => ({
+        [timestampColumnId]: log.timestamp,
+        [messageColumnId]: log.message
+    }));
+};
 
 export default function useColumnUtils() {
-    const sandbox = useSandbox();
-
     const createColumn = useCallback(async (data: Partial<ColumnData> | null) => {
         return {
             id: data?.id ?? uuidv4(),
             name: data?.name ?? 'New Column',
             width: data?.width ?? 200,
-            formatterString: data?.formatterString ?? defaultFormatterString,
-            formatterFunction: data?.formatterFunction ?? await sandbox.createCallback(data?.formatterString ?? defaultFormatterString)
+            formatterString: data?.formatterString ?? defaultFormatterString
         } as ColumnData;
-    }, [sandbox]);
+    }, []);
 
     const deleteColumn = useCallback((columns: ColumnData[], id: string) => {
         const idx = columns.findIndex(col => col.id === id);

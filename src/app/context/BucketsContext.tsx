@@ -1,37 +1,62 @@
-import { defaultFormatterFunction, defaultFormatterString, defaultTimestampFormatterFunction, defaultTimestampFormatterString } from "@/hooks/useColumnUtils";
+import { defaultFormatterString, defaultLogRenderer, defaultTimestampFormatterString } from "@/hooks/useColumnUtils";
 import { Dispatch, Reducer, createContext, useReducer } from "react";
 import { v4 as uuidv4 } from 'uuid';
 
 type BucketsContextType = {
-    buckets: Map<string, BucketData>
+    buckets: Map<string, BucketData>,
+    shouldSave: boolean,
+    configLoaded: boolean
 };
 
 type BucketsReducerActionType =
     { type: 'addLogs', bucket: string; logs: LogData[] }
-    | { type: 'setColumns', bucket: string; columns: ColumnData[] }
-    | { type: 'setColumnWidths', bucket: string; columnWidths: number[] };
+    | { type: 'setShouldSave', shouldSave: boolean; }
+    | { type: 'loadConfig', bucket: string; config: BucketData; }
+    | { type: 'setColumns', bucket: string; columns: ColumnData[]; }
+    | { type: 'setLogRenderer', bucket: string; logRenderer: (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>> };
 
-const initialContext = { buckets: new Map() };
+const initialContext = { buckets: new Map(), shouldSave: false, configLoaded: false };
 
 export const BucketsContext = createContext<[BucketsContextType, Dispatch<BucketsReducerActionType>]>([initialContext, () => { }]);
 
 const bucketsReducer: Reducer<BucketsContextType, BucketsReducerActionType> = (ctx, action) => {
-    const ctxCopy = { buckets: new Map(ctx.buckets) };
-    const bucket = ctxCopy.buckets.get(action.bucket)!;
+    const ctxCopy = { ...ctx, buckets: new Map(ctx.buckets) };
 
     switch (action.type) {
-        case 'addLogs':
+        case 'addLogs': {
+            const bucket = ctxCopy.buckets.get(action.bucket)!;
+            const defaultTimestampColumnId = uuidv4();
+            const defaultMessageColumnId = uuidv4();
+
             ctxCopy.buckets.set(action.bucket, {
                 logs: [...(bucket?.logs ?? []), ...action.logs],
                 columns: bucket?.columns ?? [
-                    { id: uuidv4(), name: 'timestamp', formatterString: defaultTimestampFormatterString, formatterFunction: defaultTimestampFormatterFunction, width: 220 },
-                    { id: uuidv4(), name: 'message', formatterString: defaultFormatterString, formatterFunction: defaultFormatterFunction, width: 200 }
-                ]
+                    { id: defaultTimestampColumnId, name: 'timestamp', formatterString: defaultTimestampFormatterString, width: 220 },
+                    { id: defaultMessageColumnId, name: 'message', formatterString: defaultFormatterString, width: 200 }
+                ],
+                logRenderer: bucket?.logRenderer ?? defaultLogRenderer(defaultTimestampColumnId, defaultMessageColumnId)
             });
+
             return ctxCopy;
-        case 'setColumns':
+        }
+        case 'loadConfig':
+            ctxCopy.buckets.set(action.bucket, { ...action.config, logs: [] });
+            ctxCopy.configLoaded = true;
+            return ctxCopy;
+        case 'setShouldSave':
+            ctxCopy.shouldSave = action.shouldSave;
+            return ctxCopy;
+        case 'setColumns': {
+            const bucket = ctxCopy.buckets.get(action.bucket)!;
             ctxCopy.buckets.set(action.bucket, { ...bucket, columns: action.columns });
+            ctxCopy.shouldSave = true;
             return ctxCopy;
+        }
+        case 'setLogRenderer': {
+            const bucket = ctxCopy.buckets.get(action.bucket)!;
+            ctxCopy.buckets.set(action.bucket, { ...bucket, logRenderer: action.logRenderer });
+            return ctxCopy;
+        }
         default:
             return ctxCopy;
     }

@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useContext } from "react";
 import { debounce } from 'lodash';
 import { getFiltersConfig, saveFiltersConfig } from "@/api/config";
 import useLogs from "./useLogs";
@@ -11,13 +11,14 @@ const saveFiltersConfigDebounced = debounce(saveFiltersConfig, 500);
 export default function useFilters() {
     const [ctx, dispatch] = useContext(FiltersContext);
     const sandbox = useSandbox();
-    const [configLoaded, setConfigLoaded] = useState(false);
     const { logs } = useLogs();
 
     const saveConfig = useCallback(async () => {
-        if (!configLoaded) {
+        if (!ctx.configLoaded) {
             return;
         }
+
+        dispatch({ type: 'setShouldSave', shouldSave: false });
 
         const filters = Array.from(ctx.filters.keys());
         const filterConfigs = filters.reduce((acc, filter) => {
@@ -34,7 +35,7 @@ export default function useFilters() {
         }, {} as { [filter: string]: FilterConfig });
 
         await saveFiltersConfigDebounced(filterConfigs);
-    }, [configLoaded, ctx.filters]);
+    }, [ctx.configLoaded, ctx.filters, dispatch]);
 
     const loadConfig = useCallback(async () => {
         const config = await getFiltersConfig();
@@ -45,10 +46,9 @@ export default function useFilters() {
             const filterConfig = config.filters[key];
 
             const data = await filterConfigToData(filterConfig, sandbox);
-            dispatch!({ type: 'setConfig', filter: key, config: { ...data, name: key } });
+            dispatch({ type: 'loadConfig', filter: key, config: data });
+            dispatch({ type: 'setLogRenderer', filter: key, logRenderer: await sandbox.createLogRenderer(data.columns ?? []) });
         }
-
-        setConfigLoaded(true);
     }, [sandbox, dispatch]);
 
     const createFilter = useCallback(async () => {
@@ -59,5 +59,5 @@ export default function useFilters() {
         dispatch!({ type: 'addLogs', filter, logs });
     }, [dispatch]);
 
-    return { filters: ctx.filters, saveConfig, loadConfig, configLoaded, createFilter, addLogs };
+    return { filters: ctx.filters, saveConfig, loadConfig, createFilter, addLogs, shouldSave: ctx.shouldSave, configLoaded: ctx.configLoaded };
 }

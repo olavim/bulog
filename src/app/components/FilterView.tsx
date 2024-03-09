@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { filter as liqeFilter, LiqeQuery } from 'liqe';
-import Card from "./Card";
 import LogList from "./LogList";
 import useFilter from "@/hooks/useFilter";
 import LogView from "./LogView";
@@ -12,6 +11,7 @@ import { IoMdSettings } from "react-icons/io";
 import FilterSettings from "./FilterSettings";
 import useLogs from "@/hooks/useLogs";
 import { FilterConfigInput } from "@/context/FiltersContext";
+import useFilters from "@/hooks/useFilters";
 
 interface FilterViewProps {
     filter: string;
@@ -20,7 +20,8 @@ interface FilterViewProps {
 export default function FilterView(props: FilterViewProps) {
     const { filter } = props;
     const { logs: allLogs } = useLogs();
-    const { logs, setLogs, columns, setColumns, setColumn, filterString, filterFunction, setConfig, deleteFilter } = useFilter(filter);
+    const { saveConfig, shouldSave } = useFilters();
+    const { logs, setLogs, columns, setColumns, setColumn, filterString, filterFunction, setConfig, deleteFilter, logRenderer } = useFilter(filter);
     const [query, setQuery] = useState<LiqeQuery | null>(null);
     const [searchedLogs, setSearchedLogs] = useState<LogData[]>(logs);
     const [settingsOpen, setSettingOpen] = useState<boolean>(false);
@@ -32,6 +33,12 @@ export default function FilterView(props: FilterViewProps) {
         () => columns.find(c => c.id === selectedColumnId) ?? null,
         [columns, selectedColumnId]
     );
+
+    useEffect(() => {
+        if (shouldSave) {
+            saveConfig();
+        }
+    }, [saveConfig, shouldSave]);
 
     const handleSetFilterConfig = useCallback((config: FilterConfigInput) => {
         setShouldReadLogs(true);
@@ -141,17 +148,16 @@ export default function FilterView(props: FilterViewProps) {
                     </div>
                 </div>
                 <div className="flex flex-col basis-full grow-1 shrink-1 w-full max-w-full overflow-hidden justify-center bg-slate-200 px-12 py-8">
-                    <Card className="grow h-full max-w-full">
-                        <LogList
-                            logs={searchedLogs}
-                            columns={columns}
-                            selectedLog={selectedLog}
-                            selectedColumn={selectedColumn}
-                            onSelectLog={onSelectLog}
-                            onSelectColumn={onSelectColumn}
-                            onChangeColumns={setColumns}
-                        />
-                    </Card>
+                    <LogList
+                        logs={searchedLogs}
+                        columns={columns}
+                        logRenderer={logRenderer}
+                        selectedLog={selectedLog}
+                        selectedColumn={selectedColumn}
+                        onSelectLog={onSelectLog}
+                        onSelectColumn={onSelectColumn}
+                        onChangeColumns={setColumns}
+                    />
                 </div>
             </div>
             {selectedLog && (

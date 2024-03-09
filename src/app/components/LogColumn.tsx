@@ -53,7 +53,8 @@ export default function LogColumn(props: LogColumnProps) {
         setNodeRef,
         transform,
         transition,
-        isDragging
+        isDragging,
+        isSorting
     } = useSortable({ id: column.id });
 
     const handleClick: MouseEventHandler<HTMLDivElement> = useCallback(() => {
@@ -66,7 +67,7 @@ export default function LogColumn(props: LogColumnProps) {
 
     return (
         <th
-            className="group flex text-left items-center text-slate-600 hover:text-slate-500"
+            className="group flex text-left items-center text-slate-600 hover:text-slate-500 p-0"
             data-resizing={resizing || undefined}
             data-selected={selected || undefined}
             style={{
@@ -83,7 +84,7 @@ export default function LogColumn(props: LogColumnProps) {
                 className="h-full overflow-hidden whitespace-nowrap flex grow items-center text-xs font-semibold uppercase cursor-pointer group-data-[selected]:cursor-default"
                 style={{
                     transform: CSS.Translate.toString(transform),
-                    transition,
+                    transition: isSorting ? transition : undefined,
                     zIndex: isDragging ? 10 : undefined
                 }}
                 {...attributes}
