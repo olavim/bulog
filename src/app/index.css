@@ -6,140 +6,139 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+	--foreground-rgb: 0, 0, 0;
+	--background-start-rgb: 214, 219, 220;
+	--background-end-rgb: 255, 255, 255;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+	color: rgb(var(--foreground-rgb));
+	background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
+		rgb(var(--background-start-rgb));
 }
 
 input:focus {
-  outline: #0284c7 solid 2px;
+	outline: #0284c7 solid 2px;
 }
 
 @keyframes fadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
+	0% {
+		opacity: 0;
+		transform: translateY(-4px);
+	}
 
-  100% {
-    opacity: 1;
-    transform: translateY(0px);
-  }
+	100% {
+		opacity: 1;
+		transform: translateY(0px);
+	}
 }
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+	.text-balance {
+		text-wrap: balance;
+	}
 }
 
 .w-json-view-container {
-  position: relative;
-  padding-left: 21px;
+	position: relative;
+	padding-left: 21px;
 }
 
 .w-rjv-copied {
-  display: unset;
+	display: unset;
 }
 
 .w-rjv-arrow {
-  position: absolute;
-  left: 0;
+	position: absolute;
+	left: 0;
 }
 
 .os-scrollbar {
-  --os-size: 12px;
-    --os-handle-perpendicular-size: 12px;
-  --os-handle-perpendicular-size-hover: var(--os-handle-perpendicular-size);
-  --os-handle-perpendicular-size-active: var(--os-handle-perpendicular-size);
-  --os-padding-perpendicular: 0;
-  --os-padding-axis: 0;
-  --os-track-border-radius: var(--os-size);
-  --os-track-bg-hover: rgba(0, 0, 0, 0.05);
-  --os-handle-padding: 3px;
-  --os-handle-min-size: calc(33px + 2 * var(--os-handle-padding));
-  --os-handle-bg: content-box rgba(0, 0, 0, 0.3);
-  --os-handle-bg-hover: content-box rgba(0, 0, 0, 0.4);
-  --os-handle-bg-active: content-box rgba(0, 0, 0, 0.5);
+	--os-size: 12px;
+	--os-handle-perpendicular-size: 12px;
+	--os-handle-perpendicular-size-hover: var(--os-handle-perpendicular-size);
+	--os-handle-perpendicular-size-active: var(--os-handle-perpendicular-size);
+	--os-padding-perpendicular: 0;
+	--os-padding-axis: 0;
+	--os-track-border-radius: var(--os-size);
+	--os-track-bg-hover: rgba(0, 0, 0, 0.05);
+	--os-handle-padding: 3px;
+	--os-handle-min-size: calc(33px + 2 * var(--os-handle-padding));
+	--os-handle-bg: content-box rgba(0, 0, 0, 0.3);
+	--os-handle-bg-hover: content-box rgba(0, 0, 0, 0.4);
+	--os-handle-bg-active: content-box rgba(0, 0, 0, 0.5);
 }
 
 .os-scrollbar-handle {
-  padding: var(--os-handle-padding);
+	padding: var(--os-handle-padding);
 }
 
 .os-scrollbar-horizontal .os-scrollbar-handle {
-  margin-bottom: calc(var(--os-size) / 2 - var(--os-handle-perpendicular-size) / 2);
+	margin-bottom: calc(var(--os-size) / 2 - var(--os-handle-perpendicular-size) / 2);
 }
 
 .os-scrollbar-vertical .os-scrollbar-handle {
-  margin-right: calc(var(--os-size) / 2 - var(--os-handle-perpendicular-size) / 2);
+	margin-right: calc(var(--os-size) / 2 - var(--os-handle-perpendicular-size) / 2);
 }
 
 .os-scrollbar-horizontal {
-  bottom: calc(-1 * (var(--os-size) + 0.25rem));
+	bottom: calc(-1 * (var(--os-size) + 0.25rem));
 }
 
 .os-scrollbar-vertical {
-  right: calc(-1 * (var(--os-size) + 0.5rem));
+	right: calc(-1 * (var(--os-size) + 0.5rem));
 }
 .react-tooltip {
-  --rt-color-dark: #334155;
-  --rt-color-white: #f8fafc;
+	--rt-color-dark: #334155;
+	--rt-color-white: #f8fafc;
 }
 
 .react-tooltip-arrow {
-  width: 8px;
-  height: 8px;
+	width: 8px;
+	height: 8px;
 }
 
-[class*='react-tooltip__place-top']>.react-tooltip-arrow {
-  transform: rotate(45deg);
+[class*='react-tooltip__place-top'] > .react-tooltip-arrow {
+	transform: rotate(45deg);
 }
 
-[class*='react-tooltip__place-right']>.react-tooltip-arrow {
-  transform: rotate(135deg);
+[class*='react-tooltip__place-right'] > .react-tooltip-arrow {
+	transform: rotate(135deg);
 }
 
-[class*='react-tooltip__place-bottom']>.react-tooltip-arrow {
-  transform: rotate(225deg);
+[class*='react-tooltip__place-bottom'] > .react-tooltip-arrow {
+	transform: rotate(225deg);
 }
 
-[class*='react-tooltip__place-left']>.react-tooltip-arrow {
-  transform: rotate(315deg);
+[class*='react-tooltip__place-left'] > .react-tooltip-arrow {
+	transform: rotate(315deg);
 }
 
 .react-tooltip[class*='styles-module_dark'] {
-  background: var(--rt-color-dark);
-  color: var(--rt-color-white);
+	background: var(--rt-color-dark);
+	color: var(--rt-color-white);
 }
 
 .react-tooltip[class*='styles-module_light'] {
-  background-color: var(--rt-color-white);
-  color: var(--rt-color-dark);
+	background-color: var(--rt-color-white);
+	color: var(--rt-color-dark);
 }
 
 .react-tooltip[class*='styles-module_success'] {
-  background-color: var(--rt-color-success);
-  color: var(--rt-color-white);
+	background-color: var(--rt-color-success);
+	color: var(--rt-color-white);
 }
 
 .react-tooltip[class*='styles-module_warning'] {
-  background-color: var(--rt-color-warning);
-  color: var(--rt-color-white);
+	background-color: var(--rt-color-warning);
+	color: var(--rt-color-white);
 }
 
 .react-tooltip[class*='styles-module_error'] {
-  background-color: var(--rt-color-error);
-  color: var(--rt-color-white);
+	background-color: var(--rt-color-error);
+	color: var(--rt-color-white);
 }
 
 .react-tooltip[class*='styles-module_info'] {
-  background-color: var(--rt-color-info);
-  color: var(--rt-color-white);
+	background-color: var(--rt-color-info);
+	color: var(--rt-color-white);
 }

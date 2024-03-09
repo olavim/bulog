@@ -5,17 +5,17 @@ import { FiltersProvider } from './context/FiltersContext';
 import { LogProvider } from './context/LogContext';
 
 function App() {
-  return (
-    <SandboxProvider>
-      <LogProvider>
-        <BucketsProvider>
-          <FiltersProvider>
-            <Home />
-          </FiltersProvider>
-        </BucketsProvider>
-      </LogProvider>
-    </SandboxProvider>
-  );
+	return (
+		<SandboxProvider>
+			<LogProvider>
+				<BucketsProvider>
+					<FiltersProvider>
+						<Home />
+					</FiltersProvider>
+				</BucketsProvider>
+			</LogProvider>
+		</SandboxProvider>
+	);
 }
 
 export default App;
