@@ -17,7 +17,7 @@ export default defineConfig({
       input: {
         main: path.resolve(dirname, 'src/app/index.html'),
         sandbox: path.resolve(dirname, 'src/app/sandbox/index.html'),
-      },
+      }
     }
   },
   plugins: [react()],

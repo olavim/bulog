@@ -9,6 +9,11 @@ const filename = fileURLToPath(import.meta.url);
 const appRoot = path.resolve(path.dirname(filename), '../../app');
 
 function serveStatic(app: express.Express) {
+    app.use('/assets', (_req, res, next) => {
+        res.header('Access-Control-Allow-Origin', '*');
+        next();
+    });
+
     app.use(express.static(appRoot));
 
     app.get('*', (_req, res) => {

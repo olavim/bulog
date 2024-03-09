@@ -1,5 +1,4 @@
 import { createContext, useEffect, useRef, useState } from "react";
-import sandboxSrc from "@/sandbox/index.html?url";
 import { v4 as uuidv4 } from 'uuid';
 import { memoize } from "lodash";
 import useGlobalEvent from "beautiful-react-hooks/useGlobalEvent";
@@ -168,7 +167,7 @@ export function SandboxProvider({ children }: CodeSandboxProviderProps) {
 
     return (
         <>
-            <iframe key={iframeKey} ref={setRef} className="h-0" id="code-sandbox" sandbox="allow-scripts" src={sandboxSrc} />
+            <iframe key={iframeKey} ref={setRef} className="h-0" id="code-sandbox" sandbox="allow-scripts" src="/sandbox/index.html" />
             {ref && (
                 <SandboxContext.Provider value={sandbox.current}>
                     {children}
