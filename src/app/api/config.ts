@@ -7,7 +7,7 @@ export async function saveBucketsConfig(config: { [bucket: string]: BucketConfig
     await fetch('/api/config/buckets', {
         method: 'post',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config),
+        body: JSON.stringify(config)
     });
 }
 
@@ -20,6 +20,6 @@ export async function saveFiltersConfig(config: { [filter: string]: FilterConfig
     await fetch('/api/config/filters', {
         method: 'post',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config),
+        body: JSON.stringify(config)
     });
 }

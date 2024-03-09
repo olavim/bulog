@@ -8,7 +8,7 @@ module.exports = {
   ],
   ignorePatterns: ['dist', '.eslintrc.cjs', '*.js'],
   parser: '@typescript-eslint/parser',
-  plugins: ['react-refresh', "@stylistic"],
+  plugins: ['react-refresh', '@stylistic'],
   rules: {
     'react-refresh/only-export-components': [
       'warn',
@@ -16,6 +16,7 @@ module.exports = {
     ],
     '@typescript-eslint/no-explicit-any': 'off',
     semi: ["error", "always"],
-    '@stylistic/quotes': ['error', 'single']
+    '@stylistic/quotes': ['error', 'single'],
+    '@stylistic/comma-dangle': ['error', 'never']
   },
 }

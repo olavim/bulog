@@ -16,12 +16,12 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: path.resolve(dirname, 'src/app/index.html'),
-        sandbox: path.resolve(dirname, 'src/app/sandbox/index.html'),
+        sandbox: path.resolve(dirname, 'src/app/sandbox/index.html')
       }
     }
   },
   plugins: [react()],
   resolve: {
-    alias: { '@': path.resolve(dirname, 'src/app') },
+    alias: { '@': path.resolve(dirname, 'src/app') }
   }
 });
