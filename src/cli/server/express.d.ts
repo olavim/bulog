@@ -7,6 +7,7 @@ declare global {
 
 	type ServerOptions = {
 		tempConfig: boolean;
+		stateless: boolean;
 	};
 }
 

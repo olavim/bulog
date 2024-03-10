@@ -19,7 +19,7 @@ export const defaultFormatterString = createSimpleFormatter('log.message');
 export const defaultLogRenderer =
 	(timestampColumnId: string, messageColumnId: string) => async (logs: LogData[]) => {
 		return logs.map((log) => ({
-			[timestampColumnId]: log.timestamp,
+			[timestampColumnId]: new Date(log.timestamp).toLocaleString(),
 			[messageColumnId]: log.message
 		}));
 	};

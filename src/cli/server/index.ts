@@ -48,6 +48,6 @@ export async function getServer(options: ServerOptions) {
 	}
 
 	const server = http.createServer(app);
-	setupWebSocketServer(server);
+	setupWebSocketServer(server, options);
 	return server;
 }

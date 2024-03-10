@@ -59,6 +59,7 @@ export default function LogCell(props: LogCellProps) {
 	return (
 		<td
 			className="flex items-center overflow-hidden pl-6 pr-2 group-hover:bg-slate-50 group-data-[selected]:bg-slate-100"
+			data-cy="log-cell"
 			style={{
 				flexGrow: grow ? 1 : 0,
 				flexShrink: 0,

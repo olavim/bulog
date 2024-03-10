@@ -2,10 +2,10 @@ import { Server } from 'http';
 import { WebSocketServer } from 'ws';
 import Comms from '../comms.js';
 
-export default function setupWebSocketServer(server: Server) {
+export default function setupWebSocketServer(server: Server, opts: ServerOptions) {
 	const wssIn = new WebSocketServer({ noServer: true });
 	const wssOut = new WebSocketServer({ noServer: true });
-	const comms = new Comms(wssOut);
+	const comms = new Comms(wssOut, opts);
 
 	wssIn.on('connection', (ws) => {
 		ws.on('message', (data) => {

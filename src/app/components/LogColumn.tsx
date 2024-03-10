@@ -64,6 +64,7 @@ export default function LogColumn(props: LogColumnProps) {
 			className="group flex text-left items-center text-slate-600 hover:text-slate-500 p-0"
 			data-resizing={resizing || undefined}
 			data-selected={selected || undefined}
+			data-cy="log-column-header"
 			style={{
 				flexGrow: 0,
 				flexShrink: 0,
@@ -98,7 +99,11 @@ export default function LogColumn(props: LogColumnProps) {
 					<div className="h-full grow flex items-center hover:bg-slate-50 group-data-[selected]:hover:text-slate-600 group-data-[selected]:bg-slate-100 overflow-hidden">
 						<div className="pl-6 pr-0 w-full text-ellipsis overflow-hidden">{column.name}</div>
 						<div className="basis-auto shrink-0 grow-0 flex items-center">
-							<button {...listeners} className="py-1 mr-1 rounded hover:bg-slate-200 cursor-grab">
+							<button
+								{...listeners}
+								className="py-1 mr-1 rounded hover:bg-slate-200 cursor-grab"
+								data-cy="drag-handle"
+							>
 								<MdDragIndicator className="text-lg text-slate-400" />
 							</button>
 						</div>
