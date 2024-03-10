@@ -16,13 +16,15 @@ export default class Comms {
 	private debounceData: DebounceData;
 	private maxQueueSize: number;
 	private debounceWaitMs: number;
+	private options: ServerOptions;
 
-	constructor(wss: WebSocketServer) {
+	constructor(wss: WebSocketServer, options: ServerOptions) {
+		this.options = { ...options };
 		this.wss = wss;
 		this.broadcastedMessages = {};
 		this.messageQueues = {};
 		this.debounceData = {};
-		this.maxQueueSize = 1000;
+		this.maxQueueSize = this.options.stateless ? 0 : 1000;
 		this.debounceWaitMs = 100;
 	}
 

@@ -42,18 +42,24 @@ export default function useFilters() {
 
 	const loadConfig = useCallback(async () => {
 		const config = await getFiltersConfig();
-
 		const keys = Object.keys(config?.filters);
 
-		for (const key of keys) {
-			const filterConfig = config.filters[key];
+		const filters = new Map<string, FilterData>(
+			await Promise.all(
+				keys.map(
+					async (key) =>
+						[key, await filterConfigToData(config.filters[key], sandbox)] as [string, FilterData]
+				)
+			)
+		);
 
-			const data = await filterConfigToData(filterConfig, sandbox);
-			dispatch({ type: 'loadConfig', filter: key, config: data });
+		dispatch({ type: 'loadConfig', filters });
+
+		for (const key of keys) {
 			dispatch({
 				type: 'setLogRenderer',
 				filter: key,
-				logRenderer: await sandbox.createLogRenderer(data.columns ?? [])
+				logRenderer: await sandbox.createLogRenderer(filters.get(key)?.columns ?? [])
 			});
 		}
 	}, [sandbox, dispatch]);

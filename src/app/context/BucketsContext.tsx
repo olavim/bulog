@@ -4,7 +4,7 @@ import {
 	defaultTimestampFormatterString
 } from '@/hooks/useColumnUtils';
 import { Dispatch, Reducer, createContext, useReducer } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid';
 
 type BucketsContextType = {
 	buckets: Map<string, BucketData>;
@@ -15,7 +15,7 @@ type BucketsContextType = {
 type BucketsReducerActionType =
 	| { type: 'addLogs'; bucket: string; logs: LogData[] }
 	| { type: 'setShouldSave'; shouldSave: boolean }
-	| { type: 'loadConfig'; bucket: string; config: BucketData }
+	| { type: 'loadConfig'; buckets: BucketsContextType['buckets'] }
 	| { type: 'setColumns'; bucket: string; columns: ColumnData[] }
 	| {
 			type: 'setLogRenderer';
@@ -35,8 +35,8 @@ const bucketsReducer: Reducer<BucketsContextType, BucketsReducerActionType> = (c
 	switch (action.type) {
 		case 'addLogs': {
 			const bucket = ctxCopy.buckets.get(action.bucket)!;
-			const defaultTimestampColumnId = uuidv4();
-			const defaultMessageColumnId = uuidv4();
+			const defaultTimestampColumnId = nanoid(16);
+			const defaultMessageColumnId = nanoid(16);
 
 			ctxCopy.buckets.set(action.bucket, {
 				logs: [...(bucket?.logs ?? []), ...action.logs],
@@ -62,7 +62,7 @@ const bucketsReducer: Reducer<BucketsContextType, BucketsReducerActionType> = (c
 			return ctxCopy;
 		}
 		case 'loadConfig':
-			ctxCopy.buckets.set(action.bucket, { ...action.config, logs: [] });
+			ctxCopy.buckets = action.buckets;
 			ctxCopy.configLoaded = true;
 			return ctxCopy;
 		case 'setShouldSave':

@@ -2,7 +2,7 @@ import { WebSocket } from 'ws';
 import { Args, Command, Flags } from '@oclif/core';
 import JSON5 from 'json5';
 import _ from 'lodash';
-import { validateConfigs } from '../config.js';
+import { resetTempConfigs, validateConfigs } from '../config.js';
 
 export class Run extends Command {
 	static args = {
@@ -14,7 +14,7 @@ export class Run extends Command {
 	static description = 'Starts the Bulog server or sends logs to it';
 
 	static usage = [
-		'\b[-p <port>] [-h <host>]',
+		'\b[-p <port>] [-h <host>] [--tempConfig] [--stateless]',
 		'\b[BUCKET] [-p <port>] [-h <host>] [-v <value>....] [-o]'
 	];
 
@@ -46,6 +46,15 @@ export class Run extends Command {
 		pipeOutput: Flags.boolean({
 			char: 'o',
 			description: 'Echo logs in addition to sending them to Bulog server'
+		}),
+		tempConfig: Flags.boolean({
+			description: "Use a temporary configuration that won't persist after the server is closed",
+			default: false
+		}),
+		stateless: Flags.boolean({
+			description:
+				"Configurations aren't persisted and the server won't cache logs; start from a blank slate on page refresh",
+			default: false
 		})
 	};
 
@@ -60,17 +69,24 @@ export class Run extends Command {
 	}
 
 	async startServer() {
-		try {
-			await validateConfigs();
-		} catch (e: any) {
-			this.error(e.message, { exit: 1 });
+		const { flags } = await this.parse(Run);
+		const { port, host, tempConfig, stateless } = flags;
+
+		if (!stateless) {
+			if (tempConfig) {
+				await resetTempConfigs();
+			} else {
+				try {
+					await validateConfigs();
+				} catch (e: any) {
+					this.error(e.message, { exit: 1 });
+				}
+			}
 		}
 
 		const { getServer } = await import('../server/index.js');
-		const { flags } = await this.parse(Run);
-		const { port, host } = flags;
 
-		const server = await getServer();
+		const server = await getServer({ tempConfig, stateless });
 		server.listen(port, host, () => {
 			const friendlyHost = ['0.0.0.0', '127.0.0.1', 'localhost'].includes(host)
 				? 'localhost'
