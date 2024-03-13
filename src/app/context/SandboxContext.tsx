@@ -107,7 +107,7 @@ export class Sandbox {
 				return result as K[];
 			},
 			(logs) => logs.map((log) => log.id).join(',')
-		);
+		) as (logs: T[]) => Promise<K[]>;
 	}
 
 	public async createLogRenderer(columns: ColumnData[]) {

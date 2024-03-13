@@ -2,12 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import Tab from '@/components/Tab';
 import { Tooltip } from 'react-tooltip';
 import BucketView from '@/components/BucketView';
-import useBuckets from '@/hooks/useBuckets';
-import useFilters from '@/hooks/useFilters';
 import { MdAddCircleOutline } from 'react-icons/md';
 import FilterView from './components/FilterView';
-import useLogs from './hooks/useLogs';
 import useWebSocket from 'react-use-websocket';
+import globalStore from './stores/globalStore';
+import useSandbox from './hooks/useSandbox';
 
 export default function Home() {
 	const [host, setHost] = useState<string>();
@@ -18,22 +17,45 @@ export default function Home() {
 		}
 	}, [host]);
 
-	const { logs, addLogs } = useLogs();
+	const sandbox = useSandbox();
+	const bucketConfigLoaded = globalStore.use.bucketConfigLoaded();
+	const filterConfigLoaded = globalStore.use.filterConfigLoaded();
+	const filters = globalStore.use.filters();
+	const buckets = globalStore.use.buckets();
+	const [logCountsByBucket, setLogCountsByBucket] = useState<{ [id: string]: number }>({});
+	const [logCountsByFilter, setLogCountsByFilter] = useState<{ [id: string]: number }>({});
 
-	const {
-		buckets,
-		loadConfig: loadBucketConfig,
-		configLoaded: bucketConfigLoaded,
-		addLogs: addLogsToBucket
-	} = useBuckets();
+	useEffect(() => {
+		const filterUnsubs = Array.from(filters.keys()).map((filterId) => {
+			return filters.get(filterId)!.subscribe(
+				(s) => s.data.logs.length,
+				(length) => setLogCountsByFilter((prev) => ({ ...prev, [filterId]: length }))
+			);
+		});
+		const bucketUnsubs = Array.from(buckets.keys()).map((bucketId) => {
+			return buckets.get(bucketId)!.subscribe(
+				(s) => s.data.logs.length,
+				(length) => setLogCountsByBucket((prev) => ({ ...prev, [bucketId]: length }))
+			);
+		});
 
-	const {
-		filters,
-		loadConfig: loadFilterConfig,
-		configLoaded: filterConfigLoaded,
-		createFilter,
-		addLogs: addLogsToFilter
-	} = useFilters();
+		return () => {
+			filterUnsubs.forEach((unsub) => unsub());
+			bucketUnsubs.forEach((unsub) => unsub());
+		};
+	}, [filters, buckets, logCountsByFilter, logCountsByBucket]);
+
+	const addLogs = globalStore.use.addLogs();
+	const createFilter = globalStore.use.createFilter();
+	const loadBuckets = globalStore.use.loadBuckets();
+	const loadFilters = globalStore.use.loadFilters();
+
+	const bucketNames = globalStore.use((state) =>
+		Array.from(state.buckets.keys()).filter(
+			(bucket) => state.buckets.get(bucket)?.getState().data?.logs?.length ?? 0 > 0
+		)
+	);
+	const filterNames = globalStore.use((state) => Array.from(state.filters.keys()));
 
 	const onMessage = useCallback(
 		(evt: MessageEvent) => {
@@ -52,9 +74,6 @@ export default function Home() {
 
 	const [selectedBucket, setSelectedBucket] = useState<string | null>(null);
 	const [selectedFilter, setSelectedFilter] = useState<number>(-1);
-
-	const bucketNames = Array.from(buckets.keys()).filter((bucket) => buckets.get(bucket)?.logs);
-	const filterNames = Array.from(filters.keys());
 
 	const onSelectBucket = useCallback(
 		(bucket: string) => {
@@ -84,80 +103,16 @@ export default function Home() {
 		} else if (selectedFilter >= filterNames.length) {
 			setSelectedFilter(filterNames.length - 1);
 		}
-	}, [bucketNames, buckets, filterNames.length, selectedBucket, selectedFilter]);
+	}, [bucketNames, filterNames.length, selectedBucket, selectedFilter]);
 
 	useEffect(() => {
-		(async () => {
-			await loadBucketConfig();
-			await loadFilterConfig();
-		})();
-	}, [loadBucketConfig, loadFilterConfig]);
-
-	// useEffect(() => {
-	//   (async () => {
-	//     if (bucketConfigLoaded) {
-	//       await saveBucketConfig();
-	//     }
-	//   })();
-	// }, [buckets, bucketConfigLoaded, saveBucketConfig]);
-
-	// useEffect(() => {
-	//   (async () => {
-	//     if (filterConfigLoaded) {
-	//       await saveFilterConfig();
-	//     }
-	//   })();
-	// }, [filters, filterConfigLoaded, saveFilterConfig]);
-
-	const [processed, setProcessed] = useState(0);
-
-	const processNewBucketLogs = useCallback(
-		(logs: LogData[]) => {
-			const groups = {} as { [bucket: string]: LogData[] };
-
-			for (const log of logs) {
-				if (!groups[log.bucket]) {
-					groups[log.bucket] = [];
-				}
-
-				groups[log.bucket].push(log);
-			}
-
-			for (const bucket of Object.keys(groups)) {
-				addLogsToBucket(bucket, groups[bucket]);
-			}
-		},
-		[addLogsToBucket]
-	);
-
-	const processNewFilterLogs = useCallback(
-		async (logs: LogData[]) => {
-			for (const filter of filters.keys()) {
-				const fn = filters.get(filter)!.filterFunction;
-				const predicates = await fn(logs);
-				addLogsToFilter(
-					filter,
-					logs.filter((_, i) => predicates[i])
-				);
-			}
-		},
-		[addLogsToFilter, filters]
-	);
-
-	useEffect(() => {
-		if (logs.length > processed) {
-			const newLogs = logs.slice(processed);
-			const lastProcessedLogId = logs[processed - 1]?.id;
-			const lastNewLogId = newLogs[newLogs.length - 1]?.id;
-
-			if (lastProcessedLogId !== lastNewLogId) {
-				processNewBucketLogs(newLogs);
-				processNewFilterLogs(newLogs);
-			}
-
-			setProcessed(logs.length);
+		if (bucketConfigLoaded || filterConfigLoaded) {
+			return;
 		}
-	}, [logs, processed, processNewBucketLogs, processNewFilterLogs]);
+
+		loadBuckets(sandbox);
+		loadFilters(sandbox);
+	}, [bucketConfigLoaded, filterConfigLoaded, loadBuckets, loadFilters, sandbox]);
 
 	return (
 		<main className="font-[Inter] flex min-h-screen max-h-screen max-w-[100vw] p-0 overflow-hidden">
@@ -176,7 +131,7 @@ export default function Home() {
 							<Tab
 								key={index}
 								title={bucket}
-								count={buckets.get(bucket)?.logs?.length ?? 0}
+								count={logCountsByBucket[bucket]}
 								selected={bucket === selectedBucket}
 								onClick={onSelectBucket}
 							/>
@@ -191,12 +146,12 @@ export default function Home() {
 							<Tab
 								key={index}
 								title={filter}
-								count={filters.get(filter)?.logs?.length ?? 0}
+								count={logCountsByFilter[filter] ?? 0}
 								selected={index === selectedFilter}
 								onClick={onSelectFilter}
 							/>
 						))}
-					<div className="w-full flex items-center justify-start pl-10 pr-6 text-slate-400">
+					<div className="w-full flex items-center justify-start pl-6 pr-6 text-slate-400">
 						<div
 							className="grow flex items-center justify-start pr-4"
 							style={
@@ -220,8 +175,12 @@ export default function Home() {
 					</div>
 				</div>
 			</div>
-			{selectedBucket && <BucketView bucket={selectedBucket} />}
-			{selectedFilter !== -1 && <FilterView filter={filterNames[selectedFilter]} />}
+			{selectedBucket && globalStore.getState().buckets.has(selectedBucket) && (
+				<BucketView bucket={selectedBucket} />
+			)}
+			{selectedFilter !== -1 && selectedFilter < filterNames.length && (
+				<FilterView filter={filterNames[selectedFilter]} />
+			)}
 		</main>
 	);
 }

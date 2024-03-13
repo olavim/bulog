@@ -1,22 +1,29 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { filter as liqeFilter, LiqeQuery } from 'liqe';
 import LogList from './LogList';
-import useBucket from '@/hooks/useBucket';
 import LogView from './LogView';
 import ColumnView from './ColumnView';
 import Drawer from './Drawer';
 import Search from './Search';
 import NewColumnButton from './NewColumnButton';
-import useBuckets from '@/hooks/useBuckets';
+import globalStore from '@/stores/globalStore';
+import useSandbox from '@/hooks/useSandbox';
+import { createColumn, deleteColumn } from '@/utils/columns';
 
 interface BucketLogsProps {
 	bucket: string;
 }
 
-export default function BucketLogs(props: BucketLogsProps) {
+export default memo(function BucketLogs(props: BucketLogsProps) {
 	const { bucket } = props;
-	const { saveConfig, shouldSave } = useBuckets();
-	const { logs, columns, setColumn, setColumns, logRenderer } = useBucket(bucket);
+
+	const sandbox = useSandbox();
+	const bucketStore = globalStore.use((state) => state.buckets.get(bucket)!);
+	const logs = bucketStore.use((state) => state.data.logs);
+	const columns = bucketStore.use((state) => state.data.columns);
+	const logRenderer = bucketStore.use((state) => state.data.logRenderer);
+	const setColumns = bucketStore.use.setColumns();
+
 	const [query, setQuery] = useState<LiqeQuery | null>(null);
 	const [searchedLogs, setSearchedLogs] = useState<LogData[]>(logs);
 	const [selectedLog, setSelectedLog] = useState<LogData | null>(null);
@@ -26,20 +33,12 @@ export default function BucketLogs(props: BucketLogsProps) {
 		[columns, selectedColumnId]
 	);
 
-	useEffect(() => {
-		if (shouldSave) {
-			saveConfig();
-		}
-	}, [saveConfig, shouldSave]);
-
-	const onAddColumn = useCallback(
-		async (id: string, data: Partial<ColumnData> | null) => {
-			setSelectedColumnId(id);
-			setSelectedLog(null);
-			setColumn(id, data);
-		},
-		[setColumn]
-	);
+	const onAddColumn = useCallback(async () => {
+		const newColumn = createColumn(null);
+		setSelectedColumnId(newColumn.id);
+		setSelectedLog(null);
+		setColumns([...columns, newColumn], sandbox);
+	}, [columns, sandbox, setColumns]);
 
 	const onDeselect = useCallback(() => {
 		setSelectedLog(null);
@@ -64,6 +63,29 @@ export default function BucketLogs(props: BucketLogsProps) {
 		}
 	}, [logs, query]);
 
+	const handleSetColumns = useCallback(
+		(cols: ColumnData[]) => {
+			setColumns(cols, sandbox);
+		},
+		[sandbox, setColumns]
+	);
+
+	const handleSetColumn = useCallback(
+		async (id: string, data: Partial<ColumnData> | null) => {
+			const idx = columns.findIndex((c) => c.id === id);
+
+			if (data === null) {
+				const newColumns = deleteColumn(columns, id);
+				setColumns(newColumns, sandbox);
+			} else {
+				const col = createColumn({ id, ...data });
+				const newColumns = columns.toSpliced(idx, 1, col);
+				setColumns(newColumns, sandbox);
+			}
+		},
+		[columns, sandbox, setColumns]
+	);
+
 	return (
 		<div className="flex flex-row grow overflow-hidden">
 			<div className="flex flex-col grow overflow-hidden">
@@ -82,7 +104,7 @@ export default function BucketLogs(props: BucketLogsProps) {
 						selectedColumn={selectedColumn}
 						onSelectLog={onSelectLog}
 						onSelectColumn={onSelectColumn}
-						onChangeColumns={setColumns}
+						onChangeColumns={handleSetColumns}
 					/>
 				</div>
 			</div>
@@ -93,9 +115,9 @@ export default function BucketLogs(props: BucketLogsProps) {
 			)}
 			{selectedColumn && (
 				<Drawer title="Column details" onClose={onDeselect}>
-					<ColumnView column={selectedColumn} onChange={setColumn} />
+					<ColumnView column={selectedColumn} onChange={handleSetColumn} />
 				</Drawer>
 			)}
 		</div>
 	);
-}
+});
