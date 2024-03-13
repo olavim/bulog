@@ -91,9 +91,27 @@ const VirtuosoTable: TableComponents<LogData>['Table'] = memo((props) => {
 	return <table className="w-full" {...props} />;
 });
 
+const VirtuosoTableRow: TableComponents<LogData>['TableRow'] = memo((props) => {
+	const { style, context, ...rest } = props;
+	const onClick = useCallback(
+		() => (context as any).onSelectLog(props.item),
+		[context, props.item]
+	);
+	return (
+		<tr
+			className="group font-['Fira_Code'] border-b last:border-b-0 border-box flex flex-row min-w-fit h-[35px]"
+			style={{ ...style, height: 35 }}
+			onClick={onClick}
+			data-selected={props.item.id === (context as any).selectedLog?.id ? true : undefined}
+			{...rest}
+		/>
+	);
+});
+
 interface LogListProps {
 	logs: LogData[];
 	columns: ColumnData[];
+	renderKey?: number;
 	logRenderer: (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>>;
 	selectedLog: LogData | null;
 	selectedColumn: ColumnData | null;
@@ -106,6 +124,7 @@ export default function LogList(props: LogListProps) {
 	const {
 		logs,
 		columns,
+		renderKey,
 		logRenderer,
 		selectedLog,
 		selectedColumn,
@@ -123,10 +142,8 @@ export default function LogList(props: LogListProps) {
 	}, [logRenderer]);
 
 	useEffect(() => {
-		if (!renderInProgress && logs.length < renders.length) {
-			setShouldRenderAll(true);
-		}
-	}, [logs.length, renderInProgress, renders.length]);
+		setShouldRenderAll(true);
+	}, [renderKey]);
 
 	useEffect(() => {
 		if (!shouldRenderAll || renderInProgress) {
@@ -273,21 +290,60 @@ export default function LogList(props: LogListProps) {
 		[columns, onChangeColumns]
 	);
 
-	const VirtuosoTableRow = useMemo(() => {
-		const VirtuosoTableRow: TableComponents<LogData>['TableRow'] = (props) => {
-			const { style, ...rest } = props;
-			return (
-				<tr
-					className="group font-['Fira_Code'] border-b last:border-b-0 border-box flex flex-row min-w-fit h-[35px]"
-					style={{ ...style, height: 35 }}
-					onClick={() => onSelectLog(props.item)}
-					data-selected={props.item.id === selectedLog?.id ? true : undefined}
-					{...rest}
-				/>
-			);
-		};
-		return VirtuosoTableRow;
-	}, [onSelectLog, selectedLog?.id]);
+	const getFixedHeaderContent = useCallback(
+		() => (
+			<tr className="flex flex-row min-w-fit border-b bg-white" style={{ height: 35 }}>
+				<SortableContext
+					items={columns.map((col) => col.id)}
+					strategy={horizontalListSortingStrategy}
+					disabled={columnResizeData !== null}
+				>
+					{columns.map((col) => (
+						<LogColumn
+							key={col.id}
+							column={col}
+							onClick={onSelectColumn}
+							onResizeStart={onResizeColumnStart}
+							resizing={columnResizeData !== null}
+							selected={selectedColumn?.id === col.id}
+						/>
+					))}
+				</SortableContext>
+			</tr>
+		),
+		[columnResizeData, columns, onResizeColumnStart, onSelectColumn, selectedColumn?.id]
+	);
+
+	const getItemContent = useCallback(
+		(index: number, log: LogData) => (
+			<Log
+				prerender={renders[index]}
+				log={log}
+				columns={columns}
+				renderer={logRenderer}
+				last={index === logs.length - 1}
+			/>
+		),
+		[columns, logRenderer, logs.length, renders]
+	);
+
+	const computeItemKey = useCallback((_: number, log: LogData) => log.id, []);
+
+	const virtuosoContext = useMemo(
+		() => ({
+			selectedLog,
+			onSelectLog
+		}),
+		[selectedLog, onSelectLog]
+	);
+
+	const virtuosoComponents: TableComponents<LogData, unknown> = useMemo(
+		() => ({
+			Table: VirtuosoTable,
+			TableRow: VirtuosoTableRow
+		}),
+		[]
+	);
 
 	return (
 		<div className="grow w-full max-w-full min-w-full flex flex-col" ref={logContainerRef}>
@@ -303,47 +359,18 @@ export default function LogList(props: LogListProps) {
 				<div ref={rootRef} data-overlayscrollbars="" className="h-full overflow-visible" />
 				<TableVirtuoso
 					ref={virtuosoRef}
+					context={virtuosoContext}
 					data={logs}
 					totalCount={logs.length}
 					scrollerRef={setScroller}
 					className="bg-white rounded"
 					width="100%"
-					components={{
-						Table: VirtuosoTable,
-						TableRow: VirtuosoTableRow
-					}}
+					components={virtuosoComponents}
 					followOutput="auto"
 					initialTopMostItemIndex={logs.length}
-					computeItemKey={(_, log) => log.id}
-					fixedHeaderContent={() => (
-						<tr className="flex flex-row min-w-fit border-b bg-white" style={{ height: 35 }}>
-							<SortableContext
-								items={columns.map((col) => col.id)}
-								strategy={horizontalListSortingStrategy}
-								disabled={columnResizeData !== null}
-							>
-								{columns.map((col) => (
-									<LogColumn
-										key={col.id}
-										column={col}
-										onClick={onSelectColumn}
-										onResizeStart={onResizeColumnStart}
-										resizing={columnResizeData !== null}
-										selected={selectedColumn?.id === col.id}
-									/>
-								))}
-							</SortableContext>
-						</tr>
-					)}
-					itemContent={(index, log) => (
-						<Log
-							prerender={renders[index]}
-							log={log}
-							columns={columns}
-							renderer={logRenderer}
-							last={index === logs.length - 1}
-						/>
-					)}
+					computeItemKey={computeItemKey}
+					fixedHeaderContent={getFixedHeaderContent}
+					itemContent={getItemContent}
 				/>
 			</DndContext>
 		</div>

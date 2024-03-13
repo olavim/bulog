@@ -43,7 +43,7 @@ export async function filterConfigToData(
 	const columns = config.columns.map(columnConfigToData);
 	return {
 		logs: [],
-		columns: config.columns.map(columnConfigToData),
+		columns,
 		filterString: config.filter,
 		filterFunction: await sandbox.createCallback(config.filter),
 		logRenderer: await sandbox.createLogRenderer(columns)

@@ -13,18 +13,20 @@ interface FilterConfig {
 	columns: ColumnConfig[];
 }
 
+type LogRenderer = (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>>;
+
 interface BucketData {
 	columns: ColumnData[];
-	logs?: LogData[];
-	logRenderer: (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>>;
+	logs: LogData[];
+	logRenderer: LogRenderer;
 }
 
 interface FilterData {
 	filterString: string;
 	filterFunction: (log: LogData[]) => Promise<boolean[]>;
-	columns?: ColumnData[];
-	logs?: LogData[];
-	logRenderer: (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>>;
+	columns: ColumnData[];
+	logs: LogData[];
+	logRenderer: LogRenderer;
 }
 
 interface ColumnData {
@@ -34,7 +36,10 @@ interface ColumnData {
 	formatterString: string;
 }
 
-type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue> | null;
+type JSONValue = string | number | boolean | Record<string, any> | any[] | null;
+
+// Immer doesn't like this. Try again if it gets fixed.
+// type JSONValue = string | number | boolean | Record<string, JSONValue> | JSONValue[] | null;
 
 interface LogData extends Record<string, JSONValue> {
 	id: string;
