@@ -13,7 +13,11 @@ export default function Drawer(props: DrawerProps) {
 			<div className="flex flex-col px-4 w-[35rem] justify-items-center overflow-hidden">
 				<div className="flex px-2 basis-20 shrink-0 grow-0 items-center justify-between">
 					<h1 className="text-lg font-medium text-slate-600">{title}</h1>
-					<button className="p-2 rounded-full hover:bg-gray-200 cursor-pointer" onClick={onClose}>
+					<button
+						className="p-2 rounded-full hover:bg-gray-200 cursor-pointer"
+						data-cy="close-drawer-button"
+						onClick={onClose}
+					>
 						<MdClose className="text-xl text-slate-600" />
 					</button>
 				</div>

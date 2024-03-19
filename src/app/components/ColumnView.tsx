@@ -45,6 +45,7 @@ export default function ColumnView(props: ColumnViewProps) {
 					value={nameStr}
 					onChange={(evt) => setColumnNameStr(evt.target.value)}
 					id="column-name-input"
+					data-cy="column-name-input"
 					className="text-xs basis-[35px] w-full border border-gray-300 shadow rounded py-1 px-3 text-gray-600"
 				/>
 			</div>
@@ -54,6 +55,7 @@ export default function ColumnView(props: ColumnViewProps) {
 				</label>
 				<CodeMirror
 					className="basis-40 border rounded shadow p-2 outline-none"
+					data-cy="column-formatter-input"
 					height="100%"
 					extensions={[javascript()]}
 					value={formatterStr}
@@ -71,6 +73,7 @@ export default function ColumnView(props: ColumnViewProps) {
 			<div className="flex flex-row w-full justify-between pt-4">
 				<button
 					className="h-[30px] inline-flex flex-row items-center bg-sky-500 hover:bg-sky-400 disabled:bg-gray-300 text-sm text-white font-medium pl-3 pr-4 rounded shadow"
+					data-cy="save-column-button"
 					onClick={handleSave}
 					disabled={nameStr === ''}
 				>
@@ -79,6 +82,7 @@ export default function ColumnView(props: ColumnViewProps) {
 				</button>
 				<button
 					className="h-[30px] inline-flex flex-row items-center bg-red-500 hover:bg-red-400 text-sm text-white font-medium pl-3 pr-4 rounded shadow"
+					data-cy="delete-column-button"
 					onClick={handleDelete}
 				>
 					<MdRemoveCircle className="mr-2" />
