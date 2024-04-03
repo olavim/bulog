@@ -2,10 +2,9 @@ import { Server } from 'http';
 import { WebSocketServer } from 'ws';
 import Comms from '../comms.js';
 
-export default function setupWebSocketServer(server: Server, opts: ServerOptions) {
+export default function setupWebSocketServer(server: Server, comms: Comms) {
 	const wssIn = new WebSocketServer({ noServer: true });
 	const wssOut = new WebSocketServer({ noServer: true });
-	const comms = new Comms(wssOut, opts);
 
 	wssIn.on('connection', (ws) => {
 		ws.on('message', (data) => {
@@ -15,7 +14,13 @@ export default function setupWebSocketServer(server: Server, opts: ServerOptions
 	});
 
 	wssOut.on('connection', (ws) => {
-		comms.sendQueuedLogs(ws);
+		const id = comms.addMessageListener((logs) => {
+			ws.send(JSON.stringify(logs));
+		});
+
+		ws.on('close', () => {
+			comms.removeMessageListener(id);
+		});
 	});
 
 	server.on('upgrade', (request, socket, head) => {

@@ -1,53 +1,62 @@
-import { WebSocket, WebSocketServer } from 'ws';
 import Denque from 'denque';
+import { nanoid } from 'nanoid';
 
 interface DebounceData {
-	[bucket: string]: {
-		logs: LogData[];
-		timeoutId: NodeJS.Timeout;
-		firstLogTime: number;
-	};
+	logs: LogData[];
+	timeoutId?: NodeJS.Timeout;
+	firstLogTime?: number;
+}
+
+export interface CommsOptions {
+	maxQueueSize: number;
 }
 
 export default class Comms {
-	private wss: WebSocketServer;
 	private broadcastedMessages: { [bucket: string]: number };
-	private messageQueues: { [bucket: string]: Denque<LogData> };
+	private messageQueue: Denque<LogData>;
 	private debounceData: DebounceData;
 	private maxQueueSize: number;
 	private debounceWaitMs: number;
-	private options: ServerOptions;
+	private messageListeners: Map<string, (messages: LogData[]) => void>;
 
-	constructor(wss: WebSocketServer, options: ServerOptions) {
-		this.options = { ...options };
-		this.wss = wss;
+	constructor(options: CommsOptions) {
+		this.messageListeners = new Map();
 		this.broadcastedMessages = {};
-		this.messageQueues = {};
-		this.debounceData = {};
-		this.maxQueueSize = this.options.stateless ? 0 : 1000;
+		this.messageQueue = new Denque();
+		this.debounceData = { logs: [] };
+		this.maxQueueSize = options.maxQueueSize;
 		this.debounceWaitMs = 100;
 	}
 
-	private broadcastDebouncedLogs(bucket: string) {
-		return () => {
-			const logs = this.debounceData[bucket].logs;
-			delete this.debounceData[bucket];
+	private broadcastDebouncedLogs() {
+		for (const [, listener] of this.messageListeners.entries()) {
+			listener(this.debounceData.logs);
+		}
+		this.debounceData = { logs: [] };
+	}
 
-			for (const c of this.wss.clients) {
-				c.send(JSON.stringify({ bucket, logs }));
-			}
-		};
+	addMessageListener(cb: (messages: LogData[]) => void) {
+		const id = nanoid();
+		this.messageListeners.set(id, cb);
+		cb(this.messageQueue.toArray());
+		return id;
+	}
+
+	removeMessageListener(id: string) {
+		if (!this.messageListeners.delete(id)) {
+			console.error(`No message listener with ID "${id}"`);
+		}
 	}
 
 	broadcast(bucket: string, message: JSONValue, extraFields?: Record<string, JSONValue>) {
 		this.broadcastedMessages[bucket] = (this.broadcastedMessages[bucket] ?? 0) + 1;
 
-		const firstLogTime = this.debounceData[bucket]?.firstLogTime ?? Date.now();
+		const firstLogTime = this.debounceData?.firstLogTime ?? Date.now();
 		const elapsedTime = Date.now() - firstLogTime;
 		const remainingTime = this.debounceWaitMs - elapsedTime;
 
-		if (this.debounceData[bucket]) {
-			clearTimeout(this.debounceData[bucket].timeoutId);
+		if (this.debounceData.timeoutId !== undefined) {
+			clearTimeout(this.debounceData.timeoutId);
 		}
 
 		const log: LogData = {
@@ -58,27 +67,23 @@ export default class Comms {
 			...(extraFields ?? {})
 		};
 
-		if (!this.messageQueues[bucket]) {
-			this.messageQueues[bucket] = new Denque();
-		}
-
-		const messageCount = this.messageQueues[bucket].push(log);
+		const messageCount = this.messageQueue.push(log);
 
 		if (messageCount > this.maxQueueSize) {
-			this.messageQueues[bucket].shift();
+			this.messageQueue.shift();
 		}
 
-		this.debounceData[bucket] = {
-			logs: [...(this.debounceData[bucket]?.logs ?? []), log],
+		this.debounceData = {
+			logs: [...this.debounceData.logs, log],
 			firstLogTime,
-			timeoutId: setTimeout(this.broadcastDebouncedLogs(bucket), remainingTime)
+			timeoutId: setTimeout(() => this.broadcastDebouncedLogs(), remainingTime)
 		};
 	}
 
-	sendQueuedLogs(client: WebSocket) {
-		for (const bucket of Object.keys(this.messageQueues)) {
-			const logs = this.messageQueues[bucket].toArray();
-			client.send(JSON.stringify({ bucket, logs }));
-		}
+	resetCache() {
+		this.messageListeners = new Map();
+		this.messageQueue.clear();
+		this.debounceData = { logs: [] };
+		this.broadcastedMessages = {};
 	}
 }

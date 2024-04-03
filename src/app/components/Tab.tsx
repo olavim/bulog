@@ -18,6 +18,7 @@ export default function Tab(props: TabProps) {
 		<div
 			data-selected={selected || undefined}
 			className="group w-full flex items-center justify-start py-3 pl-6 pr-6 cursor-pointer hover:bg-slate-600 data-[selected=true]:bg-sky-600 data-[selected=true]:shadow-lg data-[selected=true]:cursor-default"
+			data-cy="tab"
 			onClick={handleClick}
 		>
 			<span className="text-ellipsis overflow-hidden whitespace-nowrap text-xs font-medium text-gray-300 group-hover:text-gray-200 group-data-[selected=true]:text-gray-800 group-data-[selected=true]:text-white">

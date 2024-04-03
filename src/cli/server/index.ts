@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import apiRouter from './api/index.js';
 import setupWebSocketServer from './api/sockets.js';
+import Comms from './comms.js';
 
 const filename = fileURLToPath(import.meta.url);
 const appRoot = path.resolve(path.dirname(filename), '../../app');
@@ -33,9 +34,13 @@ async function serveVite(app: express.Express) {
 
 export async function getServer(options: ServerOptions) {
 	const app = express();
+	const comms = new Comms({
+		maxQueueSize: options.memorySize
+	});
 
 	app.use((req, _res, next) => {
 		req.bulogOptions = options;
+		req.bulogComms = comms;
 		next();
 	});
 
@@ -48,6 +53,6 @@ export async function getServer(options: ServerOptions) {
 	}
 
 	const server = http.createServer(app);
-	setupWebSocketServer(server, options);
+	setupWebSocketServer(server, comms);
 	return server;
 }

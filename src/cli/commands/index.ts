@@ -13,48 +13,81 @@ export class Run extends Command {
 
 	static description = 'Starts the Bulog server or sends logs to it';
 
-	static usage = [
-		'\b[-p <port>] [-h <host>] [--tempConfig] [--stateless]',
-		'\b[BUCKET] [-p <port>] [-h <host>] [-v <value>....] [-o]'
-	];
+	static usage = `
+\b\b\b\b\b\b\b\b\bStart the Bulog server
+$ bulog [-h <host>] [-p <port>] [-m <memorySize>] [--tempConfig]
+
+Start a Bulog client and send logs from stdin to a bucket
+$ bulog [BUCKET] [-h <host>] [-p <port>] [-v <value>....] [-o]
+`;
 
 	static examples = [
-		'Start the Bulog server at port 3000\n$ bulog -p 3000',
-		'Send logs to Bulog running at port 3000\n  $ echo "example" | bulog my-app -p 3000',
+		'Start the Bulog server on port 3000\n  $ bulog -p 3000',
+		'Send logs to Bulog running on port 3000\n  $ echo "example" | bulog my-app -p 3000',
 		'Send logs to Bulog with additional log fields\n  $ echo "example" | bulog my-app -v name:MyApp1 group:MyApps'
 	];
 
 	static flags = {
 		port: Flags.integer({
 			char: 'p',
-			helpValue: '<port>',
-			default: 3100,
-			description: 'Server port to bind or connect to'
+			hidden: true
 		}),
 		host: Flags.string({
 			char: 'h',
+			hidden: true
+		}),
+		serverPort: Flags.integer({
+			helpLabel: '-p, --port',
+			helpValue: '<port>',
+			default: 3100,
+			description: 'Server port to bind to',
+			helpGroup: 'SERVER'
+		}),
+		serverHost: Flags.string({
+			helpLabel: '-h, --host',
 			helpValue: '<host>',
 			default: '0.0.0.0',
-			description: 'Server hostname to bind or connect to'
+			description: 'Server hostname to bind or connect to',
+			helpGroup: 'SERVER'
+		}),
+		memorySize: Flags.integer({
+			char: 'm',
+			min: 0,
+			description:
+				'Number of logs to keep in memory. Logs in memory are sent to clients when they connect.',
+			default: 1000,
+			helpGroup: 'SERVER'
+		}),
+		tempConfig: Flags.boolean({
+			description: "Use a temporary configuration that doesn't persist after the server is closed",
+			default: false,
+			helpGroup: 'SERVER'
+		}),
+		clientPort: Flags.integer({
+			helpLabel: '-p, --port',
+			helpValue: '<port>',
+			default: 3100,
+			description: 'Server port to connect to',
+			helpGroup: 'CLIENT'
+		}),
+		clientHost: Flags.string({
+			helpLabel: '-h, --host',
+			helpValue: '<host>',
+			default: '127.0.0.1',
+			description: 'Server hostname to connect to',
+			helpGroup: 'CLIENT'
 		}),
 		value: Flags.string({
 			char: 'v',
 			helpValue: '<value>',
 			multiple: true,
-			description: 'Value added to logs'
+			description: 'Value added to logs',
+			helpGroup: 'CLIENT'
 		}),
 		pipeOutput: Flags.boolean({
 			char: 'o',
-			description: 'Echo logs in addition to sending them to Bulog server'
-		}),
-		tempConfig: Flags.boolean({
-			description: "Use a temporary configuration that won't persist after the server is closed",
-			default: false
-		}),
-		stateless: Flags.boolean({
-			description:
-				"Configurations aren't persisted and the server won't cache logs; start from a blank slate on page refresh",
-			default: false
+			description: 'Echo logs in addition to sending them to Bulog',
+			helpGroup: 'CLIENT'
 		})
 	};
 
@@ -70,35 +103,35 @@ export class Run extends Command {
 
 	async startServer() {
 		const { flags } = await this.parse(Run);
-		const { port, host, tempConfig, stateless } = flags;
+		const { serverHost, serverPort, tempConfig, memorySize } = flags;
+		const host = flags.host ?? serverHost;
+		const port = flags.port ?? serverPort;
 
-		if (!stateless) {
-			if (tempConfig) {
-				await resetTempConfigs();
-			} else {
-				try {
-					await validateConfigs();
-				} catch (e: any) {
-					this.error(e.message, { exit: 1 });
-				}
+		if (tempConfig) {
+			await resetTempConfigs();
+		} else {
+			try {
+				await validateConfigs();
+			} catch (e: any) {
+				this.error(e.message, { exit: 1 });
 			}
 		}
 
 		const { getServer } = await import('../server/index.js');
 
-		const server = await getServer({ tempConfig, stateless });
+		const server = await getServer({ tempConfig, memorySize });
 		server.listen(port, host, () => {
-			const friendlyHost = ['0.0.0.0', '127.0.0.1', 'localhost'].includes(host)
-				? 'localhost'
-				: host;
-			this.log(`Bulog is running at http://${friendlyHost}:${port}`);
+			this.log(`Bulog is running at http://${host}:${port}`);
 		});
 	}
 
 	async sendInputToServer() {
 		const { args, flags } = await this.parse(Run);
 		const { bucket } = args;
-		const { port, host, pipeOutput, value } = flags;
+		const { clientHost, clientPort, pipeOutput, value } = flags;
+		const host = flags.host ?? clientHost;
+		const port = flags.port ?? clientPort;
+		console.log(flags);
 
 		const extraFields: any = {};
 
@@ -116,7 +149,10 @@ export class Run extends Command {
 		let socket: WebSocket;
 
 		function connect() {
-			socket = new WebSocket(`ws://${host}:${port}/api/sockets/in`, { handshakeTimeout: 1000 });
+			console.log(`ws://${host}:${port}/api/sockets/in`);
+			socket = new WebSocket(`ws://${host}:${port}/api/sockets/in`, {
+				handshakeTimeout: 1000
+			});
 
 			socket.on('open', () => {
 				process.stdin.resume();

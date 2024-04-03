@@ -1,7 +1,8 @@
 declare global {
 	namespace Cypress {
 		interface Chainable {
-			sendLogs(logs: any[]): Chainable<void>;
+			sendLogsToBulog(logs: any[]): Chainable<void>;
+			resetBulog(): Chainable<void>;
 			asText(alias: string): Chainable<JQuery<string>>;
 		}
 	}

@@ -11,11 +11,11 @@
 	"bin": {
 		"bulog": "bin/run.js"
 	},
-	"version": "0.3.1",
+	"version": "0.4.0",
 	"scripts": {
 		"start": "node ./bin/run.js -p 3000",
 		"dev": "tsx watch --ignore vite.config.ts.* ./bin/dev.js -p 3000",
-		"dev:stateless": "npm run dev -- --stateless",
+		"dev:temp": "npm run dev -- --tempConfig",
 		"clean": "shx rm -rf dist",
 		"build": "npm run build:app && npm run build:cli",
 		"build:app": "tsc -p tsconfig.app.json && shx rm -rf dist/app && vite build",
@@ -25,11 +25,12 @@
 		"check:ts:cli": "tsc -p tsconfig.cli.json --noEmit",
 		"lint": "eslint . --report-unused-disable-directives --max-warnings 0 --fix",
 		"format": "prettier . --write --log-level warn",
+		"cli": "tsx ./bin/dev.js",
 		"clitest": "node ./dummy-app.js | tsx ./bin/dev.js my-app -p 3000",
 		"cypress:run": "cypress run",
 		"cypress:open": "cypress open --e2e -b firefox",
-		"test:debug": "start-server-and-test dev:stateless http://localhost:3000 cypress:open",
-		"test": "start-server-and-test dev:stateless http://localhost:3000 cypress:run",
+		"test:debug": "start-server-and-test dev:temp http://localhost:3000 cypress:open",
+		"test": "start-server-and-test dev:temp http://localhost:3000 cypress:run",
 		"prepare": "husky",
 		"prepublishOnly": "npm run build"
 	},

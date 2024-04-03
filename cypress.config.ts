@@ -1,7 +1,7 @@
 import { defineConfig } from 'cypress';
 import { WebSocket } from 'ws';
 
-const host = 'localhost:3000';
+const host = '127.0.0.1:3000';
 
 export default defineConfig({
 	e2e: {
@@ -12,7 +12,7 @@ export default defineConfig({
 					console.log(message);
 					return null;
 				},
-				sendLogs(logs: object[]) {
+				sendLogsToBulog(logs: object[]) {
 					const socket = new WebSocket(`ws://${host}/api/sockets/in`, {
 						handshakeTimeout: 1000
 					});

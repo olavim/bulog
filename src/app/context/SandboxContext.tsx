@@ -195,7 +195,7 @@ export function SandboxProvider({ children }: CodeSandboxProviderProps) {
 			<iframe
 				key={iframeKey}
 				ref={setRef}
-				className="h-0"
+				className="absolute h-0 w-0"
 				id="code-sandbox"
 				sandbox="allow-scripts"
 				src="/sandbox/index.html"

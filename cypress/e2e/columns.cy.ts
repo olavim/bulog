@@ -27,8 +27,10 @@ function dndElement(from: HTMLElement, to: HTMLElement) {
 
 describe('column tests', () => {
 	beforeEach(() => {
-		cy.visit('/');
-		cy.sendLogs([{ bucket: 'cypress', message: { col1: 'test1', col2: 'test2' } }]);
+		cy.resetBulog().then(() => {
+			cy.visit('/');
+			cy.sendLogsToBulog([{ bucket: 'cypress', message: { col1: 'test1', col2: 'test2' } }]);
+		});
 	});
 
 	it('drag the first column on top of the second and back', () => {
@@ -67,6 +69,7 @@ describe('column tests', () => {
 	});
 
 	it('create a new column and drag it on top of the first, then delete it', () => {
+		cy.get('[data-cy=log-column-header]').should('have.length', 2);
 		cy.get('[data-cy=new-column-button]').click();
 
 		cy.get('[data-cy=log-column-header]').should('have.length', 3);

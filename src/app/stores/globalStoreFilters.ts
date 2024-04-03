@@ -58,7 +58,7 @@ const createFilterSlice: FilterSliceCreator = (set, get) => ({
 				filterString: defaultFilterString,
 				filterFunction: async (logs) => logs.map(() => true),
 				columns,
-				logs: state.logs,
+				logs: get().logs,
 				logRenderer: defaultLogRenderer(columns[0].id, columns[1].id)
 			};
 

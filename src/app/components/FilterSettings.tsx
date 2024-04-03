@@ -30,21 +30,24 @@ export default function ColumnView(props: FilterSettingsProps) {
 	return (
 		<div className="w-full items-start flex flex-col grow space-y-4">
 			<div className="flex flex-col w-full space-y-2">
-				<label htmlFor="column-name-input" className="text-xs text-gray-800 font-medium">
+				<label htmlFor="filter-name-input" className="text-xs text-gray-800 font-medium">
 					{'Name'}
 				</label>
 				<input
 					value={nameStr}
 					onChange={(evt) => setNameStr(evt.target.value)}
-					id="column-name-input"
+					id="filter-name-input"
+					data-cy="filter-name-input"
 					className="text-xs basis-[35px] w-full border border-gray-300 shadow rounded py-1 px-3 text-gray-600"
 				/>
 			</div>
 			<div className="flex flex-col grow w-full space-y-2">
-				<label htmlFor="column-pattern-input" className="text-xs text-gray-800 font-medium">
-					{'Formatter'}
+				<label htmlFor="filter-predicate-input" className="text-xs text-gray-800 font-medium">
+					{'Predicate'}
 				</label>
 				<CodeMirror
+					id="filter-predicate-input"
+					data-cy="filter-predicate-input"
 					className="basis-40 border rounded shadow p-2 outline-none"
 					height="100%"
 					extensions={[javascript()]}
@@ -63,6 +66,7 @@ export default function ColumnView(props: FilterSettingsProps) {
 			<div className="flex flex-row w-full justify-between pt-4">
 				<button
 					className="h-[30px] inline-flex flex-row items-center bg-sky-500 hover:bg-sky-400 disabled:bg-gray-300 text-sm text-white font-medium pl-3 pr-4 rounded shadow"
+					data-cy="save-filter-button"
 					onClick={handleSave}
 					disabled={nameStr === ''}
 				>

@@ -59,9 +59,8 @@ export default function Home() {
 
 	const onMessage = useCallback(
 		(evt: MessageEvent) => {
-			const json = JSON.parse(evt.data) as LogMessage;
-			const newLogs = json.logs;
-			addLogs(newLogs);
+			const newLogs = JSON.parse(evt.data) as LogData[];
+			setTimeout(() => addLogs(newLogs), 0);
 		},
 		[addLogs]
 	);
@@ -122,7 +121,10 @@ export default function Home() {
 					<span className="text-sky-500">{'Bu'}</span>
 					<span className="text-gray-100">{'log'}</span>
 				</div>
-				<div className="py-6 overflow-y-auto flex flex-col bg-slate-700 shadow-lg z-10">
+				<div
+					className="py-6 overflow-y-auto flex flex-col bg-slate-700 shadow-lg z-10"
+					data-cy="bucket-tabs"
+				>
 					<div className="group w-full flex items-center justify-start py-3 px-6">
 						<span className="text-xs font-medium text-white/50">{'BUCKETS'}</span>
 					</div>
@@ -166,6 +168,7 @@ export default function Home() {
 						>
 							<div
 								className="grow flex items-center justify-start py-3 hover:text-sky-400 cursor-pointer"
+								data-cy="new-filter-button"
 								onClick={onCreateFilter}
 							>
 								<MdAddCircleOutline className="text-md" />

@@ -55,14 +55,12 @@ const createLogSlice: LogSliceCreator = (set, get) => ({
 
 				state.buckets.get(bucketId)!.setState((s) => {
 					s.data.logs.push(...logsByBucket[bucketId]);
-					return s;
 				});
 			}
 
 			for (const filterId of Object.keys(logsByFilter)) {
 				state.filters.get(filterId)!.setState((s) => {
 					s.data.logs.push(...logsByFilter[filterId]);
-					return s;
 				});
 			}
 		});

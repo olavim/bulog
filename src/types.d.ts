@@ -50,7 +50,7 @@ interface LogData extends Record<string, JSONValue> {
 
 interface LogMessage {
 	bucket: string;
-	logs: LogData[];
+	log: LogData;
 }
 
 interface RenderedLog {

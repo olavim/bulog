@@ -30,40 +30,46 @@ The web UI can now be accessed at `http://localhost:3100`.
 The following command will forward output from `some-program` to the server
 
 ```
-$ some-program | bulog logs
+$ my-program | bulog my-program-logs
 ```
 
-These logs can immediately be seen in the web UI's `logs` bucket.
+These logs can immediately be seen in the web UI's `my-program-logs` bucket.
 
 ## Usage
 
 ```
 USAGE
-  $ bulog [-p <port>] [-h <host>]
-  $ bulog [BUCKET] [-p <port>] [-h <host>] [-v <value>....] [-o]
+  Start the Bulog server
+  $ bulog [-h <host>] [-p <port>] [-m <memorySize>] [--tempConfig]
+
+  Start a Bulog client and send logs from stdin to a bucket
+  $ bulog [BUCKET] [-h <host>] [-p <port>] [-v <value>....] [-o]
 
 ARGUMENTS
   BUCKET  Bucket name. Logs are separated by buckets in the Web UI.
 
-FLAGS
-  -h, --host=<host>       [default: 0.0.0.0] Server hostname to bind or connect to
-  -o, --pipeOutput        Echo logs in addition to sending them to Bulog server
-  -p, --port=<port>       [default: 3100] Server port to bind or connect to
+SERVER FLAGS
+  -m, --memorySize=<value>  [default: 1000] Number of logs to keep in memory. Logs in memory are sent to clients when they connect.
+  -h, --host=<host>         [default: 0.0.0.0] Server hostname to bind or connect to
+  -p, --port=<port>         [default: 3100] Server port to bind to
+      --tempConfig          Use a temporary configuration that doesn't persist after the server is closed
+
+CLIENT FLAGS
+  -o, --pipeOutput        Echo logs in addition to sending them to Bulog
   -v, --value=<value>...  Value added to logs
+  -h, --host=<host>       Server hostname to connect to
+  -p, --port=<port>       [default: 3100] Server port to connect to
 
 DESCRIPTION
   Starts the Bulog server or sends logs to it
 
 EXAMPLES
-  Start the Bulog server at port 3000
-
+  Start the Bulog server on port 3000
     $ bulog -p 3000
 
-  Send logs to Bulog running at port 3000
-
+  Send logs to Bulog running on port 3000
     $ echo "example" | bulog my-app -p 3000
 
   Send logs to Bulog with additional log fields
-
     $ echo "example" | bulog my-app -v name:MyApp1 group:MyApps
 ```

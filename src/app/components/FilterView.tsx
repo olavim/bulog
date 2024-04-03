@@ -141,6 +141,7 @@ export default memo(function FilterView(props: FilterViewProps) {
 						<NewColumnButton onClick={onAddColumn} />
 						<button
 							className="h-[35px] inline-flex flex-row items-center hover:bg-slate-200 bg-slate-300 hover:bg-sky-400 shadow text-white font-medium px-2 py-1 rounded ml-2"
+							data-cy="filter-settings-button"
 							onClick={onSettings}
 						>
 							<IoMdSettings className="text-2xl text-slate-500" />
