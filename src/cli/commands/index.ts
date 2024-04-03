@@ -131,7 +131,6 @@ $ bulog [BUCKET] [-h <host>] [-p <port>] [-v <value>....] [-o]
 		const { clientHost, clientPort, pipeOutput, value } = flags;
 		const host = flags.host ?? clientHost;
 		const port = flags.port ?? clientPort;
-		console.log(flags);
 
 		const extraFields: any = {};
 
