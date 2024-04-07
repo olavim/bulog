@@ -18,5 +18,5 @@
 			"@/*": ["./src/app/*"]
 		}
 	},
-	"include": ["src/app", "src/cli", "src/types.d.ts", "src/*.ts"]
+	"include": ["src/app", "src/cli", "src/types.d.ts", "src/schemas.ts"]
 }

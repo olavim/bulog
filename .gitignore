@@ -36,6 +36,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-dummy-app.js
-test-data.js
+mock-data.js
 1MB.json

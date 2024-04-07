@@ -1,23 +1,24 @@
 import { useCallback } from 'react';
 
 interface TabProps {
+	id: string;
 	title: string;
 	count: number;
 	selected: boolean;
-	onClick: (title: string) => void;
+	onClick: (id: string) => void;
 }
 
 export default function Tab(props: TabProps) {
-	const { onClick, title, selected, count } = props;
+	const { onClick, id, title, selected, count } = props;
 
 	const handleClick = useCallback(() => {
-		onClick(title);
-	}, [onClick, title]);
+		onClick(id);
+	}, [onClick, id]);
 
 	return (
 		<div
 			data-selected={selected || undefined}
-			className="group w-full flex items-center justify-start py-3 pl-6 pr-6 cursor-pointer hover:bg-slate-600 data-[selected=true]:bg-sky-600 data-[selected=true]:shadow-lg data-[selected=true]:cursor-default"
+			className="group w-full flex items-center justify-start py-3 px-6 cursor-pointer hover:bg-slate-600 data-[selected=true]:bg-sky-600 data-[selected=true]:shadow-lg data-[selected=true]:cursor-default"
 			data-cy="tab"
 			onClick={handleClick}
 		>

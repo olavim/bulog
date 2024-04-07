@@ -1,4 +1,5 @@
 interface ColumnConfig {
+	id: string;
 	name: string;
 	formatter: string;
 	width: number;
@@ -9,31 +10,33 @@ interface BucketConfig {
 }
 
 interface FilterConfig {
+	name: string;
 	filter: string;
 	columns: ColumnConfig[];
 }
 
+interface BulogConfig {
+	buckets: Record<string, BucketConfig>;
+	filters: Record<string, FilterConfig>;
+}
+
+type BulogConfigExport = Pick<BulogConfig, 'buckets' | 'filters'>;
+
 type LogRenderer = (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>>;
 
 interface BucketData {
-	columns: ColumnData[];
+	columns: ColumnConfig[];
 	logs: LogData[];
 	logRenderer: LogRenderer;
 }
 
 interface FilterData {
-	filterString: string;
-	filterFunction: (log: LogData[]) => Promise<boolean[]>;
-	columns: ColumnData[];
+	name: string;
+	predicateString: string;
+	predicate: (log: LogData[]) => Promise<boolean[]>;
+	columns: ColumnConfig[];
 	logs: LogData[];
 	logRenderer: LogRenderer;
-}
-
-interface ColumnData {
-	id: string;
-	name: string;
-	width: number;
-	formatterString: string;
 }
 
 type JSONValue = string | number | boolean | Record<string, any> | any[] | null;

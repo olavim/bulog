@@ -12,6 +12,7 @@
 }
 
 body {
+	line-height: 1;
 	color: rgb(var(--foreground-rgb));
 	background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
 		rgb(var(--background-start-rgb));
@@ -141,4 +142,12 @@ input:focus {
 .react-tooltip[class*='styles-module_info'] {
 	background-color: var(--rt-color-info);
 	color: var(--rt-color-white);
+}
+
+.cm-content {
+	padding: 4px !important;
+}
+
+.cm-scroller {
+	line-height: 1rem !important;
 }

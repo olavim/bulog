@@ -4,7 +4,6 @@
 		"lib": ["dom", "dom.iterable", "esnext"],
 		"module": "ESNext",
 		"moduleResolution": "bundler",
-		"skipLibCheck": true,
 		"noEmit": true,
 		"useDefineForClassFields": true,
 		"allowSyntheticDefaultImports": true,
@@ -20,5 +19,6 @@
 			"@/*": ["./src/app/*"]
 		}
 	},
-	"include": ["src/app", "src/types.d.ts"]
+	"include": ["src/app", "src/types.d.ts", "src/schemas.ts"],
+	"exclude": ["node_modules", "dist"]
 }

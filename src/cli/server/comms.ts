@@ -11,6 +11,14 @@ export interface CommsOptions {
 	maxQueueSize: number;
 }
 
+export interface CommsInterface {
+	addMessageListener(cb: (messages: LogData[]) => void): string;
+	removeMessageListener(id: string): void;
+	broadcast(bucket: string, message: JSONValue, extraFields?: Record<string, JSONValue>): void;
+	resetCache(): void;
+	filterLogs(predicate: (log: LogData) => any): void;
+}
+
 export default class Comms {
 	private broadcastedMessages: { [bucket: string]: number };
 	private messageQueue: Denque<LogData>;
@@ -85,5 +93,9 @@ export default class Comms {
 		this.messageQueue.clear();
 		this.debounceData = { logs: [] };
 		this.broadcastedMessages = {};
+	}
+
+	filterLogs(predicate: (log: LogData) => any) {
+		this.messageQueue = new Denque(this.messageQueue.toArray().filter(predicate));
 	}
 }

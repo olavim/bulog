@@ -4,7 +4,7 @@ import LogCell from './LogCell';
 interface LogProps {
 	log: LogData;
 	last: boolean;
-	columns: ColumnData[];
+	columns: ColumnConfig[];
 	prerender?: JSONValue[];
 	renderer: (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>>;
 }

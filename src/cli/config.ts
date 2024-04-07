@@ -73,13 +73,10 @@ export async function validateConfigs() {
 export async function getBucketsConfig(tempConfig: boolean) {
 	const paths = await getConfigPaths({ tempConfig });
 	const config = parse(await fs.promises.readFile(paths.buckets, 'utf-8'));
-	return config as unknown as { [bucket: string]: BucketConfig[] };
+	return config as unknown as BulogConfig['buckets'];
 }
 
-export async function saveBucketsConfig(
-	config: { [bucket: string]: BucketConfig[] },
-	tempConfig: boolean
-) {
+export async function saveBucketsConfig(config: BulogConfig['buckets'], tempConfig: boolean) {
 	const paths = await getConfigPaths({ tempConfig });
 	await fs.promises.writeFile(paths.buckets, stringify(config as any));
 }
@@ -87,13 +84,10 @@ export async function saveBucketsConfig(
 export async function getFiltersConfig(tempConfig: boolean) {
 	const paths = await getConfigPaths({ tempConfig });
 	const config = parse(await fs.promises.readFile(paths.filters, 'utf-8'));
-	return config as unknown as { [filter: string]: FilterConfig[] };
+	return config as unknown as BulogConfig['filters'];
 }
 
-export async function saveFiltersConfig(
-	config: { [filter: string]: FilterConfig[] },
-	tempConfig: boolean
-) {
+export async function saveFiltersConfig(config: BulogConfig['filters'], tempConfig: boolean) {
 	const paths = await getConfigPaths({ tempConfig });
 	await fs.promises.writeFile(paths.filters, stringify(config as any));
 }

@@ -3,14 +3,16 @@ import { immer } from 'zustand/middleware/immer';
 import createFilterSlice, { FilterSlice } from './globalStoreFilters';
 import createBucketSlice, { BucketSlice } from './globalStoreBuckets';
 import createLogSlice, { LogSlice } from './globalStoreLogs';
+import createConfigSlice, { ConfigSlice } from './globalStoreConfig';
 
-export type GlobalStore = LogSlice & BucketSlice & FilterSlice;
+export type GlobalStore = LogSlice & BucketSlice & FilterSlice & ConfigSlice;
 
 export const globalStore = createStore<GlobalStore>()(
 	immer((...a) => ({
 		...createLogSlice(...a),
 		...createBucketSlice(...a),
-		...createFilterSlice(...a)
+		...createFilterSlice(...a),
+		...createConfigSlice(...a)
 	}))
 );
 

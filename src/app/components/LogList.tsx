@@ -110,14 +110,14 @@ const VirtuosoTableRow: TableComponents<LogData>['TableRow'] = memo((props) => {
 
 interface LogListProps {
 	logs: LogData[];
-	columns: ColumnData[];
+	columns: ColumnConfig[];
 	renderKey?: number;
 	logRenderer: (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>>;
 	selectedLog: LogData | null;
-	selectedColumn: ColumnData | null;
+	selectedColumn: ColumnConfig | null;
 	onSelectLog: (log: LogData) => void;
-	onSelectColumn: (log: ColumnData) => void;
-	onChangeColumns: (columns: ColumnData[]) => void;
+	onSelectColumn: (log: ColumnConfig) => void;
+	onChangeColumns: (columns: ColumnConfig[]) => void;
 }
 
 export default function LogList(props: LogListProps) {
@@ -190,9 +190,9 @@ export default function LogList(props: LogListProps) {
 	const virtuosoRef = useRef<VirtuosoHandle>(null);
 	const logContainerRef = useRef<HTMLDivElement>(null);
 	const [logContainerSize, setLogContainerSize] = useState<{ width: number; height: number }>();
-	const [dragColumn, setDragColumn] = useState<ColumnData | null>(null);
+	const [dragColumn, setDragColumn] = useState<ColumnConfig | null>(null);
 	const [columnResizeData, setColumnResizeData] = useState<{
-		target: ColumnData;
+		target: ColumnConfig;
 		origin: number;
 		originalWidth: number;
 	} | null>(null);
@@ -220,7 +220,7 @@ export default function LogList(props: LogListProps) {
 	});
 
 	const onResizeColumnStart = useCallback(
-		(col: ColumnData, mouseX: number) => {
+		(col: ColumnConfig, mouseX: number) => {
 			if (!logContainerSize) {
 				return;
 			}

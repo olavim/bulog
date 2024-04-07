@@ -6,7 +6,7 @@ import { nanoid } from 'nanoid';
 
 interface LogViewProps {
 	log: LogData;
-	onAddColumn: (id: string, data: Partial<ColumnData> | null) => void;
+	onAddColumn: (id: string, data: Partial<ColumnConfig> | null) => void;
 }
 
 export default function LogView(props: LogViewProps) {
@@ -39,9 +39,7 @@ export default function LogView(props: LogViewProps) {
 								onClick={() =>
 									onAddColumn(nanoid(16), {
 										name: columnName,
-										formatterString: createSimpleFormatter(
-											columnPattern ? `log${columnPattern}` : 'log'
-										)
+										formatter: createSimpleFormatter(columnPattern ? `log${columnPattern}` : 'log')
 									})
 								}
 							/>

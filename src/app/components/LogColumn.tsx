@@ -35,9 +35,9 @@ export function LogColumnOverlay(props: LogColumnOverlayProps) {
 }
 
 interface LogColumnProps {
-	column: ColumnData;
-	onClick: (column: ColumnData) => void;
-	onResizeStart: (column: ColumnData, mouseX: number) => void;
+	column: ColumnConfig;
+	onClick: (column: ColumnConfig) => void;
+	onResizeStart: (column: ColumnConfig, mouseX: number) => void;
 	resizing: boolean;
 	selected: boolean;
 }

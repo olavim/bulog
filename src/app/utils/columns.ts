@@ -19,13 +19,13 @@ export const createDefaultColumns = () => [
 	{
 		id: nanoid(16),
 		name: 'timestamp',
-		formatterString: defaultTimestampFormatterString,
+		formatter: defaultTimestampFormatterString,
 		width: 220
 	},
 	{
 		id: nanoid(16),
 		name: 'message',
-		formatterString: defaultMessageFormatterString,
+		formatter: defaultMessageFormatterString,
 		width: 200
 	}
 ];
@@ -38,16 +38,16 @@ export const defaultLogRenderer =
 		}));
 	};
 
-export const createColumn = (data: Partial<ColumnData> | null) => {
+export const createColumn = (config?: ColumnConfig) => {
 	return {
-		id: data?.id ?? nanoid(16),
-		name: data?.name ?? 'New Column',
-		width: data?.width ?? 200,
-		formatterString: data?.formatterString ?? defaultMessageFormatterString
-	} as ColumnData;
+		id: config?.id ?? nanoid(16),
+		name: config?.name ?? 'New Column',
+		width: config?.width ?? 200,
+		formatter: config?.formatter ?? defaultMessageFormatterString
+	} as ColumnConfig;
 };
 
-export const deleteColumn = (columns: ColumnData[], id: string) => {
+export const deleteColumn = (columns: ColumnConfig[], id: string) => {
 	const idx = columns.findIndex((col) => col.id === id);
 	const cols = columns.toSpliced(idx, 1);
 	if (idx === 0) {

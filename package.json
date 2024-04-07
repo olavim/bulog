@@ -14,6 +14,7 @@
 	"version": "0.4.0",
 	"scripts": {
 		"start": "node ./bin/run.js -p 3000",
+		"start:temp": "npm start -- --tempConfig",
 		"dev": "tsx watch --ignore vite.config.ts.* ./bin/dev.js -p 3000",
 		"dev:temp": "npm run dev -- --tempConfig",
 		"clean": "shx rm -rf dist",
@@ -26,11 +27,11 @@
 		"lint": "eslint . --report-unused-disable-directives --max-warnings 0 --fix",
 		"format": "prettier . --write --log-level warn",
 		"cli": "tsx ./bin/dev.js",
-		"clitest": "node ./dummy-app.js | tsx ./bin/dev.js my-app -p 3000",
 		"cypress:run": "cypress run",
 		"cypress:open": "cypress open --e2e -b firefox",
 		"test:debug": "start-server-and-test dev:temp http://localhost:3000 cypress:open",
 		"test": "start-server-and-test dev:temp http://localhost:3000 cypress:run",
+		"test:prod": "start-server-and-test start:temp http://localhost:3000 cypress:run",
 		"prepare": "husky",
 		"prepublishOnly": "npm run build"
 	},
@@ -47,7 +48,6 @@
 		"denque": "^2.1.0",
 		"env-paths": "^3.0.0",
 		"express": "^4.18.3",
-		"express-ws": "^5.0.2",
 		"immer": "^10.0.4",
 		"json5": "^2.2.3",
 		"liqe": "^3.8.0",
@@ -65,13 +65,13 @@
 		"react-window": "^1.8.10",
 		"vite-express": "^0.15.0",
 		"ws": "^8.16.0",
+		"zod": "^3.22.4",
 		"zustand": "^4.5.2",
 		"zustand-x": "^3.0.2"
 	},
 	"devDependencies": {
 		"@stylistic/eslint-plugin": "^1.6.3",
 		"@types/express": "^4.17.21",
-		"@types/express-ws": "^3.0.4",
 		"@types/lodash": "^4.14.202",
 		"@types/node": "^20",
 		"@types/node-ipc": "^9.2.3",

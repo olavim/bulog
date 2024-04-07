@@ -1,95 +1,60 @@
 import { StateCreator } from 'zustand';
 import { GlobalStore } from './globalStore';
-import { Sandbox } from '@/context/SandboxContext';
-import { getFiltersConfig, saveFiltersConfig } from '@/api/config';
-import { filterConfigToData, filterDataToConfig } from '@/utils/config';
-import { createDefaultColumns, defaultLogRenderer } from '@/utils/columns';
 import createFilterStore, { FilterStoreApi } from './filterStore';
-
-const defaultFilterString = `
-const _ = require('lodash');
-
-return log => {
-  return true;
-};`.trim();
+import { nanoid } from 'nanoid';
+import { Sandbox } from '@/context/SandboxContext';
+import { createFilter, filterConfigToData } from '@/utils/filters';
 
 export interface FilterSlice {
 	filters: Map<string, FilterStoreApi>;
-	filterConfigLoaded: boolean;
 	renameFilter: (filterId: string, name: string) => Promise<void>;
 	deleteFilter: (filterId: string) => Promise<void>;
-	createFilter: () => Promise<void>;
-	loadFilters: (sandbox: Sandbox) => Promise<void>;
-	saveFilters: () => Promise<void>;
+	createFilter: (sandbox: Sandbox) => Promise<string>;
+	loadFilters: (filters: Record<string, FilterData>) => Promise<void>;
 }
 
 type FilterSliceCreator = StateCreator<GlobalStore, [['zustand/immer', never]], [], FilterSlice>;
 
 const createFilterSlice: FilterSliceCreator = (set, get) => ({
 	filters: new Map(),
-	filterConfigLoaded: false,
 	renameFilter: async (filterId, name) => {
-		set((state) => {
-			const filter = state.filters.get(filterId)!;
-			state.filters.delete(filterId);
-			state.filters.set(name, filter);
-		});
+		get()
+			.filters.get(filterId)!
+			.setState((state) => {
+				state.data.name = name;
+			});
 
-		await get().saveFilters();
+		await get().saveConfig();
 	},
 	deleteFilter: async (filterId) => {
 		set((state) => {
 			state.filters.delete(filterId);
 		});
 
-		await get().saveFilters();
+		await get().saveConfig();
 	},
-	createFilter: async () => {
+	createFilter: async (sandbox) => {
+		const id = nanoid(16);
+		const data = await filterConfigToData(createFilter(), sandbox);
+		data.logs = get().logs;
+
 		set((state) => {
-			let name = 'New Filter';
-			let i = 2;
-			while (state.filters.has(name)) {
-				name = `New Filter (${i})`;
-				i++;
-			}
-
-			const columns = createDefaultColumns();
-			const data: FilterData = {
-				filterString: defaultFilterString,
-				filterFunction: async (logs) => logs.map(() => true),
-				columns,
-				logs: get().logs,
-				logRenderer: defaultLogRenderer(columns[0].id, columns[1].id)
-			};
-
-			state.filters.set(name, createFilterStore(data));
+			state.filters.set(id, createFilterStore(data));
 		});
 
-		await get().saveFilters();
+		await get().saveConfig();
+		return id;
 	},
-	loadFilters: async (sandbox) => {
-		const config = await getFiltersConfig();
-
-		const dataById = {} as { [id: string]: FilterData };
-		for (const key of Object.keys(config?.filters)) {
-			dataById[key] = await filterConfigToData(config.filters[key], sandbox);
-		}
-
+	loadFilters: async (filters) => {
 		set((state) => {
 			state.filters = new Map(
-				Object.entries(dataById).map(([id, data]) => [id, createFilterStore(data)])
+				Object.entries(filters).map(([id, data]) => [id, createFilterStore(data)])
 			);
-			state.filterConfigLoaded = true;
 		});
-	},
-	saveFilters: async () => {
-		const filters = get().filters;
-		const filterConfigs = {} as { [id: string]: FilterConfig };
-		for (const [id, filterStore] of filters) {
-			filterConfigs[id] = filterDataToConfig(filterStore.getState().data);
-		}
 
-		await saveFiltersConfig(filterConfigs);
+		await Promise.all(
+			Array.from(get().filters.values()).map(async (filter) => filter.getState().reloadLogs())
+		);
 	}
 });
 

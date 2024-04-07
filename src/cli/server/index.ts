@@ -9,6 +9,11 @@ import Comms from './comms.js';
 const filename = fileURLToPath(import.meta.url);
 const appRoot = path.resolve(path.dirname(filename), '../../app');
 
+export interface ServerOptions {
+	tempConfig: boolean;
+	memorySize: number;
+}
+
 function serveStatic(app: express.Express) {
 	app.use('/assets', (_req, res, next) => {
 		res.header('Access-Control-Allow-Origin', '*');
