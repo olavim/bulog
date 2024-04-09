@@ -17,7 +17,14 @@ type ConfigSliceCreator = StateCreator<GlobalStore, [['zustand/immer', never]], 
 const createConfigSlice: ConfigSliceCreator = (set, get) => ({
 	config: {
 		filters: {},
-		buckets: {}
+		buckets: {},
+		server: {
+			defaults: {
+				hostname: '0.0.0.0',
+				port: 3100,
+				memorySize: 1000
+			}
+		}
 	},
 	configLoaded: false,
 	loadConfig: async (sandbox) => {
@@ -68,7 +75,7 @@ const createConfigSlice: ConfigSliceCreator = (set, get) => ({
 				bucketConfigs[id] = bucketDataToConfig(bucket.getState().data);
 			}
 
-			config = { filters: filterConfigs, buckets: bucketConfigs };
+			config = { filters: filterConfigs, buckets: bucketConfigs, server: get().config.server };
 		}
 
 		await saveConfig(config);

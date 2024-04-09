@@ -45,7 +45,7 @@ export default function ColumnView(props: FilterSettingsProps) {
 	return (
 		<div className="w-full items-start flex flex-col grow space-y-4">
 			<div className="flex flex-col w-full space-y-2">
-				<label htmlFor="filter-name-input" className="text-xs text-gray-800 font-medium">
+				<label htmlFor="filter-name-input" className="text-xs text-slate-600 font-medium">
 					{'Name'}
 				</label>
 				<input
@@ -57,7 +57,7 @@ export default function ColumnView(props: FilterSettingsProps) {
 				/>
 			</div>
 			<div className="flex flex-col grow w-full space-y-2">
-				<label htmlFor="filter-predicate-input" className="text-xs text-gray-800 font-medium">
+				<label htmlFor="filter-predicate-input" className="text-xs text-slate-600 font-medium">
 					{'Predicate'}
 				</label>
 				<CodeMirror

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { MouseEventHandler, useCallback } from 'react';
 import ColumnView from '../ColumnView';
 import { MdDeleteForever, MdDragIndicator } from 'react-icons/md';
 import { useSortable } from '@dnd-kit/sortable';
@@ -18,16 +18,20 @@ export default function ConfigColumnSettings(props: ConfigColumnSettingsProps) {
 		onSetExpanded?.(column.id, !expanded);
 	}, [column.id, expanded, onSetExpanded]);
 
-	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
 		id: column.id
 	});
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const { role, ...rest } = attributes;
 
-	const handleDelete = useCallback(() => {
-		onDelete?.(column.id);
-	}, [onDelete, column.id]);
+	const handleDelete: MouseEventHandler<HTMLButtonElement> = useCallback(
+		(evt) => {
+			evt.stopPropagation();
+			onDelete?.(column.id);
+		},
+		[onDelete, column.id]
+	);
 
 	return (
 		<div
@@ -39,13 +43,16 @@ export default function ConfigColumnSettings(props: ConfigColumnSettingsProps) {
 				transition
 			}}
 		>
-			<div className="flex flex-col w-full border rounded relative overflow-hidden">
-				{/* <div
-					className="absolute left-0 top-0 w-full h-full bg-gray-100 z-[100] pointer-events-none"
-					style={{ opacity: isDragging ? 1 : 0 }}
-				/> */}
+			<div
+				className="flex flex-col w-full border rounded overflow-hidden relative"
+				style={{ borderWidth: isDragging ? 0 : 1, padding: isDragging ? 1 : 0 }}
+			>
 				<div
-					className="h-9 flex w-full px-2 bg-gray-50 justify-between cursor-pointer hover:bg-gray-50/50 active:bg-white"
+					className="absolute left-0 top-0 w-full h-full bg-slate-100 z-[100] pointer-events-none"
+					style={{ opacity: isDragging ? 1 : 0 }}
+				/>
+				<div
+					className="h-9 flex items-center w-full px-2 bg-gray-50 justify-between cursor-pointer hover:bg-gray-50/50 active:bg-white"
 					onClick={toggleExpanded}
 				>
 					<div className="flex items-center">
@@ -59,7 +66,7 @@ export default function ConfigColumnSettings(props: ConfigColumnSettingsProps) {
 						<span className="ml-2 relative font-medium text-xs text-slate-600">{column.name}</span>
 					</div>
 					<button
-						className="p-1 rounded-full text-red-400 hover:bg-slate-200 active:text-red-300 cursor-pointer"
+						className="h-7 w-7 flex items-center justify-center rounded-full text-red-400 hover:bg-slate-200 active:text-red-300 cursor-pointer"
 						data-cy="delete-column-button"
 						onClick={handleDelete}
 					>

@@ -3,15 +3,17 @@ interface SettingsSectionProps {
 	children: React.ReactNode;
 }
 
-export default function SettingsSection(props: SettingsSectionProps) {
-	const { title, children } = props;
+export default function SettingsSection(
+	props: SettingsSectionProps & React.HTMLProps<HTMLDivElement>
+) {
+	const { title, children, ...rest } = props;
 
 	return (
-		<div className="flex flex-col mb-6">
+		<section className="flex flex-col mb-8 last:mb-0">
 			<div className="h-[30px] flex items-center pb-2 py-1 border-b border-slate-200">
-				<h1 className="font-semibold text-xs text-slate-500 uppercase relative">{title}</h1>
+				<h1 className="font-semibold text-xs text-slate-500 relative uppercase">{title}</h1>
 			</div>
-			<div className="flex flex-col py-4">{children}</div>
-		</div>
+			<div {...rest}>{children}</div>
+		</section>
 	);
 }

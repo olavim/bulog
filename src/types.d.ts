@@ -15,9 +15,18 @@ interface FilterConfig {
 	columns: ColumnConfig[];
 }
 
+interface ServerConfig {
+	defaults: {
+		hostname: string;
+		port: number;
+		memorySize: number;
+	};
+}
+
 interface BulogConfig {
 	buckets: Record<string, BucketConfig>;
 	filters: Record<string, FilterConfig>;
+	server: ServerConfig;
 }
 
 type BulogConfigExport = Pick<BulogConfig, 'buckets' | 'filters'>;

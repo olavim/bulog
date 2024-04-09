@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { TbServer } from 'react-icons/tb';
 import SettingsTab from './SettingsTab';
 import ConfigBucketSettings from './ConfigBucketSettings';
@@ -10,6 +10,10 @@ import { createFilter, filterDataToConfig } from '@/utils/filters';
 import { nanoid } from 'nanoid';
 import useSandbox from '@/hooks/useSandbox';
 import { bucketDataToConfig } from '@/utils/buckets';
+import ImportExport from './ImportExport';
+import ConfigServerSettings from './ConfigServerSettings';
+import { BulogConfigSchema } from '../../../schemas';
+import { ZodIssue } from 'zod';
 
 interface SettingsDialogProps {
 	open: boolean;
@@ -28,9 +32,53 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 	const saveConfig = globalStore.use.saveConfig();
 	const loadConfig = globalStore.use.loadConfig();
 	const [configDraft, setConfigDraft] = useState<BulogConfig>(config);
+	const [configDraftChanged, setConfigDraftChanged] = useState<boolean>(false);
+	const [validationErrors, setValidationErrors] = useState<ZodIssue[]>([]);
+
+	const filterValidationErrors = useMemo(() => {
+		const issues: Record<string, Record<string, ZodIssue>> = {};
+		for (const filterId of filters.keys()) {
+			issues[filterId] = Object.fromEntries(
+				validationErrors
+					.filter((issue) => issue.path.slice(0, 2).join('.') === `filters.${filterId}`)
+					.map((issue) => [issue.path.slice(2).join('.'), issue])
+			);
+		}
+		return issues;
+	}, [filters, validationErrors]);
+
+	const bucketValidationErrors = useMemo(() => {
+		const issues: Record<string, Record<string, ZodIssue>> = {};
+		for (const bucketId of buckets.keys()) {
+			issues[bucketId] = Object.fromEntries(
+				validationErrors
+					.filter((issue) => issue.path.slice(0, 2).join('.') === `buckets.${bucketId}`)
+					.map((issue) => [issue.path.slice(2).join('.'), issue])
+			);
+		}
+		return issues;
+	}, [buckets, validationErrors]);
+
+	const serverValidationErrors = useMemo(() => {
+		return Object.fromEntries(
+			validationErrors
+				.filter((issue) => issue.path[0] === 'server')
+				.map((issue) => [issue.path.slice(1).join('.'), issue])
+		);
+	}, [validationErrors]);
+
+	useEffect(() => {
+		const result = BulogConfigSchema.safeParse(configDraft);
+
+		if (result.success) {
+			setValidationErrors([]);
+		} else {
+			setValidationErrors(result.error.issues);
+		}
+	}, [configDraft]);
 
 	const resetConfig = useCallback(() => {
-		const draft: BulogConfig = { buckets: {}, filters: {} };
+		const draft: BulogConfig = { buckets: {}, filters: {}, server: config.server };
 
 		for (const bucketId of buckets.keys()) {
 			draft.buckets[bucketId] = bucketDataToConfig(buckets.get(bucketId)!.getState().data);
@@ -41,7 +89,8 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 		}
 
 		setConfigDraft(draft);
-	}, [buckets, filters]);
+		setConfigDraftChanged(false);
+	}, [buckets, config.server, filters]);
 
 	useEffect(() => {
 		if (configLoaded && configTimeoutElapsed) {
@@ -59,6 +108,7 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 					[bucketId]: config
 				}
 			}));
+			setConfigDraftChanged(true);
 		},
 		[tab]
 	);
@@ -73,9 +123,18 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 					[filterId]: config
 				}
 			}));
+			setConfigDraftChanged(true);
 		},
 		[tab]
 	);
+
+	const onChangeServerConfig = useCallback((config: ServerConfig) => {
+		setConfigDraft((prev) => ({
+			...prev,
+			server: config
+		}));
+		setConfigDraftChanged(true);
+	}, []);
 
 	const onDeleteBucket = useCallback(() => {
 		const bucketId = tab.substring('buckets:'.length);
@@ -85,6 +144,7 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 			...prev,
 			buckets: Object.fromEntries(Object.entries(prev.buckets).filter(([id]) => id !== bucketId))
 		}));
+		setConfigDraftChanged(true);
 	}, [configDraft.buckets, tab]);
 
 	const onDeleteFilter = useCallback(() => {
@@ -95,6 +155,7 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 			...prev,
 			filters: Object.fromEntries(Object.entries(prev.filters).filter(([id]) => id !== filterId))
 		}));
+		setConfigDraftChanged(true);
 	}, [configDraft.filters, tab]);
 
 	const onAddFilter = useCallback(() => {
@@ -107,13 +168,26 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 			}
 		}));
 		setTab(`filters:${id}`);
+		setConfigDraftChanged(true);
+	}, []);
+
+	const onImport = useCallback((configToImport: Partial<BulogConfig>) => {
+		setConfigDraft((prev) => ({ ...prev, ...configToImport }));
+		setConfigDraftChanged(true);
 	}, []);
 
 	const onSave = useCallback(async () => {
-		setConfigTimeoutElapsed(false);
-		await saveConfig(configDraft);
-		loadConfig(sandbox);
-		setTimeout(() => setConfigTimeoutElapsed(true), 1000);
+		const result = BulogConfigSchema.safeParse(configDraft);
+
+		if (result.success) {
+			setValidationErrors([]);
+			setConfigTimeoutElapsed(false);
+			await saveConfig(configDraft);
+			loadConfig(sandbox);
+			setTimeout(() => setConfigTimeoutElapsed(true), 1000);
+		} else {
+			setValidationErrors(result.error.issues);
+		}
 	}, [configDraft, loadConfig, sandbox, saveConfig]);
 
 	if (!open) {
@@ -186,6 +260,7 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 						{tab.startsWith('buckets:') && (
 							<ConfigBucketSettings
 								config={configDraft.buckets[tab.substring('buckets:'.length)]}
+								validationErrors={bucketValidationErrors[tab.substring('buckets:'.length)] ?? []}
 								onChange={onChangeBucketConfig}
 								onDelete={onDeleteBucket}
 							/>
@@ -193,17 +268,38 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 						{tab.startsWith('filters:') && (
 							<ConfigFilterSettings
 								config={configDraft.filters[tab.substring('filters:'.length)]}
+								validationErrors={filterValidationErrors[tab.substring('filters:'.length)] ?? []}
 								onChange={onChangeFilterConfig}
 								onDelete={onDeleteFilter}
+							/>
+						)}
+						{tab === 'importexport' && <ImportExport onImport={onImport} />}
+						{tab === 'server' && (
+							<ConfigServerSettings
+								config={configDraft.server}
+								validationErrors={serverValidationErrors}
+								onChange={onChangeServerConfig}
 							/>
 						)}
 					</div>
 				</div>
 				<div className="basis-[70px] shrink-0 grow-0 px-6 flex items-center justify-end text-xl text-slate-600 font-medium space-x-4">
 					<button
-						className="h-[30px] relative bg-emerald-500 enabled:hover:bg-emerald-400 disabled:bg-emerald-400 inline-flex items-center text-white px-4 rounded font-medium shadow overflow-hidden"
+						className="h-[30px] border border-gray-400 enabled:hover:border-gray-400/75 inline-flex items-center text-gray-500 enabled:hover:text-gray-400 enabled:active:text-gray-400/75 px-4 rounded font-medium disabled:opacity-50"
+						onClick={resetConfig}
+						disabled={!configDraftChanged}
+					>
+						<span className="text-sm">{'Discard changes'}</span>
+					</button>
+					<button
+						className="h-[30px] relative bg-emerald-500 enabled:hover:bg-emerald-400 disabled:opacity-50 inline-flex items-center text-white px-4 rounded font-medium overflow-hidden"
 						onClick={onSave}
-						disabled={!configLoaded || !configTimeoutElapsed}
+						disabled={
+							!configLoaded ||
+							!configTimeoutElapsed ||
+							!configDraftChanged ||
+							validationErrors.length > 0
+						}
 					>
 						<div
 							className="absolute left-0 top-0 w-full h-full flex items-center justify-center transition-all bg-emerald-400"
@@ -217,14 +313,8 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 							className="text-sm transition-all duration-[400ms]"
 							style={{ opacity: configLoaded && configTimeoutElapsed ? 1 : 0 }}
 						>
-							{'Save'}
+							{'Apply changes'}
 						</span>
-					</button>
-					<button
-						className="h-[30px] border border-gray-400 hover:border-gray-400/75 inline-flex items-center text-gray-500 hover:text-gray-400 px-4 rounded font-medium shadow"
-						onClick={resetConfig}
-					>
-						<span className="text-sm">{'Cancel'}</span>
 					</button>
 				</div>
 			</div>

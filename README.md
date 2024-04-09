@@ -49,16 +49,16 @@ ARGUMENTS
   BUCKET  Bucket name. Logs are separated by buckets in the Web UI.
 
 SERVER FLAGS
-  -m, --memorySize=<value>  [default: 1000] Number of logs to keep in memory. Logs in memory are sent to clients when they connect.
-  -h, --host=<host>         [default: 0.0.0.0] Server hostname to bind or connect to
-  -p, --port=<port>         [default: 3100] Server port to bind to
+  -m, --memorySize=<value>  Number of logs to keep in memory. Logs in memory are sent to clients when they connect.
+  -h, --host=<host>         Server hostname to bind or connect to
+  -p, --port=<port>         Server port to bind to
       --tempConfig          Use a temporary configuration that doesn't persist after the server is closed
 
 CLIENT FLAGS
   -o, --pipeOutput        Echo logs in addition to sending them to Bulog
   -v, --value=<value>...  Value added to logs
   -h, --host=<host>       Server hostname to connect to
-  -p, --port=<port>       [default: 3100] Server port to connect to
+  -p, --port=<port>       Server port to connect to
 
 DESCRIPTION
   Starts the Bulog server or sends logs to it

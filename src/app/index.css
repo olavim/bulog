@@ -151,3 +151,15 @@ input:focus {
 .cm-scroller {
 	line-height: 1rem !important;
 }
+
+b {
+	font-weight: 500;
+}
+
+code {
+	font-family: 'Fira Code', monospace;
+	background-color: #e2e8f0;
+	padding: 0.1rem 0.4rem;
+	margin: 0 0.25rem;
+	border-radius: 0.25rem;
+}
