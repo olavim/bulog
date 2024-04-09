@@ -38,7 +38,7 @@ export default class Comms {
 
 	private broadcastDebouncedLogs() {
 		this.messageQueue.splice(this.messageQueue.length, 0, ...this.debounceData.logs);
-		this.messageQueue.splice(this.maxQueueSize, this.messageQueue.length - this.maxQueueSize);
+		this.messageQueue.splice(0, this.messageQueue.length - this.maxQueueSize);
 
 		for (const [, listener] of this.messageListeners.entries()) {
 			listener(this.debounceData.logs);

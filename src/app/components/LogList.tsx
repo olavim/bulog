@@ -361,6 +361,7 @@ export default function LogList(props: LogListProps) {
 					ref={virtuosoRef}
 					context={virtuosoContext}
 					data={logs}
+					data-cy="log-list"
 					totalCount={logs.length}
 					scrollerRef={setScroller}
 					className="bg-white rounded"
