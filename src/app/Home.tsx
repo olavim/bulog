@@ -221,9 +221,10 @@ export default function Home() {
 					</div>
 					<div className="py-6 mx-6 basis-auto overflow-y-auto flex flex-col border-t border-slate-600">
 						<button
-							className="flex items-center cursor-pointer text-slate-400 hover:text-slate-300 active:text-slate-200"
+							className="flex items-center cursor-pointer text-slate-400 hover:text-slate-300 disabled:opacity-50 active:text-slate-200"
 							data-cy="settings-button"
 							onClick={openSettings}
+							disabled={!configLoaded}
 						>
 							<IoMdSettings className="text-xl" />
 							<span className="pl-4 text-xs font-medium relative">{'Settings'}</span>

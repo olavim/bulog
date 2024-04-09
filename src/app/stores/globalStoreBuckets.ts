@@ -6,7 +6,7 @@ import { bucketConfigToData, createBucket } from '@/utils/buckets';
 
 export interface BucketSlice {
 	buckets: Map<string, BucketStoreApi>;
-	loadBuckets: (buckets: Record<string, BucketData>) => Promise<void>;
+	loadBuckets: (buckets: Record<string, BucketData>) => void;
 	createBucket: (id: string, sandbox: Sandbox) => Promise<void>;
 }
 
@@ -14,7 +14,7 @@ type BucketSliceCreator = StateCreator<GlobalStore, [['zustand/immer', never]], 
 
 const createBucketSlice: BucketSliceCreator = (set) => ({
 	buckets: new Map(),
-	loadBuckets: async (buckets) => {
+	loadBuckets: (buckets) => {
 		set((state) => {
 			state.buckets = new Map(
 				Object.entries(buckets).map(([id, data]) => [id, createBucketStore(data)])

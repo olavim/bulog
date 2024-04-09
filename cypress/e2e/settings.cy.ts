@@ -32,6 +32,8 @@ describe('settings tests', () => {
 			{ bucket: 'bucket-1', message: 1 },
 			{ bucket: 'bucket-2', message: 2 }
 		]);
+
+		cy.get('[data-cy=bucket-tabs] [data-cy=tab]').should('have.length', 2);
 		cy.get('[data-cy=settings-button]').click();
 
 		for (let i = 0; i < 2; i++) {
@@ -169,6 +171,8 @@ describe('settings tests', () => {
 			{ bucket: 'bucket-1', message: 3 },
 			{ bucket: 'bucket-2', message: 4 }
 		]);
+
+		cy.get('[data-cy=bucket-tabs] [data-cy=tab]').should('have.length', 2);
 
 		cy.get('[data-cy=settings-button]').click();
 		cy.get('[data-cy=settings-add-filter-button]').click();

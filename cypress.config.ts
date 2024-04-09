@@ -1,7 +1,7 @@
 import { defineConfig } from 'cypress';
 import { WebSocket } from 'ws';
 
-const host = '127.0.0.1:3000';
+const host = '127.0.0.1:3400';
 
 export default defineConfig({
 	e2e: {

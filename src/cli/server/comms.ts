@@ -37,9 +37,13 @@ export default class Comms {
 	}
 
 	private broadcastDebouncedLogs() {
+		this.messageQueue.splice(this.messageQueue.length, 0, ...this.debounceData.logs);
+		this.messageQueue.splice(this.maxQueueSize, this.messageQueue.length - this.maxQueueSize);
+
 		for (const [, listener] of this.messageListeners.entries()) {
 			listener(this.debounceData.logs);
 		}
+
 		this.debounceData = { logs: [] };
 	}
 
@@ -74,12 +78,6 @@ export default class Comms {
 			message,
 			...(extraFields ?? {})
 		};
-
-		const messageCount = this.messageQueue.push(log);
-
-		if (messageCount > this.maxQueueSize) {
-			this.messageQueue.shift();
-		}
 
 		this.debounceData = {
 			logs: [...this.debounceData.logs, log],

@@ -54,7 +54,8 @@ const createConfigSlice: ConfigSliceCreator = (set, get) => ({
 			state.logs = state.logs.filter((log) => config.buckets[log.bucket]);
 		});
 
-		await Promise.all([get().loadFilters(filterDataById), get().loadBuckets(bucketDataById)]);
+		get().loadBuckets(bucketDataById);
+		await get().loadFilters(filterDataById);
 
 		set((state) => {
 			state.config = config;
