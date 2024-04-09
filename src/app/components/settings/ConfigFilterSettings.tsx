@@ -45,6 +45,7 @@ export default function ConfigFilterSettings(props: ConfigFilterSettingsProps) {
 				</SettingsSection>
 				<SettingsSection title="Delete Filter" className="pt-5">
 					<button
+						data-cy="settings-delete-filter-button"
 						className="h-[30px] bg-red-500 inline-flex items-center text-slate-50 pl-3 pr-4 rounded text-sm font-medium"
 						onClick={onDelete}
 					>

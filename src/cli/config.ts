@@ -68,6 +68,10 @@ export async function resetTempConfigs() {
 	if (fs.existsSync(filtersTempPath)) {
 		await fs.promises.unlink(filtersTempPath);
 	}
+
+	if (fs.existsSync(serverTempPath)) {
+		await fs.promises.unlink(serverTempPath);
+	}
 }
 
 export async function validateConfigs() {

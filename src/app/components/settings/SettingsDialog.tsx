@@ -14,6 +14,7 @@ import ImportExport from './ImportExport';
 import ConfigServerSettings from './ConfigServerSettings';
 import { BulogConfigSchema } from '../../../schemas';
 import { ZodIssue } from 'zod';
+import SettingsTabPanel from './SettingsTabPanel';
 
 interface SettingsDialogProps {
 	open: boolean;
@@ -182,7 +183,7 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 		if (result.success) {
 			setValidationErrors([]);
 			setConfigTimeoutElapsed(false);
-			await saveConfig(configDraft);
+			await saveConfig(result.data);
 			loadConfig(sandbox);
 			setTimeout(() => setConfigTimeoutElapsed(true), 1000);
 		} else {
@@ -200,15 +201,16 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 				<div className="basis-[70px] shrink-0 grow-0 px-6 flex items-center justify-between text-xl text-slate-600 font-medium border-black/10">
 					<h1>{'Settings'}</h1>
 					<button
-						className="p-2 rounded-full hover:bg-gray-200 cursor-pointer"
-						data-cy="close-drawer-button"
+						className="p-2 rounded-full hover:bg-gray-200 disabled:opacity-50 cursor-pointer"
+						data-cy="close-settings-button"
+						disabled={!configLoaded || !configTimeoutElapsed}
 						onClick={onClose}
 					>
 						<MdClose className="text-xl text-slate-600" />
 					</button>
 				</div>
 				<div className="flex flex-row grow overflow-y-hidden border-y border-black/10">
-					<div className="flex flex-col p-3 min-w-[12rem] space-y-1">
+					<div className="flex flex-col p-3 min-w-[12rem] space-y-1" role="tablist">
 						<SettingsTab
 							title="Server"
 							id="server"
@@ -241,6 +243,7 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 								className="hover:text-sky-500"
 								data-tooltip-id="tooltip"
 								data-tooltip-content="Add filter"
+								data-cy="settings-add-filter-button"
 								onClick={onAddFilter}
 							>
 								<MdAddCircleOutline className="text-md" />
@@ -257,34 +260,49 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 						))}
 					</div>
 					<div className="flex flex-col grow py-3 px-6 overflow-y-auto">
-						{tab.startsWith('buckets:') && (
-							<ConfigBucketSettings
-								config={configDraft.buckets[tab.substring('buckets:'.length)]}
-								validationErrors={bucketValidationErrors[tab.substring('buckets:'.length)] ?? []}
-								onChange={onChangeBucketConfig}
-								onDelete={onDeleteBucket}
-							/>
-						)}
-						{tab.startsWith('filters:') && (
-							<ConfigFilterSettings
-								config={configDraft.filters[tab.substring('filters:'.length)]}
-								validationErrors={filterValidationErrors[tab.substring('filters:'.length)] ?? []}
-								onChange={onChangeFilterConfig}
-								onDelete={onDeleteFilter}
-							/>
-						)}
-						{tab === 'importexport' && <ImportExport onImport={onImport} />}
-						{tab === 'server' && (
+						{Object.keys(configDraft.buckets).map((bucketId) => (
+							<SettingsTabPanel
+								key={bucketId}
+								id={`buckets:${bucketId}`}
+								visible={tab === `buckets:${bucketId}`}
+							>
+								<ConfigBucketSettings
+									config={configDraft.buckets[bucketId]}
+									validationErrors={bucketValidationErrors[`buckets.${bucketId}`] ?? []}
+									onChange={onChangeBucketConfig}
+									onDelete={onDeleteBucket}
+								/>
+							</SettingsTabPanel>
+						))}
+						{Object.keys(configDraft.filters).map((filterId) => (
+							<SettingsTabPanel
+								key={filterId}
+								id={`filters:${filterId}`}
+								visible={tab === `filters:${filterId}`}
+							>
+								<ConfigFilterSettings
+									config={configDraft.filters[filterId]}
+									validationErrors={filterValidationErrors[filterId] ?? []}
+									onChange={onChangeFilterConfig}
+									onDelete={onDeleteFilter}
+								/>
+							</SettingsTabPanel>
+						))}
+						<SettingsTabPanel id="importexport" visible={tab === 'importexport'}>
+							<ImportExport onImport={onImport} />
+						</SettingsTabPanel>
+						<SettingsTabPanel id="server" visible={tab === 'server'}>
 							<ConfigServerSettings
 								config={configDraft.server}
 								validationErrors={serverValidationErrors}
 								onChange={onChangeServerConfig}
 							/>
-						)}
+						</SettingsTabPanel>
 					</div>
 				</div>
 				<div className="basis-[70px] shrink-0 grow-0 px-6 flex items-center justify-end text-xl text-slate-600 font-medium space-x-4">
 					<button
+						data-cy="discard-changes-button"
 						className="h-[30px] border border-gray-400 enabled:hover:border-gray-400/75 inline-flex items-center text-gray-500 enabled:hover:text-gray-400 enabled:active:text-gray-400/75 px-4 rounded font-medium disabled:opacity-50"
 						onClick={resetConfig}
 						disabled={!configDraftChanged}
@@ -292,6 +310,7 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 						<span className="text-sm">{'Discard changes'}</span>
 					</button>
 					<button
+						data-cy="apply-changes-button"
 						className="h-[30px] relative bg-emerald-500 enabled:hover:bg-emerald-400 disabled:opacity-50 inline-flex items-center text-white px-4 rounded font-medium overflow-hidden"
 						onClick={onSave}
 						disabled={

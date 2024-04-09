@@ -16,6 +16,10 @@ export default memo(function ColumnView(props: ColumnViewProps) {
 	const { column: initialColumn, onSave, onChange, onDelete } = props;
 	const [column, setColumn] = useState(initialColumn);
 
+	useEffect(() => {
+		setColumn(initialColumn);
+	}, [initialColumn]);
+
 	const handleSave = useCallback(() => {
 		onSave?.(column);
 	}, [onSave, column]);
@@ -24,27 +28,23 @@ export default memo(function ColumnView(props: ColumnViewProps) {
 		onDelete?.(column.id);
 	}, [column.id, onDelete]);
 
-	const handleChangeName: ChangeEventHandler<HTMLInputElement> = useCallback((evt) => {
-		setColumn((prevColumn) => ({
-			...prevColumn,
-			name: evt.target.value
-		}));
-	}, []);
+	const handleChangeName: ChangeEventHandler<HTMLInputElement> = useCallback(
+		(evt) => {
+			const newColumn = { ...column, name: evt.target.value };
+			setColumn(newColumn);
+			onChange?.(newColumn);
+		},
+		[column, onChange]
+	);
 
-	const handleChangeFormatter = useCallback((value: string) => {
-		setColumn((prevColumn) => ({
-			...prevColumn,
-			formatter: value
-		}));
-	}, []);
-
-	useEffect(() => {
-		if (column === initialColumn) {
-			return;
-		}
-
-		onChange?.(column);
-	}, [onChange, column, initialColumn]);
+	const handleChangeFormatter = useCallback(
+		(value: string) => {
+			const newColumn = { ...column, formatter: value };
+			setColumn(newColumn);
+			onChange?.(newColumn);
+		},
+		[column, onChange]
+	);
 
 	return (
 		<div className="w-full items-start flex flex-col grow space-y-4">

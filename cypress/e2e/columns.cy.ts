@@ -1,30 +1,3 @@
-function dndElement(from: HTMLElement, to: HTMLElement) {
-	const rect2 = to.getBoundingClientRect();
-
-	cy.wrap(from).trigger('pointerdown', {
-		force: true,
-		isPrimary: true,
-		button: 0
-	});
-
-	cy.wait(100);
-
-	cy.document()
-		.trigger('pointermove', {
-			clientX: rect2.left,
-			clientY: rect2.top,
-			force: true,
-			isPrimary: true,
-			button: 0
-		})
-		.wait(100)
-		.trigger('pointerup', {
-			force: true,
-			isPrimary: true,
-			button: 0
-		});
-}
-
 describe('column tests', () => {
 	beforeEach(() => {
 		cy.resetBulog().then(() => {
@@ -40,7 +13,7 @@ describe('column tests', () => {
 		cy.get('[data-cy=log-cell]').asText('cells');
 
 		cy.get('[data-cy=drag-handle]').then((handles) => {
-			dndElement(handles[0], handles[1]);
+			cy.dnd(handles[0], handles[1]);
 		});
 
 		cy.get('@columnHeaders').then((columnHeaders) => {
@@ -54,7 +27,7 @@ describe('column tests', () => {
 		});
 
 		cy.get('[data-cy=drag-handle]').then((handles) => {
-			dndElement(handles[1], handles[0]);
+			cy.dnd(handles[1], handles[0]);
 		});
 
 		cy.get('@columnHeaders').then((columnHeaders) => {
@@ -91,7 +64,7 @@ describe('column tests', () => {
 		cy.get('[data-cy=log-cell]').asText('cells');
 
 		cy.get('[data-cy=drag-handle]').then((handles) => {
-			dndElement(handles[2], handles[0]);
+			cy.dnd(handles[2], handles[0]);
 		});
 
 		cy.get('@columnHeaders').then((columnHeaders) => {

@@ -37,6 +37,7 @@ export default function ConfigColumnSettings(props: ConfigColumnSettingsProps) {
 		<div
 			ref={setNodeRef}
 			className="flex flex-col items-center relative"
+			data-cy="config-column"
 			{...rest}
 			style={{
 				transform: `translate(${transform?.x ?? 0}px, ${transform?.y ?? 0}px)`,

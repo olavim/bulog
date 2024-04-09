@@ -110,7 +110,7 @@ export default function ImportExport(props: ImportExportProps) {
 					Export your settings to a file. Exported settings can later be imported into another
 					instance of Bulog.
 				</p>
-				<InfoBanner>Only applied changes are exported</InfoBanner>
+				<InfoBanner>Unsaved changes are not exported</InfoBanner>
 				<div className="space-y-1">
 					{settings.map((setting) => (
 						<div key={setting.key}>

@@ -181,7 +181,7 @@ export default function Home() {
 							/>
 						))}
 					</div>
-					<div className="py-6 grow flex flex-col">
+					<div className="py-6 grow flex flex-col" data-cy="filter-tabs">
 						<div className="px-6 group w-full flex items-center justify-start py-3">
 							<span className="text-xs font-medium text-white/50">{'FILTERS'}</span>
 						</div>
@@ -220,13 +220,14 @@ export default function Home() {
 						</div>
 					</div>
 					<div className="py-6 mx-6 basis-auto overflow-y-auto flex flex-col border-t border-slate-600">
-						<div
+						<button
 							className="flex items-center cursor-pointer text-slate-400 hover:text-slate-300 active:text-slate-200"
+							data-cy="settings-button"
 							onClick={openSettings}
 						>
 							<IoMdSettings className="text-xl" />
 							<span className="pl-4 text-xs font-medium relative">{'Settings'}</span>
-						</div>
+						</button>
 					</div>
 				</div>
 			</div>

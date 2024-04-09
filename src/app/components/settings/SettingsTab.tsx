@@ -17,13 +17,17 @@ export default function SettingsTab(props: SettingsTabProps) {
 	}, [onClick, id]);
 
 	return (
-		<div
-			data-selected={selected || undefined}
-			className="h-7 text-slate-600 hover:bg-gray-100 data-[selected]:bg-sky-600 data-[selected]:text-white flex px-2 py-1 items-center rounded text-xs font-normal cursor-pointer whitespace-nowrap"
+		<button
+			id={`settings-tab-${id}`}
+			aria-controls={`settings-tabpanel-${id}`}
+			role="tab"
+			data-cy={`settings-tab-${id}`}
+			aria-selected={selected}
+			className="h-7 text-slate-600 hover:bg-gray-100 aria-selected:bg-sky-600 aria-selected:text-white flex px-2 py-1 items-center rounded text-xs font-normal cursor-pointer whitespace-nowrap"
 			onClick={handleClick}
 		>
 			{Icon && <Icon className="text-lg mr-2" />}
 			<span className="leading-none">{title}</span>
-		</div>
+		</button>
 	);
 }
