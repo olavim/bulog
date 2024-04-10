@@ -6,16 +6,18 @@ import { MdOutlineRestartAlt } from 'react-icons/md';
 import { rebootServer, getEnvironment } from '@app/api/system';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CgSpinner } from 'react-icons/cg';
+import { IoMdWarning } from 'react-icons/io';
 
 interface SystemSettingsPageProps {
 	config: ServerConfig;
 	remoteConfig: ServerConfig;
 	validationErrors: Record<string, ZodIssue>;
+	unsavedChanges: boolean;
 	onChange: (config: ServerConfig) => void;
 }
 
 export function SystemSettingsPage(props: SystemSettingsPageProps) {
-	const { config, remoteConfig, validationErrors, onChange } = props;
+	const { config, remoteConfig, validationErrors, unsavedChanges, onChange } = props;
 
 	const [rebootClicked, setRebootClicked] = useState(false);
 
@@ -138,18 +140,26 @@ export function SystemSettingsPage(props: SystemSettingsPageProps) {
 			</SettingsSection>
 			<SettingsSection title="Restart server" className="space-y-5 pt-5">
 				<p className="text-sm text-slate-500">
-					Restart the server and reload the page. You will be redirected to the correct URL if the
+					Restart the server and reload the page. You will be redirected to the correct URL if
 					connection details have changed.
 				</p>
-				<button
-					className="h-[30px] font-medium bg-gray-50 hover:bg-gray-50/50 active:bg-white border border-gray-200 text-left pl-3 pr-4 rounded inline-flex items-center disabled:opacity-60"
-					onClick={onClickReboot}
-					disabled={rebootClicked}
-				>
-					{rebootClicked && <CgSpinner className="animate-spin text-sm text-slate-600" />}
-					{!rebootClicked && <MdOutlineRestartAlt className="text-sm text-slate-600" />}
-					<span className="ml-2 text-sm text-slate-500">{'Restart'}</span>
-				</button>
+				<div className="flex items-center">
+					<button
+						className="h-[30px] font-medium bg-gray-50 border hover:bg-gray-50/50 active:bg-white text-left pl-3 pr-4 rounded inline-flex items-center disabled:opacity-60"
+						onClick={onClickReboot}
+						disabled={rebootClicked}
+					>
+						{rebootClicked && <CgSpinner className="animate-spin text-lg text-slate-500" />}
+						{!rebootClicked && <MdOutlineRestartAlt className="text-lg text-slate-500" />}
+						<span className="ml-2 text-sm text-slate-500">{'Restart'}</span>
+					</button>
+					{unsavedChanges && (
+						<div className="ml-8 flex items-center justify-end">
+							<IoMdWarning className="text-yellow-500 text-xl" />
+							<span className="ml-2 text-sm text-yellow-700">You have unsaved changes</span>
+						</div>
+					)}
+				</div>
 			</SettingsSection>
 		</div>
 	);

@@ -266,6 +266,7 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 								key={bucketId}
 								id={`buckets:${bucketId}`}
 								visible={tab === `buckets:${bucketId}`}
+								disabled={!configLoaded || !configTimeoutElapsed}
 							>
 								<BucketSettingsPage
 									config={configDraft.buckets[bucketId]}
@@ -280,6 +281,7 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 								key={filterId}
 								id={`filters:${filterId}`}
 								visible={tab === `filters:${filterId}`}
+								disabled={!configLoaded || !configTimeoutElapsed}
 							>
 								<FilterSettingsPage
 									config={configDraft.filters[filterId]}
@@ -289,14 +291,23 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 								/>
 							</SettingsTabPanel>
 						))}
-						<SettingsTabPanel id="importexport" visible={tab === 'importexport'}>
+						<SettingsTabPanel
+							id="importexport"
+							visible={tab === 'importexport'}
+							disabled={!configLoaded || !configTimeoutElapsed}
+						>
 							<ImportExportPage onImport={onImport} />
 						</SettingsTabPanel>
-						<SettingsTabPanel id="system" visible={tab === 'system'}>
+						<SettingsTabPanel
+							id="system"
+							visible={tab === 'system'}
+							disabled={!configLoaded || !configTimeoutElapsed}
+						>
 							<SystemSettingsPage
 								config={configDraft.server}
 								remoteConfig={config.server}
 								validationErrors={serverValidationErrors}
+								unsavedChanges={!configLoaded || !configTimeoutElapsed || configDraftChanged}
 								onChange={onChangeServerConfig}
 							/>
 						</SettingsTabPanel>

@@ -224,7 +224,7 @@ export function Home() {
 							className="flex items-center cursor-pointer text-slate-400 hover:text-slate-300 disabled:opacity-50 active:text-slate-200"
 							data-cy="settings-button"
 							onClick={openSettings}
-							disabled={!configLoaded}
+							disabled={!configLoaded && !settingsOpen}
 						>
 							<IoMdSettings className="text-xl" />
 							<span className="pl-4 text-xs font-medium relative">{'Settings'}</span>
