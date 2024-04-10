@@ -19,7 +19,10 @@ router.get('/', async (req, res) => {
 	const config: Partial<BulogConfig> = {};
 
 	if (keys.includes('buckets')) {
-		config.buckets = await getBucketsConfig(req.bulogEnvironment.tempConfig.value);
+		config.buckets = await getBucketsConfig(
+			req.bulogEnvironment.instance.value,
+			req.bulogEnvironment.tempConfig.value
+		);
 
 		for (const key of Object.keys(config.buckets)) {
 			config.buckets[key].columns = config.buckets[key].columns.map((c) => ({
@@ -30,7 +33,10 @@ router.get('/', async (req, res) => {
 	}
 
 	if (keys.includes('filters')) {
-		config.filters = await getFiltersConfig(req.bulogEnvironment.tempConfig.value);
+		config.filters = await getFiltersConfig(
+			req.bulogEnvironment.instance.value,
+			req.bulogEnvironment.tempConfig.value
+		);
 
 		for (const key of Object.keys(config.filters)) {
 			config.filters[key].columns = config.filters[key].columns.map((c) => ({
@@ -46,7 +52,10 @@ router.get('/', async (req, res) => {
 	}
 
 	if (keys.includes('server')) {
-		config.server = await getServerConfig(req.bulogEnvironment.tempConfig.value);
+		config.server = await getServerConfig(
+			req.bulogEnvironment.instance.value,
+			req.bulogEnvironment.tempConfig.value
+		);
 	}
 
 	res.status(200).json(config);
@@ -54,9 +63,21 @@ router.get('/', async (req, res) => {
 
 router.put('/', async (req, res) => {
 	const { buckets, filters, server } = BulogConfigSchema.parse(req.body);
-	await saveBucketsConfig(buckets, req.bulogEnvironment.tempConfig.value);
-	await saveFiltersConfig(filters, req.bulogEnvironment.tempConfig.value);
-	await saveServerConfig(server, req.bulogEnvironment.tempConfig.value);
+	await saveBucketsConfig(
+		req.bulogEnvironment.instance.value,
+		buckets,
+		req.bulogEnvironment.tempConfig.value
+	);
+	await saveFiltersConfig(
+		req.bulogEnvironment.instance.value,
+		filters,
+		req.bulogEnvironment.tempConfig.value
+	);
+	await saveServerConfig(
+		req.bulogEnvironment.instance.value,
+		server,
+		req.bulogEnvironment.tempConfig.value
+	);
 	req.bulogComms.filterLogs((log) => buckets[log.bucket]);
 	res.status(200).json({ imported: true });
 });

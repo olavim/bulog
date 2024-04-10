@@ -52,7 +52,7 @@ export class Start extends Command {
 			await resetTempConfigs();
 		} else {
 			try {
-				await validateConfigs();
+				await validateConfigs(flags.instance);
 			} catch (e: any) {
 				this.error(e.message, { exit: 1 });
 			}
@@ -65,7 +65,7 @@ export class Start extends Command {
 		const serverConnections: Record<string, Socket> = {};
 
 		const startServer = async () => {
-			const config = await getServerConfig(tempConfig);
+			const config = await getServerConfig(flags.instance, tempConfig);
 			const env: BulogEnvironment = {
 				host: {
 					config: flags.host === undefined,

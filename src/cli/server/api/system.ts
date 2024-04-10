@@ -13,7 +13,10 @@ router.get('/environment', async (req, res) => {
 });
 
 router.post('/reboot', async (req, res) => {
-	const config = await getServerConfig(req.bulogEnvironment.tempConfig.value);
+	const config = await getServerConfig(
+		req.bulogEnvironment.instance.value,
+		req.bulogEnvironment.tempConfig.value
+	);
 
 	const nextHost = req.bulogEnvironment.host.config
 		? config.defaults.hostname
