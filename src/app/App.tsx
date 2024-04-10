@@ -1,12 +1,10 @@
-import { SandboxProvider } from '@/context/SandboxContext';
-import Home from './Home';
+import { SandboxProvider } from '@context/SandboxContext';
+import { Home } from './Home';
 
-function App() {
+export function App() {
 	return (
 		<SandboxProvider>
 			<Home />
 		</SandboxProvider>
 	);
 }
-
-export default App;

@@ -2,7 +2,7 @@ import { WebSocket } from 'ws';
 import { Args, Command, Flags } from '@oclif/core';
 import JSON5 from 'json5';
 import _ from 'lodash';
-import { resetTempConfigs, validateConfigs } from '../config.js';
+import { getServerConfig, resetTempConfigs, validateConfigs } from '@/config';
 
 export class Run extends Command {
 	static args = {
@@ -39,14 +39,12 @@ $ bulog [BUCKET] [-h <host>] [-p <port>] [-v <value>....] [-o]
 		serverPort: Flags.integer({
 			helpLabel: '-p, --port',
 			helpValue: '<port>',
-			default: 3100,
 			description: 'Server port to bind to',
 			helpGroup: 'SERVER'
 		}),
 		serverHost: Flags.string({
 			helpLabel: '-h, --host',
 			helpValue: '<host>',
-			default: '0.0.0.0',
 			description: 'Server hostname to bind or connect to',
 			helpGroup: 'SERVER'
 		}),
@@ -55,7 +53,6 @@ $ bulog [BUCKET] [-h <host>] [-p <port>] [-v <value>....] [-o]
 			min: 0,
 			description:
 				'Number of logs to keep in memory. Logs in memory are sent to clients when they connect.',
-			default: 1000,
 			helpGroup: 'SERVER'
 		}),
 		tempConfig: Flags.boolean({
@@ -66,14 +63,12 @@ $ bulog [BUCKET] [-h <host>] [-p <port>] [-v <value>....] [-o]
 		clientPort: Flags.integer({
 			helpLabel: '-p, --port',
 			helpValue: '<port>',
-			default: 3100,
 			description: 'Server port to connect to',
 			helpGroup: 'CLIENT'
 		}),
 		clientHost: Flags.string({
 			helpLabel: '-h, --host',
 			helpValue: '<host>',
-			default: '127.0.0.1',
 			description: 'Server hostname to connect to',
 			helpGroup: 'CLIENT'
 		}),
@@ -103,9 +98,13 @@ $ bulog [BUCKET] [-h <host>] [-p <port>] [-v <value>....] [-o]
 
 	async startServer() {
 		const { flags } = await this.parse(Run);
-		const { serverHost, serverPort, tempConfig, memorySize } = flags;
-		const host = flags.host ?? serverHost;
-		const port = flags.port ?? serverPort;
+		const { tempConfig } = flags;
+
+		const config = await getServerConfig(tempConfig);
+
+		const host = flags.host ?? config.defaults.hostname;
+		const port = flags.port ?? config.defaults.port;
+		const memorySize = flags.memorySize ?? config.defaults.memorySize;
 
 		if (tempConfig) {
 			await resetTempConfigs();
@@ -117,20 +116,42 @@ $ bulog [BUCKET] [-h <host>] [-p <port>] [-v <value>....] [-o]
 			}
 		}
 
-		const { getServer } = await import('../server/index.js');
+		const { getServer } = await import('@server/index.js');
 
 		const server = await getServer({ tempConfig, memorySize });
-		server.listen(port, host, () => {
+
+		try {
+			await new Promise<void>((resolve, reject) => {
+				server.on('error', reject);
+				server.listen(port, host, resolve);
+			});
+
 			this.log(`Bulog is running at http://${host}:${port}`);
-		});
+		} catch (err: any) {
+			if (err.code === 'EADDRINUSE') {
+				this.error(`Port ${port} is already in use`, { exit: 1 });
+			} else if (err.code === 'ENOTFOUND' || err.code === 'EADDRNOTAVAIL') {
+				this.error(`Cannot listen on hostname ${host}`, {
+					code: err.code
+				});
+			} else {
+				this.error(err.message, { exit: 1 });
+			}
+		}
 	}
 
 	async sendInputToServer() {
 		const { args, flags } = await this.parse(Run);
 		const { bucket } = args;
-		const { clientHost, clientPort, pipeOutput, value } = flags;
-		const host = flags.host ?? clientHost;
-		const port = flags.port ?? clientPort;
+		const { pipeOutput, value } = flags;
+
+		const config = await getServerConfig(false);
+
+		const defaultHost =
+			config.defaults.hostname === '0.0.0.0' ? '127.0.0.1' : config.defaults.hostname;
+
+		const host = flags.host ?? defaultHost;
+		const port = flags.port ?? config.defaults.port;
 
 		const extraFields: any = {};
 

@@ -1,4 +1,4 @@
-import { SandboxContext } from '@/context/SandboxContext';
+import { SandboxContext } from '@context/SandboxContext';
 import lodash from 'lodash';
 import { useContext } from 'react';
 
@@ -22,6 +22,6 @@ export const createSimpleFunction = <T extends JSONValue, K extends JSONValue>(
 	}
 };
 
-export default function useSandbox() {
+export function useSandbox() {
 	return useContext(SandboxContext);
 }

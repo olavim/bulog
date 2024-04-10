@@ -1,6 +1,6 @@
 import { Mutate, StoreApi, createStore } from 'zustand';
-import globalStore, { WithSelectors, createSelectors } from './globalStore';
-import { Sandbox } from '@/context/SandboxContext';
+import { globalStore, WithSelectors, createSelectors } from './globalStore';
+import { Sandbox } from '@context/SandboxContext';
 import { immer } from 'zustand/middleware/immer';
 import { subscribeWithSelector } from 'zustand/middleware';
 
@@ -9,8 +9,9 @@ export interface FilterStore {
 	renderKey: number;
 	readingLogs: boolean;
 	readProgress: number;
-	setColumns: (columns: ColumnData[], sandbox: Sandbox) => Promise<void>;
+	setColumns: (columns: ColumnConfig[], sandbox: Sandbox) => Promise<void>;
 	setPredicate: (predicateString: string, sandbox: Sandbox) => Promise<void>;
+	reloadLogs: () => Promise<void>;
 }
 
 export type FilterStoreApi = WithSelectors<
@@ -20,12 +21,12 @@ export type FilterStoreApi = WithSelectors<
 	>
 >;
 
-const createFilterStore = (data: FilterData): FilterStoreApi => {
+export const createFilterStore = (data: FilterData): FilterStoreApi => {
 	return createSelectors(
 		createStore<FilterStore>()(
 			subscribeWithSelector(
 				immer(
-					(set) =>
+					(set, get) =>
 						({
 							data,
 							renderKey: 0,
@@ -42,22 +43,24 @@ const createFilterStore = (data: FilterData): FilterStoreApi => {
 									state.data.logRenderer = logRenderer;
 								});
 
-								await globalStore.getState().saveFilters();
+								await globalStore.getState().saveConfig();
 							},
 							setPredicate: async (predicateString, sandbox) => {
-								set((state) => {
-									state.data.filterString = predicateString;
-									state.readingLogs = globalStore.getState().logs.length > 10000;
-									state.readProgress = 0;
-								});
-
 								const predicate = await sandbox.createCallback<LogData, boolean>(predicateString);
 
 								set((state) => {
-									state.data.filterFunction = predicate;
+									state.data.predicateString = predicateString;
+									state.data.predicate = predicate;
 								});
 
-								await globalStore.getState().saveFilters();
+								await globalStore.getState().saveConfig();
+								await get().reloadLogs();
+							},
+							reloadLogs: async () => {
+								set((state) => {
+									state.readingLogs = globalStore.getState().logs.length > 10000;
+									state.readProgress = 0;
+								});
 
 								const filteredLogs = [] as LogData[];
 								const chunkSize = Math.ceil(globalStore.getState().logs.length / 10);
@@ -67,8 +70,8 @@ const createFilterStore = (data: FilterData): FilterStoreApi => {
 									const newLogs = globalStore
 										.getState()
 										.logs.slice(processed, processed + chunkSize);
-									const predicates = await predicate(newLogs);
-									const filtered = newLogs.filter((_, i) => predicates[i]);
+									const predicateResults = await get().data.predicate(newLogs);
+									const filtered = newLogs.filter((_, i) => predicateResults[i]);
 									filteredLogs.push(...filtered);
 									processed += chunkSize;
 
@@ -90,5 +93,3 @@ const createFilterStore = (data: FilterData): FilterStoreApi => {
 		)
 	);
 };
-
-export default createFilterStore;

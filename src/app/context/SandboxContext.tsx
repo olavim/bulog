@@ -110,9 +110,9 @@ export class Sandbox {
 		) as (logs: T[]) => Promise<K[]>;
 	}
 
-	public async createLogRenderer(columns: ColumnData[]) {
+	public async createLogRenderer(columns: ColumnConfig[]) {
 		const codes = columns.reduce(
-			(obj, col) => ({ ...obj, [col.id]: col.formatterString }),
+			(obj, col) => ({ ...obj, [col.id]: col.formatter }),
 			{} as { [id: string]: string }
 		);
 		return this.createCallbackGroup(codes);

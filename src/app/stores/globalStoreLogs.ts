@@ -1,29 +1,17 @@
 import { StateCreator } from 'zustand';
 import { GlobalStore } from './globalStore';
-import createBucketStore from './bucketStore';
-import { createDefaultColumns, defaultLogRenderer } from '@/utils/columns';
-
-const createBucketData = () => {
-	const columns = createDefaultColumns();
-	const data: BucketData = {
-		columns,
-		logs: [] as LogData[],
-		logRenderer: defaultLogRenderer(columns[0].id, columns[1].id)
-	};
-
-	return data;
-};
+import { Sandbox } from '@context/SandboxContext';
 
 export interface LogSlice {
 	logs: LogData[];
-	addLogs: (logs: LogData[]) => Promise<void>;
+	addLogs: (logs: LogData[], sandbox: Sandbox) => Promise<void>;
 }
 
 type LogSliceCreator = StateCreator<GlobalStore, [['zustand/immer', never]], [], LogSlice>;
 
-const createLogSlice: LogSliceCreator = (set, get) => ({
+export const createLogSlice: LogSliceCreator = (set, get) => ({
 	logs: [],
-	addLogs: async (logs) => {
+	addLogs: async (logs, sandbox) => {
 		// Check if the logs are already in the store
 		if (
 			get().logs.length > 0 &&
@@ -38,10 +26,16 @@ const createLogSlice: LogSliceCreator = (set, get) => ({
 			logsByBucket[log.bucket].push(log);
 		}
 
+		for (const bucketId of Object.keys(logsByBucket)) {
+			if (!get().buckets.has(bucketId)) {
+				await get().createBucket(bucketId, sandbox);
+			}
+		}
+
 		const currentFilters = get().filters;
 		const logsByFilter: { [id: string]: LogData[] } = {};
 		for (const filterId of currentFilters.keys()) {
-			const predicates = await currentFilters.get(filterId)!.getState().data.filterFunction(logs);
+			const predicates = await currentFilters.get(filterId)!.getState().data.predicate(logs);
 			logsByFilter[filterId] = logs.filter((_, i) => predicates[i]);
 		}
 
@@ -49,10 +43,6 @@ const createLogSlice: LogSliceCreator = (set, get) => ({
 			state.logs.push(...logs);
 
 			for (const bucketId of Object.keys(logsByBucket)) {
-				if (!state.buckets.has(bucketId)) {
-					state.buckets.set(bucketId, createBucketStore(createBucketData()));
-				}
-
 				state.buckets.get(bucketId)!.setState((s) => {
 					s.data.logs.push(...logsByBucket[bucketId]);
 				});
@@ -66,5 +56,3 @@ const createLogSlice: LogSliceCreator = (set, get) => ({
 		});
 	}
 });
-
-export default createLogSlice;

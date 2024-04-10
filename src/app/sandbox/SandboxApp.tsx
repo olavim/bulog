@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from 'react';
 
 type JSONFunc = (value: JSONValue) => Promise<JSONValue>;
 
-export default function SandboxApp() {
+export function SandboxApp() {
 	const functions = useRef<Record<string, JSONFunc>>({});
 	const functionGroups = useRef<Record<string, { [id: string]: JSONFunc }>>({});
 

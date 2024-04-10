@@ -1,12 +1,12 @@
 import { Mutate, StoreApi, createStore } from 'zustand';
-import globalStore, { WithSelectors, createSelectors } from './globalStore';
-import { Sandbox } from '@/context/SandboxContext';
+import { globalStore, WithSelectors, createSelectors } from './globalStore';
+import { Sandbox } from '@context/SandboxContext';
 import { immer } from 'zustand/middleware/immer';
 import { subscribeWithSelector } from 'zustand/middleware';
 
 export interface BucketStore {
 	data: BucketData;
-	setColumns: (columns: ColumnData[], sandbox: Sandbox) => Promise<void>;
+	setColumns: (columns: ColumnConfig[], sandbox: Sandbox) => Promise<void>;
 	setPredicate: (predicateString: string, sandbox: Sandbox) => Promise<void>;
 }
 
@@ -17,7 +17,7 @@ export type BucketStoreApi = WithSelectors<
 	>
 >;
 
-const createBucketStore = (initialData: BucketData): BucketStoreApi => {
+export const createBucketStore = (initialData: BucketData): BucketStoreApi => {
 	return createSelectors(
 		createStore<BucketStore>()(
 			subscribeWithSelector(
@@ -36,7 +36,7 @@ const createBucketStore = (initialData: BucketData): BucketStoreApi => {
 									state.data.logRenderer = logRenderer;
 								});
 
-								await globalStore.getState().saveBuckets();
+								await globalStore.getState().saveConfig();
 							}
 						}) as BucketStore
 				)
@@ -44,5 +44,3 @@ const createBucketStore = (initialData: BucketData): BucketStoreApi => {
 		)
 	);
 };
-
-export default createBucketStore;

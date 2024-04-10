@@ -4,11 +4,15 @@
 		"target": "es2022",
 		"rootDir": "src",
 		"outDir": "dist",
-		"skipLibCheck": true,
 		"strict": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
-		"noFallthroughCasesInSwitch": true
+		"noFallthroughCasesInSwitch": true,
+		"paths": {
+			"@/schemas": ["./src/schemas.ts"],
+			"@/config": ["./src/cli/config.ts"],
+			"@server/*": ["./src/cli/server/*"]
+		}
 	},
-	"include": ["src/cli", "src/types.d.ts"]
+	"include": ["src/cli", "src/types.d.ts", "src/schemas.ts"]
 }

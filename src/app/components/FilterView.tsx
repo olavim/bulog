@@ -1,29 +1,30 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { filter as liqeFilter, LiqeQuery } from 'liqe';
-import LogList from './LogList';
-import LogView from './LogView';
-import ColumnView from './ColumnView';
-import Drawer from './Drawer';
-import Search from './Search';
-import NewColumnButton from './NewColumnButton';
+import { LogList } from './LogList';
+import { LogView } from './LogView';
+import { ColumnSettings } from './settings/ColumnSettings';
+import { Drawer } from './Drawer';
+import { Search } from './Search';
+import { NewColumnButton } from './NewColumnButton';
 import { IoMdSettings } from 'react-icons/io';
-import FilterSettings from './FilterSettings';
-import useSandbox from '@/hooks/useSandbox';
-import globalStore from '@/stores/globalStore';
-import { createColumn, deleteColumn } from '@/utils/columns';
+import { FilterSettings } from './settings/FilterSettings';
+import { useSandbox } from '@hooks/useSandbox';
+import { globalStore } from '@stores/globalStore';
+import { createColumn, deleteColumn } from '@utils/columns';
 
 interface FilterViewProps {
-	filter: string;
+	filterId: string;
 }
 
-export default memo(function FilterView(props: FilterViewProps) {
-	const { filter } = props;
+export const FilterView = memo(function FilterView(props: FilterViewProps) {
+	const { filterId } = props;
 
 	const sandbox = useSandbox();
-	const filterStore = globalStore.use((state) => state.filters.get(filter)!);
+	const filterStore = globalStore.use((state) => state.filters.get(filterId)!);
 	const logs = filterStore.use((state) => state.data.logs);
 	const columns = filterStore.use((state) => state.data.columns);
-	const predicateString = filterStore.use((state) => state.data.filterString);
+	const filterPredicateString = filterStore.use((state) => state.data.predicateString);
+	const filterName = filterStore.use((state) => state.data.name);
 	const renderKey = filterStore.use.renderKey();
 	const readProgress = filterStore.use.readProgress();
 	const readingLogs = filterStore.use.readingLogs();
@@ -44,17 +45,17 @@ export default memo(function FilterView(props: FilterViewProps) {
 	);
 
 	const handleSetFilterConfig = useCallback(
-		(name: string, filterString: string) => {
-			setPredicate(filterString, sandbox);
-			rename(filter, name);
+		(id: string, name: string, predicateString: string) => {
+			setPredicate(predicateString, sandbox);
+			rename(id, name);
 		},
-		[filter, sandbox, rename, setPredicate]
+		[setPredicate, sandbox, rename]
 	);
 
 	const onDeleteFilter = useCallback(() => {
 		setSettingOpen(false);
-		deleteFilter(filter);
-	}, [deleteFilter, filter]);
+		deleteFilter(filterId);
+	}, [deleteFilter, filterId]);
 
 	const onSettings = useCallback(() => {
 		setSelectedColumnId(null);
@@ -71,7 +72,7 @@ export default memo(function FilterView(props: FilterViewProps) {
 	}, [logs, query]);
 
 	const onAddColumn = useCallback(async () => {
-		const newColumn = createColumn(null);
+		const newColumn = createColumn();
 		setSelectedColumnId(newColumn.id);
 		setSelectedLog(null);
 		setSettingOpen(false);
@@ -90,31 +91,33 @@ export default memo(function FilterView(props: FilterViewProps) {
 		setSettingOpen(false);
 	}, []);
 
-	const onSelectColumn = useCallback((column: ColumnData) => {
+	const onSelectColumn = useCallback((column: ColumnConfig) => {
 		setSelectedColumnId(column.id);
 		setSelectedLog(null);
 		setSettingOpen(false);
 	}, []);
 
 	const handleSetColumns = useCallback(
-		(cols: ColumnData[]) => {
+		(cols: ColumnConfig[]) => {
 			setColumns(cols, sandbox);
 		},
 		[sandbox, setColumns]
 	);
 
 	const handleSetColumn = useCallback(
-		async (id: string, data: Partial<ColumnData> | null) => {
-			const idx = columns.findIndex((c) => c.id === id);
+		async (config: ColumnConfig) => {
+			const idx = columns.findIndex((c) => c.id === config.id);
+			const col = createColumn(config);
+			const newColumns = columns.toSpliced(idx, 1, col);
+			setColumns(newColumns, sandbox);
+		},
+		[columns, sandbox, setColumns]
+	);
 
-			if (data === null) {
-				const newColumns = deleteColumn(columns, id);
-				setColumns(newColumns, sandbox);
-			} else {
-				const col = createColumn({ id, ...data });
-				const newColumns = columns.toSpliced(idx, 1, col);
-				setColumns(newColumns, sandbox);
-			}
+	const handleDeleteColumn = useCallback(
+		async (id: string) => {
+			const newColumns = deleteColumn(columns, id);
+			setColumns(newColumns, sandbox);
 		},
 		[columns, sandbox, setColumns]
 	);
@@ -169,15 +172,20 @@ export default memo(function FilterView(props: FilterViewProps) {
 			)}
 			{selectedColumn && (
 				<Drawer title="Column details" onClose={onDeselect}>
-					<ColumnView column={selectedColumn} onChange={handleSetColumn} />
+					<ColumnSettings
+						column={selectedColumn}
+						onChange={handleSetColumn}
+						onDelete={handleDeleteColumn}
+					/>
 				</Drawer>
 			)}
 			{settingsOpen && (
 				<Drawer title="Filter settings" onClose={onDeselect}>
 					<FilterSettings
-						filter={filter}
-						filterString={predicateString}
-						onChange={handleSetFilterConfig}
+						id={filterId}
+						name={filterName}
+						predicateString={filterPredicateString}
+						onSave={handleSetFilterConfig}
 						onDelete={onDeleteFilter}
 					/>
 				</Drawer>

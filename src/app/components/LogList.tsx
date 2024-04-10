@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TableComponents, TableVirtuoso, VirtuosoHandle } from 'react-virtuoso';
-import Log from './Log';
+import { Log } from './Log';
 import { useOverlayScrollbars } from 'overlayscrollbars-react';
 import { InstancePlugin, OverlayScrollbars } from 'overlayscrollbars';
 import {
@@ -11,7 +11,8 @@ import {
 	closestCenter
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from '@dnd-kit/sortable';
-import LogColumn, { LogColumnOverlay } from './LogColumn';
+import { LogColumnHeader } from './LogColumnHeader';
+import { LogColumnHeaderOverlay } from './LogColumnHeaderOverlay';
 import { useResizeDetector } from 'react-resize-detector';
 import useGlobalEvent from 'beautiful-react-hooks/useGlobalEvent';
 
@@ -110,17 +111,17 @@ const VirtuosoTableRow: TableComponents<LogData>['TableRow'] = memo((props) => {
 
 interface LogListProps {
 	logs: LogData[];
-	columns: ColumnData[];
+	columns: ColumnConfig[];
 	renderKey?: number;
 	logRenderer: (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>>;
 	selectedLog: LogData | null;
-	selectedColumn: ColumnData | null;
+	selectedColumn: ColumnConfig | null;
 	onSelectLog: (log: LogData) => void;
-	onSelectColumn: (log: ColumnData) => void;
-	onChangeColumns: (columns: ColumnData[]) => void;
+	onSelectColumn: (log: ColumnConfig) => void;
+	onChangeColumns: (columns: ColumnConfig[]) => void;
 }
 
-export default function LogList(props: LogListProps) {
+export function LogList(props: LogListProps) {
 	const {
 		logs,
 		columns,
@@ -190,9 +191,9 @@ export default function LogList(props: LogListProps) {
 	const virtuosoRef = useRef<VirtuosoHandle>(null);
 	const logContainerRef = useRef<HTMLDivElement>(null);
 	const [logContainerSize, setLogContainerSize] = useState<{ width: number; height: number }>();
-	const [dragColumn, setDragColumn] = useState<ColumnData | null>(null);
+	const [dragColumn, setDragColumn] = useState<ColumnConfig | null>(null);
 	const [columnResizeData, setColumnResizeData] = useState<{
-		target: ColumnData;
+		target: ColumnConfig;
 		origin: number;
 		originalWidth: number;
 	} | null>(null);
@@ -220,7 +221,7 @@ export default function LogList(props: LogListProps) {
 	});
 
 	const onResizeColumnStart = useCallback(
-		(col: ColumnData, mouseX: number) => {
+		(col: ColumnConfig, mouseX: number) => {
 			if (!logContainerSize) {
 				return;
 			}
@@ -299,7 +300,7 @@ export default function LogList(props: LogListProps) {
 					disabled={columnResizeData !== null}
 				>
 					{columns.map((col) => (
-						<LogColumn
+						<LogColumnHeader
 							key={col.id}
 							column={col}
 							onClick={onSelectColumn}
@@ -354,13 +355,14 @@ export default function LogList(props: LogListProps) {
 				autoScroll={{ threshold: { x: 0.2, y: 0 } }}
 			>
 				<DragOverlay>
-					{dragColumn && <LogColumnOverlay width={dragColumn.width} name={dragColumn.name} />}
+					{dragColumn && <LogColumnHeaderOverlay width={dragColumn.width} name={dragColumn.name} />}
 				</DragOverlay>
 				<div ref={rootRef} data-overlayscrollbars="" className="h-full overflow-visible" />
 				<TableVirtuoso
 					ref={virtuosoRef}
 					context={virtuosoContext}
 					data={logs}
+					data-cy="log-list"
 					totalCount={logs.length}
 					scrollerRef={setScroller}
 					className="bg-white rounded"

@@ -22,6 +22,33 @@ Cypress.Commands.add('asText', { prevSubject: 'element' }, (subject, alias) => {
 		.as(alias);
 });
 
+Cypress.Commands.add('dnd', (from, to) => {
+	const rect2 = to.getBoundingClientRect();
+
+	cy.wrap(from).trigger('pointerdown', {
+		force: true,
+		isPrimary: true,
+		button: 0
+	});
+
+	cy.wait(100);
+
+	cy.document()
+		.trigger('pointermove', {
+			clientX: rect2.left,
+			clientY: rect2.top,
+			force: true,
+			isPrimary: true,
+			button: 0
+		})
+		.wait(100)
+		.trigger('pointerup', {
+			force: true,
+			isPrimary: true,
+			button: 0
+		});
+});
+
 const resizeObserverLoopErrRe = /^[^(ResizeObserver loop limit exceeded)]/;
 Cypress.on('uncaught:exception', (err) => {
 	if (resizeObserverLoopErrRe.test(err.message)) {

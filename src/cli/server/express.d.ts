@@ -1,17 +1,14 @@
-import Comms from './comms';
+import { CommsInterface } from './comms.js';
+import { ServerOptions } from './index.js';
+
+export {};
 
 declare global {
 	namespace Express {
-		interface Request {
+		interface Request {}
+		export interface Request {
 			bulogOptions: ServerOptions;
-			bulogComms: Comms;
+			bulogComms: CommsInterface;
 		}
 	}
-
-	type ServerOptions = {
-		tempConfig: boolean;
-		memorySize: number;
-	};
 }
-
-export {};

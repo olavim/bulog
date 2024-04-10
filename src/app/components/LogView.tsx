@@ -1,4 +1,4 @@
-import { createSimpleFormatter } from '@/utils/columns';
+import { createSimpleFormatter } from '@utils/columns';
 import JsonView from '@uiw/react-json-view';
 import { FaClipboard, FaClipboardCheck } from 'react-icons/fa';
 import { MdAddCircle } from 'react-icons/md';
@@ -6,10 +6,10 @@ import { nanoid } from 'nanoid';
 
 interface LogViewProps {
 	log: LogData;
-	onAddColumn: (id: string, data: Partial<ColumnData> | null) => void;
+	onAddColumn: (id: string, data: Partial<ColumnConfig> | null) => void;
 }
 
-export default function LogView(props: LogViewProps) {
+export function LogView(props: LogViewProps) {
 	const { log, onAddColumn } = props;
 	return (
 		<JsonView value={log} displayDataTypes={false} className="grow">
@@ -39,9 +39,7 @@ export default function LogView(props: LogViewProps) {
 								onClick={() =>
 									onAddColumn(nanoid(16), {
 										name: columnName,
-										formatterString: createSimpleFormatter(
-											columnPattern ? `log${columnPattern}` : 'log'
-										)
+										formatter: createSimpleFormatter(columnPattern ? `log${columnPattern}` : 'log')
 									})
 								}
 							/>

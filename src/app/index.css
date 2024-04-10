@@ -12,6 +12,7 @@
 }
 
 body {
+	line-height: 1;
 	color: rgb(var(--foreground-rgb));
 	background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
 		rgb(var(--background-start-rgb));
@@ -141,4 +142,24 @@ input:focus {
 .react-tooltip[class*='styles-module_info'] {
 	background-color: var(--rt-color-info);
 	color: var(--rt-color-white);
+}
+
+.cm-content {
+	padding: 4px !important;
+}
+
+.cm-scroller {
+	line-height: 1rem !important;
+}
+
+b {
+	font-weight: 500;
+}
+
+code {
+	font-family: 'Fira Code', monospace;
+	background-color: #e2e8f0;
+	padding: 0.1rem 0.4rem;
+	margin: 0 0.25rem;
+	border-radius: 0.25rem;
 }
