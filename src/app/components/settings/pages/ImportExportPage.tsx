@@ -1,9 +1,9 @@
 import { ChangeEventHandler, useCallback, useState } from 'react';
 import { AiOutlineExport, AiOutlineImport } from 'react-icons/ai';
 import { BulogConfigSchema } from '@/schemas';
-import { SettingsSection } from '@components/settings/SettingsSection';
-import { FileInput } from '@components/FileInput';
-import { InfoBanner } from '@components/settings/InfoBanner';
+import { SettingsSection } from '@app/components/settings/SettingsSection';
+import { FileInput } from '@app/components/FileInput';
+import { InfoBanner } from '@app/components/settings/InfoBanner';
 
 const settings: Array<{ key: keyof BulogConfig; label: string; default: boolean }> = [
 	{ key: 'buckets', label: 'Bucket settings', default: true },

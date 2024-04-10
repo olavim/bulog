@@ -9,9 +9,9 @@ Cypress.Commands.add('resetBulog', () => {
 		.as('resetConfig')
 		.then(() => fetch(`${url}/api/config/reset`, { method: 'POST' }));
 
-	cy.intercept('/api/cache/reset')
+	cy.intercept('/api/system/cache/reset')
 		.as('resetCache')
-		.then(() => fetch(`${url}/api/cache/reset`, { method: 'POST' }));
+		.then(() => fetch(`${url}/api/system/cache/reset`, { method: 'POST' }));
 
 	cy.wait(['@resetConfig', '@resetCache']);
 });

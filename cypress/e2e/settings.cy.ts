@@ -6,7 +6,7 @@ describe('settings tests', () => {
 	it('change server settings', () => {
 		cy.visit('/');
 		cy.get('[data-cy=settings-button]').click();
-		cy.get('[data-cy=settings-tab-server]').click();
+		cy.get('[data-cy=settings-tab-system]').click();
 		cy.get('[data-cy=server-defaults-hostname-input]').clear().type('localhost');
 		cy.get('[data-cy=server-defaults-port-input]').clear().type('1234');
 		cy.get('[data-cy=server-defaults-memorySize-input]').clear().type('1234');

@@ -16,13 +16,8 @@
 		"noFallthroughCasesInSwitch": true,
 		"paths": {
 			"@/schemas": ["./src/schemas.ts"],
-			"@/config": ["./src/cli/config.ts"],
-			"@components/*": ["./src/app/components/*"],
-			"@api/*": ["./src/app/api/*"],
-			"@context/*": ["./src/app/context/*"],
-			"@hooks/*": ["./src/app/hooks/*"],
-			"@stores/*": ["./src/app/stores/*"],
-			"@utils/*": ["./src/app/utils/*"],
+			"@app/*": ["./src/app/*"],
+			"@cli/*": ["./src/cli/*"],
 			"@server/*": ["./src/cli/server/*"]
 		}
 	},

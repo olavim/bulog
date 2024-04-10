@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { GlobalStore } from './globalStore';
-import { Sandbox } from '@context/SandboxContext';
+import { Sandbox } from '@app/context/SandboxContext';
 
 export interface LogSlice {
 	logs: LogData[];

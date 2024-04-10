@@ -1,8 +1,8 @@
 import { StateCreator } from 'zustand';
 import { GlobalStore } from './globalStore';
 import { createBucketStore, BucketStoreApi } from './bucketStore';
-import { Sandbox } from '@context/SandboxContext';
-import { bucketConfigToData, createBucket } from '@utils/buckets';
+import { Sandbox } from '@app/context/SandboxContext';
+import { bucketConfigToData, createBucket } from '@app/utils/buckets';
 
 export interface BucketSlice {
 	buckets: Map<string, BucketStoreApi>;

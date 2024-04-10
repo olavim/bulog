@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
-import { ColumnList } from '@components/settings/ColumnList';
-import { FilterSettings } from '@components/settings/FilterSettings';
-import { SettingsSection } from '@components/settings/SettingsSection';
+import { ColumnList } from '@app/components/settings/ColumnList';
+import { FilterSettings } from '@app/components/settings/FilterSettings';
+import { SettingsSection } from '@app/components/settings/SettingsSection';
 import { MdRemoveCircle } from 'react-icons/md';
 import { ZodIssue } from 'zod';
 

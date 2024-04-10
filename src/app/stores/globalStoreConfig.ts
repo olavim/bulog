@@ -1,9 +1,9 @@
 import { StateCreator } from 'zustand';
 import { GlobalStore } from './globalStore';
-import { Sandbox } from '@context/SandboxContext';
-import { getConfig, saveConfig } from '@api/config';
-import { filterConfigToData, filterDataToConfig } from '@utils/filters';
-import { bucketConfigToData, bucketDataToConfig } from '@utils/buckets';
+import { Sandbox } from '@app/context/SandboxContext';
+import { getConfig, saveConfig } from '@app/api/config';
+import { filterConfigToData, filterDataToConfig } from '@app/utils/filters';
+import { bucketConfigToData, bucketDataToConfig } from '@app/utils/buckets';
 
 export interface ConfigSlice {
 	config: BulogConfig;

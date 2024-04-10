@@ -13,10 +13,10 @@
 	},
 	"version": "0.5.0",
 	"scripts": {
-		"start": "node ./bin/run.js -p 3000",
-		"start:test": "node ./bin/run.js -p 3400 --tempConfig",
-		"dev": "tsx watch --ignore vite.config.ts.* ./bin/dev.js -p 3000",
-		"dev:test": "tsx watch --ignore vite.config.ts.* ./bin/dev.js -p 3400 --tempConfig",
+		"start": "node ./bin/run.js start -p 3000",
+		"start:test": "node ./bin/run.js start -p 3400 --tempConfig",
+		"dev": "tsx watch --ignore vite.config.ts.* --tsconfig tsconfig.cli.json ./bin/dev start",
+		"dev:test": "npm run dev -- -p 3400 --tempConfig",
 		"clean": "shx rm -rf dist",
 		"build": "npm run build:app && npm run build:cli",
 		"build:app": "tsc -p tsconfig.app.json && shx rm -rf dist/app && vite build",
@@ -33,6 +33,7 @@
 		"test:open": "start-server-and-test dev:test http://localhost:3400 cypress:open",
 		"test:prod": "start-server-and-test start:test http://localhost:3400 cypress:run",
 		"test:prod:open": "start-server-and-test start:test http://localhost:3400 cypress:open",
+		"mock:client:stdout": "node ./mock-data.js stdout 100000 1 100 | tsx ./bin/dev.js fw bucket-1",
 		"prepare": "husky",
 		"prepublishOnly": "npm run build && npm run test:prod"
 	},
@@ -43,6 +44,7 @@
 		"@dnd-kit/sortable": "^8.0.0",
 		"@iarna/toml": "^2.2.5",
 		"@oclif/core": "^3.21.0",
+		"@tanstack/react-query": "^5.29.0",
 		"@uiw/react-codemirror": "^4.21.24",
 		"@uiw/react-json-view": "^2.0.0-alpha.17",
 		"beautiful-react-hooks": "^5.0.1",
@@ -66,6 +68,7 @@
 		"react-window": "^1.8.10",
 		"vite-express": "^0.15.0",
 		"ws": "^8.16.0",
+		"z32": "^1.1.0",
 		"zod": "^3.22.4",
 		"zustand": "^4.5.2",
 		"zustand-x": "^3.0.2"
@@ -116,8 +119,8 @@
 	"oclif": {
 		"bin": "bulog",
 		"dirname": "bulog",
-		"default": ".",
 		"commands": "./dist/cli/commands",
+		"helpClass": "./dist/cli/help",
 		"topicSeparator": " "
 	}
 }

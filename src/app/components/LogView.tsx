@@ -1,4 +1,4 @@
-import { createSimpleFormatter } from '@utils/columns';
+import { createSimpleFormatter } from '@app/utils/columns';
 import JsonView from '@uiw/react-json-view';
 import { FaClipboard, FaClipboardCheck } from 'react-icons/fa';
 import { MdAddCircle } from 'react-icons/md';

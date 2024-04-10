@@ -2,8 +2,8 @@ import { StateCreator } from 'zustand';
 import { GlobalStore } from './globalStore';
 import { createFilterStore, FilterStoreApi } from './filterStore';
 import { nanoid } from 'nanoid';
-import { Sandbox } from '@context/SandboxContext';
-import { createFilter, filterConfigToData } from '@utils/filters';
+import { Sandbox } from '@app/context/SandboxContext';
+import { createFilter, filterConfigToData } from '@app/utils/filters';
 
 export interface FilterSlice {
 	filters: Map<string, FilterStoreApi>;

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Tab } from '@components/Tab';
+import { Tab } from '@app/components/Tab';
 import { Tooltip } from 'react-tooltip';
-import { BucketView } from '@components/BucketView';
+import { BucketView } from '@app/components/BucketView';
 import { MdAddCircleOutline } from 'react-icons/md';
 import { FilterView } from './components/FilterView';
 import useWebSocket from 'react-use-websocket';

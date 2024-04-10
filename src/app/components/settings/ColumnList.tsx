@@ -8,7 +8,7 @@ import {
 	closestCenter
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { createColumn } from '@utils/columns';
+import { createColumn } from '@app/utils/columns';
 import { ColumnListItem } from './ColumnListItem';
 import { ColumnListItemOverlay } from './ColumnListItemOverlay';
 
