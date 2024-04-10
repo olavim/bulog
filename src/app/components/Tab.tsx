@@ -8,7 +8,7 @@ interface TabProps {
 	onClick: (id: string) => void;
 }
 
-export default function Tab(props: TabProps) {
+export function Tab(props: TabProps) {
 	const { onClick, id, title, selected, count } = props;
 
 	const handleClick = useCallback(() => {

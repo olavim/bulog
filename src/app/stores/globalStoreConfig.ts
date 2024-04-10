@@ -1,9 +1,9 @@
 import { StateCreator } from 'zustand';
 import { GlobalStore } from './globalStore';
-import { Sandbox } from '@/context/SandboxContext';
-import { getConfig, saveConfig } from '@/api/config';
-import { filterConfigToData, filterDataToConfig } from '@/utils/filters';
-import { bucketConfigToData, bucketDataToConfig } from '@/utils/buckets';
+import { Sandbox } from '@context/SandboxContext';
+import { getConfig, saveConfig } from '@api/config';
+import { filterConfigToData, filterDataToConfig } from '@utils/filters';
+import { bucketConfigToData, bucketDataToConfig } from '@utils/buckets';
 
 export interface ConfigSlice {
 	config: BulogConfig;
@@ -14,7 +14,7 @@ export interface ConfigSlice {
 
 type ConfigSliceCreator = StateCreator<GlobalStore, [['zustand/immer', never]], [], ConfigSlice>;
 
-const createConfigSlice: ConfigSliceCreator = (set, get) => ({
+export const createConfigSlice: ConfigSliceCreator = (set, get) => ({
 	config: {
 		filters: {},
 		buckets: {},
@@ -82,5 +82,3 @@ const createConfigSlice: ConfigSliceCreator = (set, get) => ({
 		await saveConfig(config);
 	}
 });
-
-export default createConfigSlice;

@@ -7,7 +7,12 @@
 		"strict": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
-		"noFallthroughCasesInSwitch": true
+		"noFallthroughCasesInSwitch": true,
+		"paths": {
+			"@/schemas": ["./src/schemas.ts"],
+			"@/config": ["./src/cli/config.ts"],
+			"@server/*": ["./src/cli/server/*"]
+		}
 	},
 	"include": ["src/cli", "src/types.d.ts", "src/schemas.ts"]
 }

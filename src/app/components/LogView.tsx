@@ -1,4 +1,4 @@
-import { createSimpleFormatter } from '@/utils/columns';
+import { createSimpleFormatter } from '@utils/columns';
 import JsonView from '@uiw/react-json-view';
 import { FaClipboard, FaClipboardCheck } from 'react-icons/fa';
 import { MdAddCircle } from 'react-icons/md';
@@ -9,7 +9,7 @@ interface LogViewProps {
 	onAddColumn: (id: string, data: Partial<ColumnConfig> | null) => void;
 }
 
-export default function LogView(props: LogViewProps) {
+export function LogView(props: LogViewProps) {
 	const { log, onAddColumn } = props;
 	return (
 		<JsonView value={log} displayDataTypes={false} className="grow">

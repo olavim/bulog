@@ -1,18 +1,18 @@
 import { useCallback } from 'react';
-import ConfigColumnList from './ConfigColumnList';
-import FilterSettings from '../FilterSettings';
-import SettingsSection from './SettingsSection';
+import { ColumnList } from '@components/settings/ColumnList';
+import { FilterSettings } from '@components/settings/FilterSettings';
+import { SettingsSection } from '@components/settings/SettingsSection';
 import { MdRemoveCircle } from 'react-icons/md';
 import { ZodIssue } from 'zod';
 
-interface ConfigFilterSettingsProps {
+interface FilterSettingsPageProps {
 	config: FilterConfig;
 	validationErrors: Record<string, ZodIssue>;
 	onChange: (config: FilterConfig) => void;
 	onDelete: () => void;
 }
 
-export default function ConfigFilterSettings(props: ConfigFilterSettingsProps) {
+export function FilterSettingsPage(props: FilterSettingsPageProps) {
 	const { config, onChange, onDelete } = props;
 
 	const onChangeColumns = useCallback(
@@ -41,7 +41,7 @@ export default function ConfigFilterSettings(props: ConfigFilterSettingsProps) {
 					/>
 				</SettingsSection>
 				<SettingsSection title="Columns" className="pt-5">
-					<ConfigColumnList columns={config.columns} onChange={onChangeColumns} />
+					<ColumnList columns={config.columns} onChange={onChangeColumns} />
 				</SettingsSection>
 				<SettingsSection title="Delete Filter" className="pt-5">
 					<button

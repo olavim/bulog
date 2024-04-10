@@ -3,7 +3,7 @@ import { ChangeEventHandler, memo, useCallback, useEffect, useState } from 'reac
 import { MdCheckCircle, MdRemoveCircle } from 'react-icons/md';
 import CodeMirror from '@uiw/react-codemirror';
 
-interface ColumnViewProps {
+interface ColumnSettingsProps {
 	column: ColumnConfig;
 	onChange?: (config: ColumnConfig) => void;
 	onSave?: (config: ColumnConfig) => void;
@@ -12,7 +12,7 @@ interface ColumnViewProps {
 
 const codeMirrorExtensions = [javascript()];
 
-export default memo(function ColumnView(props: ColumnViewProps) {
+export const ColumnSettings = memo(function ColumnSettings(props: ColumnSettingsProps) {
 	const { column: initialColumn, onSave, onChange, onDelete } = props;
 	const [column, setColumn] = useState(initialColumn);
 

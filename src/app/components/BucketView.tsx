@@ -1,20 +1,20 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { filter as liqeFilter, LiqeQuery } from 'liqe';
-import LogList from './LogList';
-import LogView from './LogView';
-import ColumnView from './ColumnView';
-import Drawer from './Drawer';
-import Search from './Search';
-import NewColumnButton from './NewColumnButton';
-import globalStore from '@/stores/globalStore';
-import useSandbox from '@/hooks/useSandbox';
-import { createColumn, deleteColumn } from '@/utils/columns';
+import { LogList } from './LogList';
+import { LogView } from './LogView';
+import { ColumnSettings } from './settings/ColumnSettings';
+import { Drawer } from './Drawer';
+import { Search } from './Search';
+import { NewColumnButton } from './NewColumnButton';
+import { globalStore } from '@stores/globalStore';
+import { useSandbox } from '@hooks/useSandbox';
+import { createColumn, deleteColumn } from '@utils/columns';
 
 interface BucketLogsProps {
 	bucket: string;
 }
 
-export default memo(function BucketLogs(props: BucketLogsProps) {
+export const BucketView = memo(function BucketView(props: BucketLogsProps) {
 	const { bucket } = props;
 
 	const sandbox = useSandbox();
@@ -117,7 +117,7 @@ export default memo(function BucketLogs(props: BucketLogsProps) {
 			)}
 			{selectedColumn && (
 				<Drawer title="Column details" onClose={onDeselect}>
-					<ColumnView
+					<ColumnSettings
 						column={selectedColumn}
 						onChange={handleSetColumn}
 						onDelete={handleDeleteColumn}

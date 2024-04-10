@@ -1,4 +1,4 @@
-import { BulogConfigSchema } from '../../schemas';
+import { BulogConfigSchema } from '@/schemas';
 
 export async function getBucketsConfig() {
 	const res = await fetch('/api/config/buckets');

@@ -13,7 +13,7 @@ interface InfoBannerProps {
 	children: React.ReactNode;
 }
 
-export default function InfoBanner(
+export function InfoBanner(
 	props: InfoBannerProps & Omit<React.HTMLProps<HTMLDivElement>, keyof InfoBannerProps>
 ) {
 	const { variant, children, ...rest } = props;

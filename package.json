@@ -20,7 +20,7 @@
 		"clean": "shx rm -rf dist",
 		"build": "npm run build:app && npm run build:cli",
 		"build:app": "tsc -p tsconfig.app.json && shx rm -rf dist/app && vite build",
-		"build:cli": "shx rm -rf dist/cli && tsc -p tsconfig.cli.json",
+		"build:cli": "shx rm -rf dist/cli && tsc -p tsconfig.cli.json && tsc-alias -p tsconfig.cli.json",
 		"check:ts": "npm run check:ts:app && npm run check:ts:cli",
 		"check:ts:app": "tsc -p tsconfig.app.json --noEmit",
 		"check:ts:cli": "tsc -p tsconfig.cli.json --noEmit",
@@ -100,6 +100,7 @@
 		"shx": "^0.3.4",
 		"start-server-and-test": "^2.0.3",
 		"tailwindcss": "^3.4.1",
+		"tsc-alias": "^1.8.8",
 		"tsx": "^4.7.1",
 		"typescript": "^5.2.2",
 		"vite": "^5.1.4"

@@ -8,15 +8,16 @@ import {
 	closestCenter
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { createColumn } from '@/utils/columns';
-import ConfigColumnSettings, { ConfigColumnSettingsOverlay } from './ConfigColumnSettings';
+import { createColumn } from '@utils/columns';
+import { ColumnListItem } from './ColumnListItem';
+import { ColumnListItemOverlay } from './ColumnListItemOverlay';
 
-interface ColumnTreeProps {
+interface ColumnListProps {
 	columns: ColumnConfig[];
 	onChange: (columns: ColumnConfig[]) => void;
 }
 
-export default function ConfigColumnList(props: ColumnTreeProps) {
+export function ColumnList(props: ColumnListProps) {
 	const { columns, onChange } = props;
 	const [columnExpanded, setColumnExpanded] = useState<Record<string, boolean>>({});
 	const [dragColumn, setDragColumn] = useState<ColumnConfig | null>(null);
@@ -79,10 +80,7 @@ export default function ConfigColumnList(props: ColumnTreeProps) {
 		>
 			<DragOverlay>
 				{dragColumn && (
-					<ConfigColumnSettingsOverlay
-						column={dragColumn}
-						expanded={columnExpanded[dragColumn.id]}
-					/>
+					<ColumnListItemOverlay column={dragColumn} expanded={columnExpanded[dragColumn.id]} />
 				)}
 			</DragOverlay>
 			<div className="space-y-2">
@@ -91,7 +89,7 @@ export default function ConfigColumnList(props: ColumnTreeProps) {
 					strategy={verticalListSortingStrategy}
 				>
 					{columns.map((column) => (
-						<ConfigColumnSettings
+						<ColumnListItem
 							key={column.id}
 							column={column}
 							expanded={columnExpanded[column.id] || false}

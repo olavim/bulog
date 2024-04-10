@@ -1,8 +1,8 @@
 import { StateCreator } from 'zustand';
 import { GlobalStore } from './globalStore';
-import createBucketStore, { BucketStoreApi } from './bucketStore';
-import { Sandbox } from '@/context/SandboxContext';
-import { bucketConfigToData, createBucket } from '@/utils/buckets';
+import { createBucketStore, BucketStoreApi } from './bucketStore';
+import { Sandbox } from '@context/SandboxContext';
+import { bucketConfigToData, createBucket } from '@utils/buckets';
 
 export interface BucketSlice {
 	buckets: Map<string, BucketStoreApi>;
@@ -12,7 +12,7 @@ export interface BucketSlice {
 
 type BucketSliceCreator = StateCreator<GlobalStore, [['zustand/immer', never]], [], BucketSlice>;
 
-const createBucketSlice: BucketSliceCreator = (set) => ({
+export const createBucketSlice: BucketSliceCreator = (set) => ({
 	buckets: new Map(),
 	loadBuckets: (buckets) => {
 		set((state) => {
@@ -29,5 +29,3 @@ const createBucketSlice: BucketSliceCreator = (set) => ({
 		});
 	}
 });
-
-export default createBucketSlice;

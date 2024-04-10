@@ -1,6 +1,6 @@
 import { Mutate, StoreApi, createStore } from 'zustand';
-import globalStore, { WithSelectors, createSelectors } from './globalStore';
-import { Sandbox } from '@/context/SandboxContext';
+import { globalStore, WithSelectors, createSelectors } from './globalStore';
+import { Sandbox } from '@context/SandboxContext';
 import { immer } from 'zustand/middleware/immer';
 import { subscribeWithSelector } from 'zustand/middleware';
 
@@ -17,7 +17,7 @@ export type BucketStoreApi = WithSelectors<
 	>
 >;
 
-const createBucketStore = (initialData: BucketData): BucketStoreApi => {
+export const createBucketStore = (initialData: BucketData): BucketStoreApi => {
 	return createSelectors(
 		createStore<BucketStore>()(
 			subscribeWithSelector(
@@ -44,5 +44,3 @@ const createBucketStore = (initialData: BucketData): BucketStoreApi => {
 		)
 	);
 };
-
-export default createBucketStore;

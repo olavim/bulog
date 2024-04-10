@@ -12,7 +12,7 @@ interface FilterSettingsProps {
 	onDelete?: () => void;
 }
 
-export default function ColumnView(props: FilterSettingsProps) {
+export function FilterSettings(props: FilterSettingsProps) {
 	const { id, name, predicateString, onChange, onSave, onDelete } = props;
 	const [nameStr, setNameStr] = useState(name);
 	const [predicateStr, setPredicateStr] = useState(predicateString);

@@ -1,22 +1,22 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { filter as liqeFilter, LiqeQuery } from 'liqe';
-import LogList from './LogList';
-import LogView from './LogView';
-import ColumnView from './ColumnView';
-import Drawer from './Drawer';
-import Search from './Search';
-import NewColumnButton from './NewColumnButton';
+import { LogList } from './LogList';
+import { LogView } from './LogView';
+import { ColumnSettings } from './settings/ColumnSettings';
+import { Drawer } from './Drawer';
+import { Search } from './Search';
+import { NewColumnButton } from './NewColumnButton';
 import { IoMdSettings } from 'react-icons/io';
-import FilterSettings from './FilterSettings';
-import useSandbox from '@/hooks/useSandbox';
-import globalStore from '@/stores/globalStore';
-import { createColumn, deleteColumn } from '@/utils/columns';
+import { FilterSettings } from './settings/FilterSettings';
+import { useSandbox } from '@hooks/useSandbox';
+import { globalStore } from '@stores/globalStore';
+import { createColumn, deleteColumn } from '@utils/columns';
 
 interface FilterViewProps {
 	filterId: string;
 }
 
-export default memo(function FilterView(props: FilterViewProps) {
+export const FilterView = memo(function FilterView(props: FilterViewProps) {
 	const { filterId } = props;
 
 	const sandbox = useSandbox();
@@ -172,7 +172,7 @@ export default memo(function FilterView(props: FilterViewProps) {
 			)}
 			{selectedColumn && (
 				<Drawer title="Column details" onClose={onDeselect}>
-					<ColumnView
+					<ColumnSettings
 						column={selectedColumn}
 						onChange={handleSetColumn}
 						onDelete={handleDeleteColumn}

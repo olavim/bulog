@@ -1,9 +1,9 @@
 import { StateCreator } from 'zustand';
 import { GlobalStore } from './globalStore';
-import createFilterStore, { FilterStoreApi } from './filterStore';
+import { createFilterStore, FilterStoreApi } from './filterStore';
 import { nanoid } from 'nanoid';
-import { Sandbox } from '@/context/SandboxContext';
-import { createFilter, filterConfigToData } from '@/utils/filters';
+import { Sandbox } from '@context/SandboxContext';
+import { createFilter, filterConfigToData } from '@utils/filters';
 
 export interface FilterSlice {
 	filters: Map<string, FilterStoreApi>;
@@ -15,7 +15,7 @@ export interface FilterSlice {
 
 type FilterSliceCreator = StateCreator<GlobalStore, [['zustand/immer', never]], [], FilterSlice>;
 
-const createFilterSlice: FilterSliceCreator = (set, get) => ({
+export const createFilterSlice: FilterSliceCreator = (set, get) => ({
 	filters: new Map(),
 	renameFilter: async (filterId, name) => {
 		get()
@@ -57,5 +57,3 @@ const createFilterSlice: FilterSliceCreator = (set, get) => ({
 		);
 	}
 });
-
-export default createFilterSlice;

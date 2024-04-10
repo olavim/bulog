@@ -1,27 +1,27 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { TbServer } from 'react-icons/tb';
-import SettingsTab from './SettingsTab';
-import ConfigBucketSettings from './ConfigBucketSettings';
-import globalStore from '@/stores/globalStore';
+import { SettingsTab } from './SettingsTab';
+import { BucketSettingsPage } from './pages/BucketSettingsPage';
+import { globalStore } from '@stores/globalStore';
 import { MdAddCircleOutline, MdClose, MdImportExport } from 'react-icons/md';
 import { CgSpinner } from 'react-icons/cg';
-import ConfigFilterSettings from './ConfigFilterSettings';
-import { createFilter, filterDataToConfig } from '@/utils/filters';
+import { FilterSettingsPage } from './pages/FilterSettingsPage';
+import { createFilter, filterDataToConfig } from '@utils/filters';
 import { nanoid } from 'nanoid';
-import useSandbox from '@/hooks/useSandbox';
-import { bucketDataToConfig } from '@/utils/buckets';
-import ImportExport from './ImportExport';
-import ConfigServerSettings from './ConfigServerSettings';
-import { BulogConfigSchema } from '../../../schemas';
+import { useSandbox } from '@hooks/useSandbox';
+import { bucketDataToConfig } from '@utils/buckets';
+import { ImportExportPage } from './pages/ImportExportPage';
+import { ServerSettingsPage } from './pages/ServerSettingsPage';
+import { BulogConfigSchema } from '@/schemas';
 import { ZodIssue } from 'zod';
-import SettingsTabPanel from './SettingsTabPanel';
+import { SettingsTabPanel } from './SettingsTabPanel';
 
 interface SettingsDialogProps {
 	open: boolean;
 	onClose: () => void;
 }
 
-export default memo(function SettingsDialog(props: SettingsDialogProps) {
+export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialogProps) {
 	const { open, onClose } = props;
 	const [tab, setTab] = useState<string>('server');
 	const config = globalStore.use.config();
@@ -266,7 +266,7 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 								id={`buckets:${bucketId}`}
 								visible={tab === `buckets:${bucketId}`}
 							>
-								<ConfigBucketSettings
+								<BucketSettingsPage
 									config={configDraft.buckets[bucketId]}
 									validationErrors={bucketValidationErrors[`buckets.${bucketId}`] ?? []}
 									onChange={onChangeBucketConfig}
@@ -280,7 +280,7 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 								id={`filters:${filterId}`}
 								visible={tab === `filters:${filterId}`}
 							>
-								<ConfigFilterSettings
+								<FilterSettingsPage
 									config={configDraft.filters[filterId]}
 									validationErrors={filterValidationErrors[filterId] ?? []}
 									onChange={onChangeFilterConfig}
@@ -289,10 +289,10 @@ export default memo(function SettingsDialog(props: SettingsDialogProps) {
 							</SettingsTabPanel>
 						))}
 						<SettingsTabPanel id="importexport" visible={tab === 'importexport'}>
-							<ImportExport onImport={onImport} />
+							<ImportExportPage onImport={onImport} />
 						</SettingsTabPanel>
 						<SettingsTabPanel id="server" visible={tab === 'server'}>
-							<ConfigServerSettings
+							<ServerSettingsPage
 								config={configDraft.server}
 								validationErrors={serverValidationErrors}
 								onChange={onChangeServerConfig}

@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TableComponents, TableVirtuoso, VirtuosoHandle } from 'react-virtuoso';
-import Log from './Log';
+import { Log } from './Log';
 import { useOverlayScrollbars } from 'overlayscrollbars-react';
 import { InstancePlugin, OverlayScrollbars } from 'overlayscrollbars';
 import {
@@ -11,7 +11,8 @@ import {
 	closestCenter
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from '@dnd-kit/sortable';
-import LogColumn, { LogColumnOverlay } from './LogColumn';
+import { LogColumnHeader } from './LogColumnHeader';
+import { LogColumnHeaderOverlay } from './LogColumnHeaderOverlay';
 import { useResizeDetector } from 'react-resize-detector';
 import useGlobalEvent from 'beautiful-react-hooks/useGlobalEvent';
 
@@ -120,7 +121,7 @@ interface LogListProps {
 	onChangeColumns: (columns: ColumnConfig[]) => void;
 }
 
-export default function LogList(props: LogListProps) {
+export function LogList(props: LogListProps) {
 	const {
 		logs,
 		columns,
@@ -299,7 +300,7 @@ export default function LogList(props: LogListProps) {
 					disabled={columnResizeData !== null}
 				>
 					{columns.map((col) => (
-						<LogColumn
+						<LogColumnHeader
 							key={col.id}
 							column={col}
 							onClick={onSelectColumn}
@@ -354,7 +355,7 @@ export default function LogList(props: LogListProps) {
 				autoScroll={{ threshold: { x: 0.2, y: 0 } }}
 			>
 				<DragOverlay>
-					{dragColumn && <LogColumnOverlay width={dragColumn.width} name={dragColumn.name} />}
+					{dragColumn && <LogColumnHeaderOverlay width={dragColumn.width} name={dragColumn.name} />}
 				</DragOverlay>
 				<div ref={rootRef} data-overlayscrollbars="" className="h-full overflow-visible" />
 				<TableVirtuoso

@@ -3,9 +3,7 @@ interface SettingsSectionProps {
 	children: React.ReactNode;
 }
 
-export default function SettingsSection(
-	props: SettingsSectionProps & React.HTMLProps<HTMLDivElement>
-) {
+export function SettingsSection(props: SettingsSectionProps & React.HTMLProps<HTMLDivElement>) {
 	const { title, children, ...rest } = props;
 
 	return (

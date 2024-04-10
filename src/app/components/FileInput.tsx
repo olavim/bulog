@@ -4,7 +4,7 @@ interface FileInputProps {
 	onChange: (file: File) => void;
 }
 
-export default function FileInput(
+export function FileInput(
 	props: FileInputProps & Omit<React.HTMLProps<HTMLDivElement>, keyof FileInputProps>
 ) {
 	const { onChange, ...rest } = props;

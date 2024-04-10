@@ -4,7 +4,7 @@ interface NewColumnButtonProps {
 	onClick: () => void;
 }
 
-export default function NewColumnButton(props: NewColumnButtonProps) {
+export function NewColumnButton(props: NewColumnButtonProps) {
 	const { onClick } = props;
 
 	return (

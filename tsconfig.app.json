@@ -16,7 +16,14 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
 		"paths": {
-			"@/*": ["./src/app/*"]
+			"@/schemas": ["./src/schemas.ts"],
+			"@/config": ["./src/cli/config.ts"],
+			"@components/*": ["./src/app/components/*"],
+			"@api/*": ["./src/app/api/*"],
+			"@context/*": ["./src/app/context/*"],
+			"@hooks/*": ["./src/app/hooks/*"],
+			"@stores/*": ["./src/app/stores/*"],
+			"@utils/*": ["./src/app/utils/*"]
 		}
 	},
 	"include": ["src/app", "src/types.d.ts", "src/schemas.ts"],

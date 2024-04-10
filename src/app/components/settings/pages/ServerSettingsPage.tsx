@@ -1,15 +1,15 @@
 import { ChangeEventHandler, useCallback } from 'react';
-import SettingsSection from './SettingsSection';
+import { SettingsSection } from '@components/settings/SettingsSection';
 import { ZodIssue } from 'zod';
-import ValidatedInput from '../ValidatedInput';
+import { ValidatedInput } from '@components/ValidatedInput';
 
-interface ConfigServerSettingsProps {
+interface ServerSettingsPageProps {
 	config: ServerConfig;
 	validationErrors: Record<string, ZodIssue>;
 	onChange: (config: ServerConfig) => void;
 }
 
-export default function ConfigServerSettings(props: ConfigServerSettingsProps) {
+export function ServerSettingsPage(props: ServerSettingsPageProps) {
 	const { config, validationErrors, onChange } = props;
 
 	const onChangeHostname: ChangeEventHandler<HTMLInputElement> = useCallback(

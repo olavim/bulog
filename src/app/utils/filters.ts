@@ -1,4 +1,4 @@
-import { Sandbox } from '@/context/SandboxContext';
+import { Sandbox } from '@context/SandboxContext';
 import { createDefaultColumns } from './columns';
 
 const defaultPredicateString = `

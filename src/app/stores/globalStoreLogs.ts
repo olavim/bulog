@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { GlobalStore } from './globalStore';
-import { Sandbox } from '@/context/SandboxContext';
+import { Sandbox } from '@context/SandboxContext';
 
 export interface LogSlice {
 	logs: LogData[];
@@ -9,7 +9,7 @@ export interface LogSlice {
 
 type LogSliceCreator = StateCreator<GlobalStore, [['zustand/immer', never]], [], LogSlice>;
 
-const createLogSlice: LogSliceCreator = (set, get) => ({
+export const createLogSlice: LogSliceCreator = (set, get) => ({
 	logs: [],
 	addLogs: async (logs, sandbox) => {
 		// Check if the logs are already in the store
@@ -56,5 +56,3 @@ const createLogSlice: LogSliceCreator = (set, get) => ({
 		});
 	}
 });
-
-export default createLogSlice;

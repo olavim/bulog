@@ -53,7 +53,7 @@ interface LogCellProps {
 	last?: boolean;
 }
 
-export default function LogCell(props: LogCellProps) {
+export function LogCell(props: LogCellProps) {
 	const { value, width, grow, last } = props;
 
 	return (

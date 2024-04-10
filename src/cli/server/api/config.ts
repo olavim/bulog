@@ -7,8 +7,8 @@ import {
 	resetTempConfigs,
 	getServerConfig,
 	saveServerConfig
-} from '../../config.js';
-import { BulogConfigSchema } from '../../../schemas.js';
+} from '@/config';
+import { BulogConfigSchema } from '@/schemas';
 import { nanoid } from 'nanoid';
 
 const router = express.Router();

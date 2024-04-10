@@ -6,7 +6,7 @@ interface ValidatedInputProps {
 	onChange: ChangeEventHandler<HTMLInputElement>;
 }
 
-export default function ValidatedInput(
+export function ValidatedInput(
 	props: ValidatedInputProps &
 		Omit<React.HTMLProps<HTMLInputElement>, 'value' | 'onChange' | 'className'>
 ) {

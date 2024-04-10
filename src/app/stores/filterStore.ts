@@ -1,6 +1,6 @@
 import { Mutate, StoreApi, createStore } from 'zustand';
-import globalStore, { WithSelectors, createSelectors } from './globalStore';
-import { Sandbox } from '@/context/SandboxContext';
+import { globalStore, WithSelectors, createSelectors } from './globalStore';
+import { Sandbox } from '@context/SandboxContext';
 import { immer } from 'zustand/middleware/immer';
 import { subscribeWithSelector } from 'zustand/middleware';
 
@@ -21,7 +21,7 @@ export type FilterStoreApi = WithSelectors<
 	>
 >;
 
-const createFilterStore = (data: FilterData): FilterStoreApi => {
+export const createFilterStore = (data: FilterData): FilterStoreApi => {
 	return createSelectors(
 		createStore<FilterStore>()(
 			subscribeWithSelector(
@@ -93,5 +93,3 @@ const createFilterStore = (data: FilterData): FilterStoreApi => {
 		)
 	);
 };
-
-export default createFilterStore;

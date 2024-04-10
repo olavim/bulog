@@ -2,7 +2,7 @@ import { WebSocket } from 'ws';
 import { Args, Command, Flags } from '@oclif/core';
 import JSON5 from 'json5';
 import _ from 'lodash';
-import { getServerConfig, resetTempConfigs, validateConfigs } from '../config.js';
+import { getServerConfig, resetTempConfigs, validateConfigs } from '@/config';
 
 export class Run extends Command {
 	static args = {
@@ -116,7 +116,7 @@ $ bulog [BUCKET] [-h <host>] [-p <port>] [-v <value>....] [-o]
 			}
 		}
 
-		const { getServer } = await import('../server/index.js');
+		const { getServer } = await import('@server/index.js');
 
 		const server = await getServer({ tempConfig, memorySize });
 

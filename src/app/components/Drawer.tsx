@@ -6,7 +6,7 @@ interface DrawerProps {
 	onClose: () => void;
 }
 
-export default function Drawer(props: DrawerProps) {
+export function Drawer(props: DrawerProps) {
 	const { title, children, onClose } = props;
 	return (
 		<div className="basis-auto grow-0 shrink-0 max-h-full min-h-full overflow-hidden flex flex-col bg-white shadow-xl">

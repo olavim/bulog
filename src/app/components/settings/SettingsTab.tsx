@@ -9,7 +9,7 @@ interface SettingsTabProps {
 	onClick: (id: string) => void;
 }
 
-export default function SettingsTab(props: SettingsTabProps) {
+export function SettingsTab(props: SettingsTabProps) {
 	const { id, title, selected, onClick, Icon } = props;
 
 	const handleClick = useCallback(() => {

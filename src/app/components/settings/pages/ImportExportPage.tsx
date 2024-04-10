@@ -1,9 +1,9 @@
 import { ChangeEventHandler, useCallback, useState } from 'react';
 import { AiOutlineExport, AiOutlineImport } from 'react-icons/ai';
-import { BulogConfigSchema } from '../../../schemas';
-import SettingsSection from './SettingsSection';
-import FileInput from '../FileInput';
-import InfoBanner from './InfoBanner';
+import { BulogConfigSchema } from '@/schemas';
+import { SettingsSection } from '@components/settings/SettingsSection';
+import { FileInput } from '@components/FileInput';
+import { InfoBanner } from '@components/settings/InfoBanner';
 
 const settings: Array<{ key: keyof BulogConfig; label: string; default: boolean }> = [
 	{ key: 'buckets', label: 'Bucket settings', default: true },
@@ -11,11 +11,11 @@ const settings: Array<{ key: keyof BulogConfig; label: string; default: boolean 
 	{ key: 'server', label: 'Server settings', default: false }
 ];
 
-interface ImportExportProps {
+interface ImportExportPageProps {
 	onImport: (config: Partial<BulogConfig>) => void;
 }
 
-export default function ImportExport(props: ImportExportProps) {
+export function ImportExportPage(props: ImportExportPageProps) {
 	const { onImport } = props;
 
 	const [checkedExports, setCheckedExports] = useState<Record<string, boolean>>(

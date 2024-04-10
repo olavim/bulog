@@ -1,17 +1,17 @@
 import { useCallback } from 'react';
-import ConfigColumnList from './ConfigColumnList';
-import SettingsSection from './SettingsSection';
+import { ColumnList } from '@components/settings/ColumnList';
+import { SettingsSection } from '@components/settings/SettingsSection';
 import { MdRemoveCircle } from 'react-icons/md';
 import { ZodIssue } from 'zod';
 
-interface ConfigBucketSettingsProps {
+interface BucketSettingsPageProps {
 	config: BucketConfig;
 	validationErrors: Record<string, ZodIssue>;
 	onChange: (config: BucketConfig) => void;
 	onDelete: () => void;
 }
 
-export default function ConfigBucketSettings(props: ConfigBucketSettingsProps) {
+export function BucketSettingsPage(props: BucketSettingsPageProps) {
 	const { config, onChange, onDelete } = props;
 
 	const onChangeColumns = useCallback(
@@ -24,7 +24,7 @@ export default function ConfigBucketSettings(props: ConfigBucketSettingsProps) {
 	return (
 		<div className="flex flex flex-col max-h-full">
 			<SettingsSection title="Columns" className="pt-5">
-				<ConfigColumnList columns={config.columns} onChange={onChangeColumns} />
+				<ColumnList columns={config.columns} onChange={onChangeColumns} />
 			</SettingsSection>
 			<SettingsSection title="Delete Bucket" className="space-y-4 pt-5">
 				<p className="text-sm font-normal text-slate-500">

@@ -8,7 +8,7 @@ interface SearchProps {
 	onSearch: (query: LiqeQuery | null) => void;
 }
 
-export default function Search(props: SearchProps) {
+export function Search(props: SearchProps) {
 	const { onSearch } = props;
 
 	const [searchStr, setSearchStr] = useState<string>('');

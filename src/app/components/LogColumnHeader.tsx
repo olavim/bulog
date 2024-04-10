@@ -3,38 +3,12 @@ import { useSortable } from '@dnd-kit/sortable';
 import { MouseEventHandler, useCallback } from 'react';
 import { MdDragIndicator } from 'react-icons/md';
 
-interface LogColumnOverlayProps {
+export interface LogColumnOverlayProps {
 	name: string;
 	width: number;
 }
 
-export function LogColumnOverlay(props: LogColumnOverlayProps) {
-	const { name, width } = props;
-
-	return (
-		<div
-			className="cursor-grabbing uppercase text-xs group font-semibold flex text-left items-center text-slate-600 hover:text-slate-500 data-[selected]:hover:text-slate-600 border-y bg-slate-50 shadow"
-			style={{ width: width + 3, height: 35 }}
-		>
-			<span className="h-full bg-clip-content">
-				<span className="inline-block min-w-[1px] h-full border-x box-content" />
-			</span>
-			<div className="pl-6 grow flex items-center overflow-hidden">
-				<div className="w-full text-ellipsis overflow-hidden">{name}</div>
-				<div className="basis-auto shrink-0 grow-0 flex items-center">
-					<span className="py-1 mr-1 rounded bg-slate-200">
-						<MdDragIndicator className="text-lg text-slate-400" />
-					</span>
-				</div>
-			</div>
-			<span className="h-full bg-clip-content">
-				<span className="inline-block min-w-[1px] h-full border-x box-content" />
-			</span>
-		</div>
-	);
-}
-
-interface LogColumnProps {
+interface LogColumnHeaderProps {
 	column: ColumnConfig;
 	onClick: (column: ColumnConfig) => void;
 	onResizeStart: (column: ColumnConfig, mouseX: number) => void;
@@ -42,7 +16,7 @@ interface LogColumnProps {
 	selected: boolean;
 }
 
-export default function LogColumn(props: LogColumnProps) {
+export function LogColumnHeader(props: LogColumnHeaderProps) {
 	const { column, resizing, selected, onResizeStart, onClick } = props;
 
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging, isSorting } =
@@ -80,7 +54,8 @@ export default function LogColumn(props: LogColumnProps) {
 				style={{
 					transform: CSS.Translate.toString(transform),
 					transition: isSorting ? transition : undefined,
-					zIndex: isDragging ? 10 : undefined
+					zIndex: isDragging ? 10 : undefined,
+					cursor: isDragging ? 'grabbing' : selected ? 'default' : 'pointer'
 				}}
 				{...attributes}
 				onClick={handleClick}

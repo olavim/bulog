@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import LogCell from './LogCell';
+import { LogCell } from './LogCell';
 
 interface LogProps {
 	log: LogData;
@@ -9,7 +9,7 @@ interface LogProps {
 	renderer: (logs: LogData[]) => Promise<Array<{ [id: string]: JSONValue }>>;
 }
 
-function Log(props: LogProps) {
+export function Log(props: LogProps) {
 	const { log, columns, renderer, prerender, last } = props;
 	const [render, setRender] = useState<JSONValue[]>([]);
 
@@ -33,5 +33,3 @@ function Log(props: LogProps) {
 		</>
 	);
 }
-
-export default Log;

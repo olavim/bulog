@@ -1,16 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
-import Tab from '@/components/Tab';
+import { Tab } from '@components/Tab';
 import { Tooltip } from 'react-tooltip';
-import BucketView from '@/components/BucketView';
+import { BucketView } from '@components/BucketView';
 import { MdAddCircleOutline } from 'react-icons/md';
-import FilterView from './components/FilterView';
+import { FilterView } from './components/FilterView';
 import useWebSocket from 'react-use-websocket';
-import globalStore from './stores/globalStore';
-import useSandbox from './hooks/useSandbox';
+import { globalStore } from './stores/globalStore';
+import { useSandbox } from './hooks/useSandbox';
 import { IoMdSettings } from 'react-icons/io';
-import SettingsDialog from './components/settings/SettingsDialog';
+import { SettingsDialog } from './components/settings/SettingsDialog';
 
-export default function Home() {
+export function Home() {
 	const [host, setHost] = useState<string>();
 
 	useEffect(() => {

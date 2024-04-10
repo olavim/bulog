@@ -4,7 +4,7 @@ interface SettingsTabPanelProps {
 	children: React.ReactNode;
 }
 
-export default function SettingsTabPanel(props: SettingsTabPanelProps) {
+export function SettingsTabPanel(props: SettingsTabPanelProps) {
 	const { id, visible, children } = props;
 
 	return (
