@@ -11,7 +11,7 @@
 	"bin": {
 		"bulog": "bin/run.js"
 	},
-	"version": "0.4.0",
+	"version": "0.5.0",
 	"scripts": {
 		"start": "node ./bin/run.js -p 3000",
 		"start:test": "node ./bin/run.js -p 3400 --tempConfig",
@@ -34,7 +34,7 @@
 		"test:prod": "start-server-and-test start:test http://localhost:3400 cypress:run",
 		"test:prod:open": "start-server-and-test start:test http://localhost:3400 cypress:open",
 		"prepare": "husky",
-		"prepublishOnly": "npm run build"
+		"prepublishOnly": "npm run build && npm run test:prod"
 	},
 	"dependencies": {
 		"@codemirror/lang-javascript": "^6.2.2",
