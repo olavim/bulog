@@ -3,8 +3,21 @@ import path from 'path';
 import envPaths from 'env-paths';
 import z32 from 'z32';
 import lodash from 'lodash';
+import lockfile from 'proper-lockfile';
 
 const paths = envPaths('bulog');
+
+export async function reserveInstance(instanceId: string) {
+	const encodedId = z32.encode(instanceId);
+	const configPath = path.resolve(paths.data, `instance.${encodedId}`);
+	return lockfile.lock(configPath);
+}
+
+export function releaseInstance(instanceId: string) {
+	const encodedId = z32.encode(instanceId);
+	const configPath = path.resolve(paths.data, `instance.${encodedId}`);
+	return lockfile.unlockSync(configPath);
+}
 
 export async function getInstanceConfig(instanceId: string) {
 	const encodedId = z32.encode(instanceId);

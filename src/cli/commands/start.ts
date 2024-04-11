@@ -1,6 +1,6 @@
 import { Command, Flags } from '@oclif/core';
 import { getServerConfig, resetTempConfigs, validateConfigs } from '@cli/utils/config.js';
-import { saveInstanceConfig } from '@cli/utils/instance.js';
+import { releaseInstance, reserveInstance, saveInstanceConfig } from '@cli/utils/instance.js';
 import { SystemSignals } from '@cli/server/system-signals.js';
 import { getServer } from '@server/index.js';
 import type { Server } from 'http';
@@ -46,27 +46,25 @@ export class Start extends Command {
 
 	async run() {
 		const { flags } = await this.parse(Start);
-		const { tempConfig } = flags;
 
-		if (tempConfig) {
-			await resetTempConfigs();
-		} else {
-			try {
-				await validateConfigs(flags.instance);
-			} catch (e: any) {
-				this.error(e.message, { exit: 1 });
-			}
+		if (process.env.NODE_ENV === 'development') {
+			process.on('message', (msg) => {
+				if (msg === 'shutdown') {
+					releaseInstance(flags.instance);
+					process.exit(0);
+				}
+			});
 		}
 
-		const systemSignals = new SystemSignals();
+		try {
+			await reserveInstance(flags.instance);
+		} catch (err) {
+			this.error(`Instance "${flags.instance}" is already running`, { exit: 1 });
+		}
 
-		let server: Server;
-		let nextConnectionId = 0;
-		const serverConnections: Record<string, Socket> = {};
-
-		const startServer = async () => {
-			const config = await getServerConfig(flags.instance, tempConfig);
-			const env: BulogEnvironment = {
+		const getEnv = async (): Promise<BulogEnvironment> => {
+			const config = await getServerConfig(flags.instance, flags.tempConfig);
+			return {
 				host: {
 					config: flags.host === undefined,
 					value: flags.host ?? config.defaults.hostname
@@ -88,7 +86,48 @@ export class Start extends Command {
 					value: flags.tempConfig
 				}
 			};
+		};
 
+		// const existingInstance = await getInstanceConfig(flags.instance);
+		// if (existingInstance) {
+		// 	let runningInstanceName: string | null = null;
+		// 	try {
+		// 		const res = await fetch(
+		// 			`http://${existingInstance.replace('0.0.0.0:', '127.0.0.1:')}/api/health`
+		// 		);
+		// 		runningInstanceName = (await res.json()).instance;
+		// 	} catch (err: any) {
+		// 		// All good
+		// 	}
+
+		// 	if (runningInstanceName) {
+		// 		this.error(
+		// 			runningInstanceName === flags.instance
+		// 				? `Instance "${runningInstanceName}" is already running on port ${existingInstance.split(':')[1]}`
+		// 				: `Port ${existingInstance.split(':')[1]} is already in use`,
+		// 			{ exit: 1 }
+		// 		);
+		// 	}
+		// }
+
+		if (flags.tempConfig) {
+			await resetTempConfigs();
+		} else {
+			try {
+				await validateConfigs(flags.instance);
+			} catch (e: any) {
+				this.error(e.message, { exit: 1 });
+			}
+		}
+
+		const systemSignals = new SystemSignals();
+
+		let server: Server;
+		let nextConnectionId = 0;
+		const serverConnections: Record<string, Socket> = {};
+
+		const startServer = async () => {
+			const env = await getEnv();
 			server = await getServer(env, systemSignals);
 
 			server.on('connection', (socket) => {
