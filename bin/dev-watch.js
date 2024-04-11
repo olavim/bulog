@@ -2,6 +2,7 @@ const chokidar = await import('chokidar');
 const path = await import('path');
 const { fileURLToPath } = await import('url');
 const { spawn } = await import('child_process');
+const { onExit } = await import('signal-exit');
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -33,4 +34,12 @@ chokidar.watch(watchDirs, { ignoreInitial: true }).on('all', async (event) => {
 
 	child = getChild();
 	childExitPromise = new Promise((resolve) => child.on('exit', resolve));
+});
+
+onExit(async () => {
+	if (child) {
+		child.kill();
+		await childExitPromise;
+		process.exit(0);
+	}
 });
