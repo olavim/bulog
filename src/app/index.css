@@ -42,6 +42,8 @@ input:focus {
 .w-json-view-container {
 	position: relative;
 	padding-left: 21px;
+	font-size: 12px !important;
+	--w-rjv-font-family: 'Fira Code';
 }
 
 .w-rjv-copied {
@@ -157,7 +159,10 @@ b {
 }
 
 code {
-	font-family: 'Fira Code', monospace;
+	font-family: 'Fira Code';
+}
+
+.settings-section code {
 	background-color: #e2e8f0;
 	padding: 0.1rem 0.4rem;
 	margin: 0 0.25rem;

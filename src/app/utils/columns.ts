@@ -38,7 +38,7 @@ export const defaultLogRenderer =
 		}));
 	};
 
-export const createColumn = (config?: ColumnConfig) => {
+export const createColumn = (config?: Partial<ColumnConfig>) => {
 	return {
 		id: config?.id ?? nanoid(16),
 		name: config?.name ?? 'New Column',

@@ -71,13 +71,23 @@ export const FilterView = memo(function FilterView(props: FilterViewProps) {
 		}
 	}, [logs, query]);
 
-	const onAddColumn = useCallback(async () => {
+	const onAddColumn = useCallback(() => {
 		const newColumn = createColumn();
 		setSelectedColumnId(newColumn.id);
 		setSelectedLog(null);
 		setSettingOpen(false);
 		setColumns([...columns, newColumn], sandbox);
 	}, [columns, sandbox, setColumns]);
+
+	const onAddColumnWithConfig = useCallback(
+		(config: Partial<ColumnConfig>) => {
+			const newColumn = createColumn(config);
+			setSelectedColumnId(newColumn.id);
+			setSelectedLog(null);
+			setColumns([...columns, newColumn], sandbox);
+		},
+		[columns, sandbox, setColumns]
+	);
 
 	const onDeselect = useCallback(() => {
 		setSelectedLog(null);
@@ -167,7 +177,12 @@ export const FilterView = memo(function FilterView(props: FilterViewProps) {
 			</div>
 			{selectedLog && (
 				<Drawer title="Log details" onClose={onDeselect}>
-					<LogView log={selectedLog} onAddColumn={onAddColumn} />
+					<LogView
+						log={selectedLog}
+						columns={columns}
+						logRenderer={logRenderer}
+						onAddColumn={onAddColumnWithConfig}
+					/>
 				</Drawer>
 			)}
 			{selectedColumn && (
@@ -181,13 +196,15 @@ export const FilterView = memo(function FilterView(props: FilterViewProps) {
 			)}
 			{settingsOpen && (
 				<Drawer title="Filter settings" onClose={onDeselect}>
-					<FilterSettings
-						id={filterId}
-						name={filterName}
-						predicateString={filterPredicateString}
-						onSave={handleSetFilterConfig}
-						onDelete={onDeleteFilter}
-					/>
+					<div className="w-full px-6">
+						<FilterSettings
+							id={filterId}
+							name={filterName}
+							predicateString={filterPredicateString}
+							onSave={handleSetFilterConfig}
+							onDelete={onDeleteFilter}
+						/>
+					</div>
 				</Drawer>
 			)}
 		</div>

@@ -33,12 +33,22 @@ export const BucketView = memo(function BucketView(props: BucketLogsProps) {
 		[columns, selectedColumnId]
 	);
 
-	const onAddColumn = useCallback(async () => {
+	const onAddColumn = useCallback(() => {
 		const newColumn = createColumn();
 		setSelectedColumnId(newColumn.id);
 		setSelectedLog(null);
 		setColumns([...columns, newColumn], sandbox);
 	}, [columns, sandbox, setColumns]);
+
+	const onAddColumnWithConfig = useCallback(
+		(config: Partial<ColumnConfig>) => {
+			const newColumn = createColumn(config);
+			setSelectedColumnId(newColumn.id);
+			setSelectedLog(null);
+			setColumns([...columns, newColumn], sandbox);
+		},
+		[columns, sandbox, setColumns]
+	);
 
 	const onDeselect = useCallback(() => {
 		setSelectedLog(null);
@@ -112,7 +122,12 @@ export const BucketView = memo(function BucketView(props: BucketLogsProps) {
 			</div>
 			{selectedLog && (
 				<Drawer title="Log details" onClose={onDeselect}>
-					<LogView log={selectedLog} onAddColumn={onAddColumn} />
+					<LogView
+						log={selectedLog}
+						columns={columns}
+						logRenderer={logRenderer}
+						onAddColumn={onAddColumnWithConfig}
+					/>
 				</Drawer>
 			)}
 			{selectedColumn && (
