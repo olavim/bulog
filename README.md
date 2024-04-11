@@ -10,6 +10,7 @@ Stream application logs into a central web-based UI.
 - Add columns and configure them with a flexible JavaScript formatter.
 - Combine data from multiple buckets into filtered views.
 - Configurable from command line and from the web UI.
+- Import and export settings.
 
 ## Installation
 
@@ -116,7 +117,7 @@ EXAMPLES
 
 ## Instances
 
-You can give an instance name when you start a Bulog server instance. Each instance name has its own persistent configuration attached to it. This can make it easier to manage cases where you have multiple sets of buckets that you want to separate.
+You can give an instance name when you start Bulog. Each instance name has its own persistent configuration attached to it. This can make it easier to manage cases where you have multiple sets of buckets that you want to separate.
 
 An example would be simultaneous development of two different microservice architecture based projects. Here you might want to send logs from project A to one Bulog instance, and logs from project B to another. Named instances can support such use-cases without needing to remember port numbers.
 
@@ -148,4 +149,4 @@ $ tail -f logs.txt | bulog fw my-bucket
 
 ### Limitations
 
-When forwarding logs to a named instance, the instance must be running on the same system. You will need to specify the hostname and port to forward logs to a remote instance.
+When forwarding logs based on an instance name, the target instance must be running on the same system. You will need to specify the hostname and port to forward logs to a remote instance.
