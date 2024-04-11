@@ -11,7 +11,7 @@
 	"bin": {
 		"bulog": "bin/run.js"
 	},
-	"version": "0.5.0",
+	"version": "0.6.0",
 	"scripts": {
 		"start": "node ./bin/run.js start -p 3000",
 		"start:test": "node ./bin/run.js start -p 3400 --tempConfig",
