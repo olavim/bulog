@@ -4,15 +4,11 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import apiRouter from './api/index.js';
 import setupWebSocketServer from './api/sockets.js';
-import Comms from './comms.js';
+import { Comms } from './comms.js';
+import { SystemSignals } from './system-signals.js';
 
 const filename = fileURLToPath(import.meta.url);
 const appRoot = path.resolve(path.dirname(filename), '../../app');
-
-export interface ServerOptions {
-	tempConfig: boolean;
-	memorySize: number;
-}
 
 function serveStatic(app: express.Express) {
 	app.use('/assets', (_req, res, next) => {
@@ -27,25 +23,32 @@ function serveStatic(app: express.Express) {
 	});
 }
 
-async function serveVite(app: express.Express) {
+async function serveVite(app: express.Express, systemSignals: SystemSignals) {
 	const { createServer: createViteServer } = await import('vite');
 	const viteServer = await createViteServer({
 		server: { middlewareMode: true },
 		appType: 'spa'
 	});
 
+	systemSignals.onClose(async () => {
+		await viteServer.hot.close();
+		await viteServer.close();
+		return false;
+	});
+
 	app.use(viteServer.middlewares);
 }
 
-export async function getServer(options: ServerOptions) {
+export async function getServer(env: BulogEnvironment, systemSignals: SystemSignals) {
 	const app = express();
 	const comms = new Comms({
-		maxQueueSize: options.memorySize
+		maxQueueSize: env.memorySize.value
 	});
 
 	app.use((req, _res, next) => {
-		req.bulogOptions = options;
+		req.bulogEnvironment = env;
 		req.bulogComms = comms;
+		req.systemSignals = systemSignals;
 		next();
 	});
 
@@ -54,10 +57,10 @@ export async function getServer(options: ServerOptions) {
 	if (process.env.NODE_ENV === 'production') {
 		serveStatic(app);
 	} else {
-		await serveVite(app);
+		await serveVite(app, systemSignals);
 	}
 
 	const server = http.createServer(app);
-	setupWebSocketServer(server, comms);
+	setupWebSocketServer(server, comms, systemSignals);
 	return server;
 }

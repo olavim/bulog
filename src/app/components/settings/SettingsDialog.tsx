@@ -2,16 +2,16 @@ import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { TbServer } from 'react-icons/tb';
 import { SettingsTab } from './SettingsTab';
 import { BucketSettingsPage } from './pages/BucketSettingsPage';
-import { globalStore } from '@stores/globalStore';
+import { globalStore } from '@app/stores/globalStore';
 import { MdAddCircleOutline, MdClose, MdImportExport } from 'react-icons/md';
 import { CgSpinner } from 'react-icons/cg';
 import { FilterSettingsPage } from './pages/FilterSettingsPage';
-import { createFilter, filterDataToConfig } from '@utils/filters';
+import { createFilter, filterDataToConfig } from '@app/utils/filters';
 import { nanoid } from 'nanoid';
-import { useSandbox } from '@hooks/useSandbox';
-import { bucketDataToConfig } from '@utils/buckets';
+import { useSandbox } from '@app/hooks/useSandbox';
+import { bucketDataToConfig } from '@app/utils/buckets';
 import { ImportExportPage } from './pages/ImportExportPage';
-import { ServerSettingsPage } from './pages/ServerSettingsPage';
+import { SystemSettingsPage } from './pages/SystemSettingsPage';
 import { BulogConfigSchema } from '@/schemas';
 import { ZodIssue } from 'zod';
 import { SettingsTabPanel } from './SettingsTabPanel';
@@ -23,7 +23,7 @@ interface SettingsDialogProps {
 
 export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialogProps) {
 	const { open, onClose } = props;
-	const [tab, setTab] = useState<string>('server');
+	const [tab, setTab] = useState<string>('system');
 	const config = globalStore.use.config();
 	const buckets = globalStore.use.buckets();
 	const filters = globalStore.use.filters();
@@ -183,6 +183,7 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 		if (result.success) {
 			setValidationErrors([]);
 			setConfigTimeoutElapsed(false);
+			setConfigDraftChanged(false);
 			await saveConfig(result.data);
 			loadConfig(sandbox);
 			setTimeout(() => setConfigTimeoutElapsed(true), 1000);
@@ -212,9 +213,9 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 				<div className="flex flex-row grow overflow-y-hidden border-y border-black/10">
 					<div className="flex flex-col p-3 min-w-[12rem] space-y-1" role="tablist">
 						<SettingsTab
-							title="Server"
-							id="server"
-							selected={tab === 'server'}
+							title="System"
+							id="system"
+							selected={tab === 'system'}
 							onClick={setTab}
 							Icon={TbServer}
 						/>
@@ -265,6 +266,7 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 								key={bucketId}
 								id={`buckets:${bucketId}`}
 								visible={tab === `buckets:${bucketId}`}
+								disabled={!configLoaded || !configTimeoutElapsed}
 							>
 								<BucketSettingsPage
 									config={configDraft.buckets[bucketId]}
@@ -279,6 +281,7 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 								key={filterId}
 								id={`filters:${filterId}`}
 								visible={tab === `filters:${filterId}`}
+								disabled={!configLoaded || !configTimeoutElapsed}
 							>
 								<FilterSettingsPage
 									config={configDraft.filters[filterId]}
@@ -288,13 +291,23 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 								/>
 							</SettingsTabPanel>
 						))}
-						<SettingsTabPanel id="importexport" visible={tab === 'importexport'}>
+						<SettingsTabPanel
+							id="importexport"
+							visible={tab === 'importexport'}
+							disabled={!configLoaded || !configTimeoutElapsed}
+						>
 							<ImportExportPage onImport={onImport} />
 						</SettingsTabPanel>
-						<SettingsTabPanel id="server" visible={tab === 'server'}>
-							<ServerSettingsPage
+						<SettingsTabPanel
+							id="system"
+							visible={tab === 'system'}
+							disabled={!configLoaded || !configTimeoutElapsed}
+						>
+							<SystemSettingsPage
 								config={configDraft.server}
+								remoteConfig={config.server}
 								validationErrors={serverValidationErrors}
+								unsavedChanges={!configLoaded || !configTimeoutElapsed || configDraftChanged}
 								onChange={onChangeServerConfig}
 							/>
 						</SettingsTabPanel>
@@ -305,7 +318,7 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 						data-cy="discard-changes-button"
 						className="h-[30px] border border-gray-400 enabled:hover:border-gray-400/75 inline-flex items-center text-gray-500 enabled:hover:text-gray-400 enabled:active:text-gray-400/75 px-4 rounded font-medium disabled:opacity-50"
 						onClick={resetConfig}
-						disabled={!configDraftChanged}
+						disabled={!configLoaded || !configTimeoutElapsed || !configDraftChanged}
 					>
 						<span className="text-sm">{'Discard changes'}</span>
 					</button>

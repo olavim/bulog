@@ -1,10 +1,15 @@
-import { SandboxProvider } from '@context/SandboxContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SandboxProvider } from '@app/context/SandboxContext';
 import { Home } from './Home';
+
+const queryClient = new QueryClient();
 
 export function App() {
 	return (
-		<SandboxProvider>
-			<Home />
-		</SandboxProvider>
+		<QueryClientProvider client={queryClient}>
+			<SandboxProvider>
+				<Home />
+			</SandboxProvider>
+		</QueryClientProvider>
 	);
 }

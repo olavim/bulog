@@ -19,7 +19,7 @@ export interface CommsInterface {
 	filterLogs(predicate: (log: LogData) => any): void;
 }
 
-export default class Comms {
+export class Comms {
 	private broadcastedMessages: { [bucket: string]: number };
 	private messageQueue: Denque<LogData>;
 	private debounceData: DebounceData;

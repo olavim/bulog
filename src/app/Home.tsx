@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Tab } from '@components/Tab';
+import { Tab } from '@app/components/Tab';
 import { Tooltip } from 'react-tooltip';
-import { BucketView } from '@components/BucketView';
+import { BucketView } from '@app/components/BucketView';
 import { MdAddCircleOutline } from 'react-icons/md';
 import { FilterView } from './components/FilterView';
 import useWebSocket from 'react-use-websocket';
@@ -224,7 +224,7 @@ export function Home() {
 							className="flex items-center cursor-pointer text-slate-400 hover:text-slate-300 disabled:opacity-50 active:text-slate-200"
 							data-cy="settings-button"
 							onClick={openSettings}
-							disabled={!configLoaded}
+							disabled={!configLoaded && !settingsOpen}
 						>
 							<IoMdSettings className="text-xl" />
 							<span className="pl-4 text-xs font-medium relative">{'Settings'}</span>

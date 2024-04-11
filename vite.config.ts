@@ -24,13 +24,7 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			'@/schemas': path.resolve(dirname, 'src/schemas.ts'),
-			'@/config': path.resolve(dirname, 'src/cli/config.ts'),
-			'@components': path.resolve(dirname, 'src/app/components'),
-			'@api': path.resolve(dirname, 'src/app/api'),
-			'@context': path.resolve(dirname, 'src/app/context'),
-			'@hooks': path.resolve(dirname, 'src/app/hooks'),
-			'@stores': path.resolve(dirname, 'src/app/stores'),
-			'@utils': path.resolve(dirname, 'src/app/utils')
+			'@app': path.resolve(dirname, 'src/app')
 		}
 	}
 });

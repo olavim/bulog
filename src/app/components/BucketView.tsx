@@ -6,9 +6,9 @@ import { ColumnSettings } from './settings/ColumnSettings';
 import { Drawer } from './Drawer';
 import { Search } from './Search';
 import { NewColumnButton } from './NewColumnButton';
-import { globalStore } from '@stores/globalStore';
-import { useSandbox } from '@hooks/useSandbox';
-import { createColumn, deleteColumn } from '@utils/columns';
+import { globalStore } from '@app/stores/globalStore';
+import { useSandbox } from '@app/hooks/useSandbox';
+import { createColumn, deleteColumn } from '@app/utils/columns';
 
 interface BucketLogsProps {
 	bucket: string;

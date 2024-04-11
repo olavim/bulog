@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import { ColumnList } from '@components/settings/ColumnList';
-import { SettingsSection } from '@components/settings/SettingsSection';
+import { ColumnList } from '@app/components/settings/ColumnList';
+import { SettingsSection } from '@app/components/settings/SettingsSection';
 import { MdRemoveCircle } from 'react-icons/md';
 import { ZodIssue } from 'zod';
 
@@ -33,7 +33,7 @@ export function BucketSettingsPage(props: BucketSettingsPageProps) {
 				</p>
 				<button
 					data-cy="settings-delete-bucket-button"
-					className="h-[30px] bg-red-500 flex items-center text-slate-50 pl-3 pr-4 rounded text-sm font-medium"
+					className="h-[30px] bg-red-500 hover:bg-red-400 active:bg-red-400/80 flex items-center text-slate-50 pl-3 pr-4 rounded text-sm font-medium"
 					onClick={onDelete}
 				>
 					<MdRemoveCircle className="mr-2" />

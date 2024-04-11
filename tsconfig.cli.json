@@ -10,7 +10,7 @@
 		"noFallthroughCasesInSwitch": true,
 		"paths": {
 			"@/schemas": ["./src/schemas.ts"],
-			"@/config": ["./src/cli/config.ts"],
+			"@cli/*": ["./src/cli/*"],
 			"@server/*": ["./src/cli/server/*"]
 		}
 	},

@@ -1,6 +1,6 @@
 import { Mutate, StoreApi, createStore } from 'zustand';
 import { globalStore, WithSelectors, createSelectors } from './globalStore';
-import { Sandbox } from '@context/SandboxContext';
+import { Sandbox } from '@app/context/SandboxContext';
 import { immer } from 'zustand/middleware/immer';
 import { subscribeWithSelector } from 'zustand/middleware';
 
