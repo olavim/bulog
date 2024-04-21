@@ -9,6 +9,7 @@ import { NewColumnButton } from './NewColumnButton';
 import { globalStore } from '@app/stores/globalStore';
 import { useSandbox } from '@app/hooks/useSandbox';
 import { createColumn, deleteColumn } from '@app/utils/columns';
+import { LogData, ColumnConfig } from '@/types';
 
 interface BucketLogsProps {
 	bucket: string;

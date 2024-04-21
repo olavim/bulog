@@ -4,6 +4,7 @@ import { BulogConfigSchema } from '@/schemas';
 import { SettingsSection } from '@app/components/settings/SettingsSection';
 import { FileInput } from '@app/components/FileInput';
 import { InfoBanner } from '@app/components/settings/InfoBanner';
+import { BulogConfig } from '@/types';
 
 const settings: Array<{ key: keyof BulogConfig; label: string; default: boolean }> = [
 	{ key: 'buckets', label: 'Bucket settings', default: true },

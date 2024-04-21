@@ -2,6 +2,7 @@ import { MouseEventHandler, useCallback } from 'react';
 import { ColumnSettings } from './ColumnSettings';
 import { MdDeleteForever, MdDragIndicator } from 'react-icons/md';
 import { useSortable } from '@dnd-kit/sortable';
+import { ColumnConfig } from '@/types';
 
 interface ColumnListItemProps {
 	column: ColumnConfig;

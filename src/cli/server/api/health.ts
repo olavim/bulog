@@ -1,9 +1,8 @@
 import express from 'express';
-const router = express.Router();
 
-router.get('/', (req, res) => {
+export const healthRouter = express.Router();
+
+healthRouter.get('/', (req, res) => {
 	res.header('Access-Control-Allow-Origin', '*');
-	res.status(200).json({ started: true, instance: req.bulogEnvironment.instance.value });
+	res.status(200).json({ started: true, instance: req.bulogEnvironment.flags.instance });
 });
-
-export default router;

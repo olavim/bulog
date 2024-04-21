@@ -1,10 +1,25 @@
 import { Command, Flags } from '@oclif/core';
-import { getServerConfig, resetTempConfigs, validateConfigs } from '@cli/utils/config.js';
+import {
+	getBackendConfig,
+	resetTempConfigs,
+	validateBackendConfigs
+} from '@cli/utils/backend-config.js';
 import { releaseInstance, reserveInstance, saveInstanceConfig } from '@cli/utils/instance.js';
 import { SystemSignals } from '@cli/server/system-signals.js';
 import { getServer } from '@server/index.js';
 import type { Server } from 'http';
 import { Socket } from 'net';
+import isValidFilename from 'valid-filename';
+import { InferredFlags } from '@oclif/core/lib/interfaces';
+import { ServerConfig } from '@/types';
+
+export interface BulogEnvironment {
+	flags: InferredFlags<typeof Start.flags>;
+	config: ServerConfig;
+	port: number;
+	host: string;
+	memorySize: number;
+}
 
 export class Start extends Command {
 	static description = 'Starts the Bulog server';
@@ -17,14 +32,15 @@ export class Start extends Command {
 
 	static flags = {
 		port: Flags.integer({
+			name: 'jeejee',
 			char: 'p',
 			helpValue: '<port>',
-			description: 'Server port to bind to'
+			description: 'Server port to bind to.'
 		}),
 		host: Flags.string({
 			char: 'h',
 			helpValue: '<host>',
-			description: 'Server hostname to bind or connect to'
+			description: 'Server hostname to bind or connect to.'
 		}),
 		instance: Flags.string({
 			char: 'i',
@@ -32,14 +48,18 @@ export class Start extends Command {
 			default: 'default',
 			description: 'Server instance name to use. Instances have separate configurations.'
 		}),
-		memorySize: Flags.integer({
+		['memory-size']: Flags.integer({
 			char: 'm',
 			min: 0,
 			description:
 				'Number of logs to keep in memory. Logs in memory are sent to clients when they connect.'
 		}),
-		tempConfig: Flags.boolean({
-			description: "Use a temporary configuration that doesn't persist after the server is closed",
+		['temp-config']: Flags.boolean({
+			description: "Use a temporary configuration that doesn't persist after the server is closed.",
+			default: false
+		}),
+		['no-auth']: Flags.boolean({
+			description: 'Temporarily disable authentication and make the server publicly accessible.',
 			default: false
 		})
 	};
@@ -56,6 +76,12 @@ export class Start extends Command {
 			});
 		}
 
+		if (!isValidFilename(flags.instance)) {
+			this.error('Invalid instance name. Instance name should also be a safe filename.', {
+				exit: 1
+			});
+		}
+
 		try {
 			await reserveInstance(flags.instance);
 		} catch (err) {
@@ -63,58 +89,21 @@ export class Start extends Command {
 		}
 
 		const getEnv = async (): Promise<BulogEnvironment> => {
-			const config = await getServerConfig(flags.instance, flags.tempConfig);
+			const { server: config } = await getBackendConfig(flags.instance, flags.tempConfig);
 			return {
-				host: {
-					config: flags.host === undefined,
-					value: flags.host ?? config.defaults.hostname
-				},
-				port: {
-					config: flags.host === undefined,
-					value: flags.port ?? config.defaults.port
-				},
-				memorySize: {
-					config: flags.memorySize === undefined,
-					value: flags.memorySize ?? config.defaults.memorySize
-				},
-				instance: {
-					config: false,
-					value: flags.instance
-				},
-				tempConfig: {
-					config: false,
-					value: flags.tempConfig
-				}
+				flags,
+				config,
+				port: flags.port ?? config.defaults.port,
+				host: flags.host ?? config.defaults.hostname,
+				memorySize: flags['memory-size'] ?? config.defaults.memorySize
 			};
 		};
-
-		// const existingInstance = await getInstanceConfig(flags.instance);
-		// if (existingInstance) {
-		// 	let runningInstanceName: string | null = null;
-		// 	try {
-		// 		const res = await fetch(
-		// 			`http://${existingInstance.replace('0.0.0.0:', '127.0.0.1:')}/api/health`
-		// 		);
-		// 		runningInstanceName = (await res.json()).instance;
-		// 	} catch (err: any) {
-		// 		// All good
-		// 	}
-
-		// 	if (runningInstanceName) {
-		// 		this.error(
-		// 			runningInstanceName === flags.instance
-		// 				? `Instance "${runningInstanceName}" is already running on port ${existingInstance.split(':')[1]}`
-		// 				: `Port ${existingInstance.split(':')[1]} is already in use`,
-		// 			{ exit: 1 }
-		// 		);
-		// 	}
-		// }
 
 		if (flags.tempConfig) {
 			await resetTempConfigs();
 		} else {
 			try {
-				await validateConfigs(flags.instance);
+				await validateBackendConfigs(flags.instance);
 			} catch (e: any) {
 				this.error(e.message, { exit: 1 });
 			}
@@ -143,17 +132,18 @@ export class Start extends Command {
 			try {
 				await new Promise<void>((resolve, reject) => {
 					server.once('error', reject);
-					server.listen(env.port.value, env.host.value, resolve);
+					server.listen(env.port, env.host, resolve);
 				});
 
-				const connStr = `${env.host.value}:${env.port.value}`;
-				this.log(`Bulog is running at http://${connStr}`);
-				await saveInstanceConfig(flags.instance, connStr);
+				const url = `https://${env.host}:${env.port}`;
+				this.log(`Bulog is running at ${url}`);
+
+				await saveInstanceConfig(flags.instance, url);
 			} catch (err: any) {
 				if (err.code === 'EADDRINUSE') {
-					this.error(`Port ${env.port.value} is already in use`, { exit: 1 });
+					this.error(`Port ${env.port} is already in use`, { exit: 1 });
 				} else if (err.code === 'ENOTFOUND' || err.code === 'EADDRNOTAVAIL') {
-					this.error(`Cannot listen on hostname ${env.host.value}`, {
+					this.error(`Cannot listen on hostname ${env.host}`, {
 						code: err.code
 					});
 				} else {

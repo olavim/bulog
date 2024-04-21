@@ -2,6 +2,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { ChangeEventHandler, memo, useCallback, useEffect, useState } from 'react';
 import { MdCheckCircle, MdRemoveCircle } from 'react-icons/md';
 import CodeMirror from '@uiw/react-codemirror';
+import { ColumnConfig } from '@/types';
 
 interface ColumnSettingsProps {
 	column: ColumnConfig;

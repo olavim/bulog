@@ -7,8 +7,9 @@ import { rebootServer, getEnvironment } from '@app/api/system';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CgSpinner } from 'react-icons/cg';
 import { IoMdWarning } from 'react-icons/io';
+import { ServerConfig } from '@/types';
 
-interface SystemSettingsPageProps {
+interface ServerDefaultSettingsPageProps {
 	config: ServerConfig;
 	remoteConfig: ServerConfig;
 	validationErrors: Record<string, ZodIssue>;
@@ -16,7 +17,7 @@ interface SystemSettingsPageProps {
 	onChange: (config: ServerConfig) => void;
 }
 
-export function SystemSettingsPage(props: SystemSettingsPageProps) {
+export function ServerDefaultSettingsPage(props: ServerDefaultSettingsPageProps) {
 	const { config, remoteConfig, validationErrors, unsavedChanges, onChange } = props;
 
 	const [rebootClicked, setRebootClicked] = useState(false);
@@ -99,7 +100,7 @@ export function SystemSettingsPage(props: SystemSettingsPageProps) {
 					flag can be used to override the hostname.
 				</p>
 				<div className="space-y-3 mt-5">
-					<h2 className="text-xs font-semibold text-slate-500">Hostname</h2>
+					<h2 className="text-xs font-semibold text-slate-500 leading-none">Hostname</h2>
 					<p className="text-sm text-slate-500 leading-none">
 						The hostname or IP address the server should listen on.
 					</p>
@@ -112,7 +113,7 @@ export function SystemSettingsPage(props: SystemSettingsPageProps) {
 					/>
 				</div>
 				<div className="space-y-3 mt-8">
-					<h2 className="text-xs font-semibold text-slate-500">Port</h2>
+					<h2 className="text-xs font-semibold text-slate-500 leading-none">Port</h2>
 					<p className="text-sm text-slate-500 leading-none">
 						The port the server should listen on.
 					</p>
@@ -125,7 +126,7 @@ export function SystemSettingsPage(props: SystemSettingsPageProps) {
 					/>
 				</div>
 				<div className="space-y-3 mt-8">
-					<h2 className="text-xs font-semibold text-slate-500">Memory size</h2>
+					<h2 className="text-xs font-semibold text-slate-500 leading-none">Memory size</h2>
 					<p className="text-sm text-slate-500 leading-none">
 						Number of logs the server should keep in memory.
 					</p>

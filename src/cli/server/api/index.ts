@@ -1,12 +1,16 @@
 import express from 'express';
-import healthRouter from './health.js';
-import configRouter from './config.js';
-import systemRouter from './system.js';
+import { healthRouter } from './health.js';
+import { configRouter } from './config.js';
+import { systemRouter } from './system.js';
+import { getSocketsRouter } from './sockets.js';
 
-const router = express.Router();
+export const getApiRouter = () => {
+	const apiRouter = express.Router();
 
-router.use('/health', healthRouter);
-router.use('/config', configRouter);
-router.use('/system', systemRouter);
+	apiRouter.use('/health', healthRouter);
+	apiRouter.use('/config', configRouter);
+	apiRouter.use('/system', systemRouter);
+	apiRouter.use('/sockets', getSocketsRouter());
 
-export default router;
+	return apiRouter;
+};

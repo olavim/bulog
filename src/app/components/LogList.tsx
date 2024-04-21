@@ -15,6 +15,7 @@ import { LogColumnHeader } from './LogColumnHeader';
 import { LogColumnHeaderOverlay } from './LogColumnHeaderOverlay';
 import { useResizeDetector } from 'react-resize-detector';
 import useGlobalEvent from 'beautiful-react-hooks/useGlobalEvent';
+import { LogData, ColumnConfig, JSONValue } from '@/types';
 
 type ClickScrollEventDetails = { direction: 'horizontal' | 'vertical' };
 

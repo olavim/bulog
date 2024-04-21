@@ -1,3 +1,4 @@
+import { ColumnConfig } from '@/types';
 import { ColumnSettings } from './ColumnSettings';
 import { MdDeleteForever, MdDragIndicator } from 'react-icons/md';
 

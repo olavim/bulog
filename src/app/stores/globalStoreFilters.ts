@@ -4,6 +4,7 @@ import { createFilterStore, FilterStoreApi } from './filterStore';
 import { nanoid } from 'nanoid';
 import { Sandbox } from '@app/context/SandboxContext';
 import { createFilter, filterConfigToData } from '@app/utils/filters';
+import { FilterData } from '@/types';
 
 export interface FilterSlice {
 	filters: Map<string, FilterStoreApi>;

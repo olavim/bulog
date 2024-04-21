@@ -11,6 +11,7 @@ import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-ki
 import { createColumn } from '@app/utils/columns';
 import { ColumnListItem } from './ColumnListItem';
 import { ColumnListItemOverlay } from './ColumnListItemOverlay';
+import { ColumnConfig } from '@/types';
 
 interface ColumnListProps {
 	columns: ColumnConfig[];

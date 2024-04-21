@@ -7,12 +7,12 @@ const { fileURLToPath } = await import('url');
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const watchDirs = [path.resolve(dirname, '../src/cli/**/*.ts')];
+const watchDirs = [path.resolve(dirname, '../src/cli'), path.resolve(dirname, '../src/*.ts')];
 const tsconfig = path.resolve(dirname, '../tsconfig.cli.json');
 
 const config = {
 	entryPoints: [
-		path.resolve(dirname, '../src/cli/commands/*.ts'),
+		path.resolve(dirname, '../src/cli/index.ts'),
 		path.resolve(dirname, '../src/cli/help.ts')
 	],
 	entryNames: '[dir]/[name]',

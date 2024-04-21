@@ -7,6 +7,7 @@ import { FaRegCopy } from 'react-icons/fa6';
 import { MdAddCircleOutline, MdOutlineExpandLess, MdOutlineExpandMore } from 'react-icons/md';
 import { MouseEventHandler, useCallback, useEffect, useMemo, useState } from 'react';
 import { IconBaseProps } from 'react-icons/lib';
+import { ColumnConfig, LogData, JSONValue, LogRenderer } from '@/types';
 
 const jsonViewTheme = {
 	'--w-rjv-font-family': 'Fira Code',

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { LogCell } from './LogCell';
+import { LogData, ColumnConfig, JSONValue } from '@/types';
 
 interface LogProps {
 	log: LogData;

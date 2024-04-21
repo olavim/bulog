@@ -9,6 +9,7 @@ import { globalStore } from './stores/globalStore';
 import { useSandbox } from './hooks/useSandbox';
 import { IoMdSettings } from 'react-icons/io';
 import { SettingsDialog } from './components/settings/SettingsDialog';
+import { LogData } from '@/types';
 
 export function Home() {
 	const [host, setHost] = useState<string>();
@@ -101,7 +102,7 @@ export function Home() {
 		[addLogs, sandbox]
 	);
 
-	useWebSocket(`ws://${host}/api/sockets/out`, { onMessage }, host !== undefined && configLoaded);
+	useWebSocket('/api/sockets/out', { onMessage }, host !== undefined && configLoaded);
 
 	const [selectedBucket, setSelectedBucket] = useState<string | null>(null);
 	const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
@@ -145,6 +146,10 @@ export function Home() {
 
 	const openSettings = useCallback(() => {
 		setSettingsOpen(true);
+	}, []);
+
+	const logout = useCallback(() => {
+		window.location.href = '/logout';
 	}, []);
 
 	const closeSettings = useCallback(() => {
@@ -219,7 +224,7 @@ export function Home() {
 							</div>
 						</div>
 					</div>
-					<div className="py-6 mx-6 basis-auto overflow-y-auto flex flex-col border-t border-slate-600">
+					<div className="py-6 mx-6 basis-auto overflow-y-auto flex flex-col border-t border-slate-600 space-y-6">
 						<button
 							className="flex items-center cursor-pointer text-slate-400 hover:text-slate-300 disabled:opacity-50 active:text-slate-200"
 							data-cy="settings-button"
@@ -228,6 +233,14 @@ export function Home() {
 						>
 							<IoMdSettings className="text-xl" />
 							<span className="pl-4 text-xs font-medium relative">{'Settings'}</span>
+						</button>
+						<button
+							className="flex items-center cursor-pointer text-slate-400 hover:text-slate-300 disabled:opacity-50 active:text-slate-200"
+							data-cy="logout-button"
+							onClick={logout}
+						>
+							<IoMdSettings className="text-xl" />
+							<span className="pl-4 text-xs font-medium relative">{'Logout'}</span>
 						</button>
 					</div>
 				</div>

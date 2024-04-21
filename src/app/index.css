@@ -11,9 +11,18 @@
 	--background-end-rgb: 255, 255, 255;
 }
 
+html {
+	font-family: Inter, sans-serif;
+}
+
+select {
+	font-family: Inter, sans-serif;
+}
+
 body {
 	line-height: 1;
 	color: rgb(var(--foreground-rgb));
+	font-family: Inter, sans-serif;
 	background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
 		rgb(var(--background-start-rgb));
 }
@@ -160,11 +169,11 @@ b {
 
 code {
 	font-family: 'Fira Code';
+	margin: 0 1px;
 }
 
 .settings-section code {
 	background-color: #e2e8f0;
-	padding: 0.1rem 0.4rem;
-	margin: 0 0.25rem;
+	padding: 1px 0.4rem;
 	border-radius: 0.25rem;
 }

@@ -8,11 +8,13 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
+		"skipLibCheck": true,
 		"paths": {
 			"@/schemas": ["./src/schemas.ts"],
+			"@/types": ["./src/types.ts"],
 			"@cli/*": ["./src/cli/*"],
 			"@server/*": ["./src/cli/server/*"]
 		}
 	},
-	"include": ["src/cli", "src/types.d.ts", "src/schemas.ts"]
+	"include": ["src/cli", "src/types.ts", "src/schemas.ts"]
 }

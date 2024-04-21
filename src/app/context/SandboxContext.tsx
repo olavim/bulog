@@ -1,6 +1,7 @@
 import { createContext, useEffect, useRef, useState } from 'react';
 import { memoize } from 'lodash';
 import useGlobalEvent from 'beautiful-react-hooks/useGlobalEvent';
+import { ColumnConfig, JSONValue, LogData } from '@/types';
 
 export class Sandbox {
 	private iframe: HTMLIFrameElement | null = null;

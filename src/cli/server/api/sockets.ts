@@ -1,60 +1,61 @@
-import { Server } from 'http';
-import { WebSocketServer } from 'ws';
-import { Comms } from '@server/comms.js';
-import { SystemSignals } from '@server/system-signals.js';
+import express from 'express';
+import { TokenSet } from 'openid-client';
+import { WebSocket } from 'ws';
+import { withWS } from '../middlewares/ws.js';
 
-export default function setupWebSocketServer(
-	server: Server,
-	comms: Comms,
-	systemSignals: SystemSignals
-) {
-	const wssIn = new WebSocketServer({ noServer: true });
-	const wssOut = new WebSocketServer({ noServer: true });
+function handleWSAuth(ws: WebSocket, req: express.Request) {
+	if (req.isAuthenticated() && req.user instanceof TokenSet) {
+		const tokenSet = req.user as TokenSet;
 
-	wssIn.on('connection', (ws) => {
-		ws.on('message', (data) => {
-			const { bucket, message, extraFields } = JSON.parse(data.toString());
-			comms.broadcast(bucket, message, extraFields);
-		});
-	});
+		const checkExpiration = () => {
+			if (ws.readyState !== ws.OPEN) {
+				return;
+			}
 
-	wssOut.on('connection', (ws) => {
-		const id = comms.addMessageListener((logs) => {
-			ws.send(JSON.stringify(logs));
-		});
+			if (tokenSet.expired()) {
+				ws.close(4000, 'Token expired');
+			} else {
+				const timeout = tokenSet.expires_in! > 60 ? 60000 : tokenSet.expires_in! * 1000;
+				setTimeout(checkExpiration, timeout);
+			}
+		};
 
-		ws.on('close', () => {
-			comms.removeMessageListener(id);
-		});
-	});
-
-	server.on('upgrade', (request, socket, head) => {
-		if (request.url === '/api/sockets/in') {
-			wssIn.handleUpgrade(request, socket, head, (ws) => {
-				wssIn.emit('connection', ws, request);
-			});
-		} else if (request.url === '/api/sockets/out') {
-			wssOut.handleUpgrade(request, socket, head, (ws) => {
-				wssOut.emit('connection', ws, request);
-			});
-		} else {
-			socket.destroy();
-		}
-	});
-
-	systemSignals.onClose(async () => {
-		const promises = Promise.all([
-			new Promise<void>((res) => wssIn.close(() => res())),
-			new Promise<void>((res) => wssOut.close(() => res()))
-		]);
-		for (const ws of wssIn.clients) {
-			ws.terminate();
-		}
-		for (const ws of wssOut.clients) {
-			ws.terminate();
-		}
-		await promises;
-		console.log('Closed WebSocket servers');
-		return false;
-	});
+		checkExpiration();
+	}
 }
+
+export const getSocketsRouter = () => {
+	const socketsRouter = withWS(express.Router());
+
+	socketsRouter.ws('/in', {
+		handler: (ws, req) => {
+			handleWSAuth(ws, req);
+
+			ws.on('message', (data) => {
+				try {
+					const { bucket, message, extraFields } = JSON.parse(data.toString());
+					req.bulogComms.broadcast(bucket, message, extraFields);
+				} catch (err) {
+					// Ignore
+				}
+			});
+		}
+	});
+
+	socketsRouter.ws('/out', {
+		handler: (ws, req) => {
+			handleWSAuth(ws, req);
+
+			ws.on('message', (data) => {
+				try {
+					const { bucket, message, extraFields } = JSON.parse(data.toString());
+					req.bulogComms.broadcast(bucket, message, extraFields);
+				} catch (err) {
+					// Ignore
+				}
+			});
+		}
+	});
+
+	return socketsRouter;
+};

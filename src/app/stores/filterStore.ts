@@ -3,6 +3,7 @@ import { globalStore, WithSelectors, createSelectors } from './globalStore';
 import { Sandbox } from '@app/context/SandboxContext';
 import { immer } from 'zustand/middleware/immer';
 import { subscribeWithSelector } from 'zustand/middleware';
+import { ColumnConfig, FilterData, LogData } from '@/types';
 
 export interface FilterStore {
 	data: FilterData;

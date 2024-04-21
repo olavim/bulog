@@ -4,6 +4,7 @@ import { FilterSettings } from '@app/components/settings/FilterSettings';
 import { SettingsSection } from '@app/components/settings/SettingsSection';
 import { MdRemoveCircle } from 'react-icons/md';
 import { ZodIssue } from 'zod';
+import { FilterConfig, ColumnConfig } from '@/types';
 
 interface FilterSettingsPageProps {
 	config: FilterConfig;

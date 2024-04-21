@@ -2,6 +2,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { useSortable } from '@dnd-kit/sortable';
 import { MouseEventHandler, useCallback } from 'react';
 import { MdDragIndicator } from 'react-icons/md';
+import { ColumnConfig } from '@/types';
 
 export interface LogColumnOverlayProps {
 	name: string;

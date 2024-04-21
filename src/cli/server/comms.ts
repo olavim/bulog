@@ -1,3 +1,4 @@
+import { JSONValue, LogData } from '@/types';
 import Denque from 'denque';
 import { nanoid } from 'nanoid';
 

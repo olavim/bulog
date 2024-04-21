@@ -1,3 +1,4 @@
+import { JSONValue } from '@/types';
 import useGlobalEvent from 'beautiful-react-hooks/useGlobalEvent';
 import lodash from 'lodash';
 import { useCallback, useEffect, useRef } from 'react';

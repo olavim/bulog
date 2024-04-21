@@ -3,7 +3,7 @@ import { TbServer } from 'react-icons/tb';
 import { SettingsTab } from './SettingsTab';
 import { BucketSettingsPage } from './pages/BucketSettingsPage';
 import { globalStore } from '@app/stores/globalStore';
-import { MdAddCircleOutline, MdClose, MdImportExport } from 'react-icons/md';
+import { MdAddCircleOutline, MdClose, MdImportExport, MdOutlineHttps } from 'react-icons/md';
 import { CgSpinner } from 'react-icons/cg';
 import { FilterSettingsPage } from './pages/FilterSettingsPage';
 import { createFilter, filterDataToConfig } from '@app/utils/filters';
@@ -11,10 +11,13 @@ import { nanoid } from 'nanoid';
 import { useSandbox } from '@app/hooks/useSandbox';
 import { bucketDataToConfig } from '@app/utils/buckets';
 import { ImportExportPage } from './pages/ImportExportPage';
-import { SystemSettingsPage } from './pages/SystemSettingsPage';
+import { ServerDefaultSettingsPage } from './pages/ServerDefaultSettingsPage';
 import { BulogConfigSchema } from '@/schemas';
 import { ZodIssue } from 'zod';
 import { SettingsTabPanel } from './SettingsTabPanel';
+import { AuthSettingsPage } from './pages/AuthSettingsPage';
+import { IoMdKey } from 'react-icons/io';
+import { BulogConfig, BucketConfig, FilterConfig, ServerConfig } from '@/types';
 
 interface SettingsDialogProps {
 	open: boolean;
@@ -23,7 +26,7 @@ interface SettingsDialogProps {
 
 export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialogProps) {
 	const { open, onClose } = props;
-	const [tab, setTab] = useState<string>('system');
+	const [tab, setTab] = useState<string>('system:serverDefaults');
 	const config = globalStore.use.config();
 	const buckets = globalStore.use.buckets();
 	const filters = globalStore.use.filters();
@@ -212,12 +215,27 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 				</div>
 				<div className="flex flex-row grow overflow-y-hidden border-y border-black/10">
 					<div className="flex flex-col p-3 min-w-[12rem] space-y-1" role="tablist">
+						<h2 className="pl-2 py-1 text-xs font-semibold text-slate-500">{'SYSTEM SETTINGS'}</h2>
 						<SettingsTab
-							title="System"
-							id="system"
-							selected={tab === 'system'}
+							title="Server defaults"
+							id="system:serverDefaults"
+							selected={tab === 'system:serverDefaults'}
 							onClick={setTab}
 							Icon={TbServer}
+						/>
+						<SettingsTab
+							title="Authentication"
+							id="system:auth"
+							selected={tab === 'system:auth'}
+							onClick={setTab}
+							Icon={IoMdKey}
+						/>
+						<SettingsTab
+							title="HTTPS"
+							id="system:https"
+							selected={tab === 'system:https'}
+							onClick={setTab}
+							Icon={MdOutlineHttps}
 						/>
 						<SettingsTab
 							title="Import & Export"
@@ -299,15 +317,26 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 							<ImportExportPage onImport={onImport} />
 						</SettingsTabPanel>
 						<SettingsTabPanel
-							id="system"
-							visible={tab === 'system'}
+							id="system:serverDefaults"
+							visible={tab === 'system:serverDefaults'}
 							disabled={!configLoaded || !configTimeoutElapsed}
 						>
-							<SystemSettingsPage
+							<ServerDefaultSettingsPage
 								config={configDraft.server}
 								remoteConfig={config.server}
 								validationErrors={serverValidationErrors}
 								unsavedChanges={!configLoaded || !configTimeoutElapsed || configDraftChanged}
+								onChange={onChangeServerConfig}
+							/>
+						</SettingsTabPanel>
+						<SettingsTabPanel
+							id="system:auth"
+							visible={tab === 'system:auth'}
+							disabled={!configLoaded || !configTimeoutElapsed}
+						>
+							<AuthSettingsPage
+								config={configDraft.server}
+								validationErrors={serverValidationErrors}
 								onChange={onChangeServerConfig}
 							/>
 						</SettingsTabPanel>

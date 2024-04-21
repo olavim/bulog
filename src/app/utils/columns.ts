@@ -1,3 +1,4 @@
+import { ColumnConfig, LogData } from '@/types';
 import { nanoid } from 'nanoid';
 
 export const createSimpleFormatter = (pattern?: string) => {

@@ -16,10 +16,11 @@
 		"noFallthroughCasesInSwitch": true,
 		"paths": {
 			"@/schemas": ["./src/schemas.ts"],
+			"@/types": ["./src/types.ts"],
 			"@app/*": ["./src/app/*"],
 			"@cli/*": ["./src/cli/*"],
 			"@server/*": ["./src/cli/server/*"]
 		}
 	},
-	"include": ["src/app", "src/cli", "src/types.d.ts", "src/schemas.ts", "bin/*.js"]
+	"include": ["src/app", "src/cli", "src/types.ts", "src/schemas.ts", "bin/*.js"]
 }

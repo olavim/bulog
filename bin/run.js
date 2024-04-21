@@ -1,7 +1,7 @@
 #!/usr/bin/env node
+import { execute } from '@oclif/core';
 
 (async () => {
 	process.env.NODE_ENV = 'production';
-	const oclif = await import('@oclif/core');
-	await oclif.execute({ development: false, dir: import.meta.url });
+	await execute({ development: false, dir: import.meta.url });
 })();

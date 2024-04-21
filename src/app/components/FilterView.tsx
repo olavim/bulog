@@ -11,6 +11,7 @@ import { FilterSettings } from './settings/FilterSettings';
 import { useSandbox } from '@app/hooks/useSandbox';
 import { globalStore } from '@app/stores/globalStore';
 import { createColumn, deleteColumn } from '@app/utils/columns';
+import { LogData, ColumnConfig } from '@/types';
 
 interface FilterViewProps {
 	filterId: string;

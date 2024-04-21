@@ -3,6 +3,7 @@ import { ColumnList } from '@app/components/settings/ColumnList';
 import { SettingsSection } from '@app/components/settings/SettingsSection';
 import { MdRemoveCircle } from 'react-icons/md';
 import { ZodIssue } from 'zod';
+import { BucketConfig, ColumnConfig } from '@/types';
 
 interface BucketSettingsPageProps {
 	config: BucketConfig;

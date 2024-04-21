@@ -1,5 +1,6 @@
 import { Sandbox } from '@app/context/SandboxContext';
 import { createDefaultColumns } from './columns';
+import { BucketConfig, BucketData } from '@/types';
 
 export async function bucketConfigToData(
 	config: BucketConfig,

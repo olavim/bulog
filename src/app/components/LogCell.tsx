@@ -1,3 +1,5 @@
+import { JSONValue } from '@/types';
+
 const getElementClass = (className?: string) =>
 	`text-ellipsis overflow-hidden whitespace-nowrap text-xs ${className ?? ''}`;
 

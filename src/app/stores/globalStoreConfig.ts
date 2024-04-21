@@ -4,6 +4,7 @@ import { Sandbox } from '@app/context/SandboxContext';
 import { getConfig, saveConfig } from '@app/api/config';
 import { filterConfigToData, filterDataToConfig } from '@app/utils/filters';
 import { bucketConfigToData, bucketDataToConfig } from '@app/utils/buckets';
+import { BucketConfig, BucketData, BulogConfig, FilterConfig, FilterData } from '@/types';
 
 export interface ConfigSlice {
 	config: BulogConfig;
@@ -23,7 +24,8 @@ export const createConfigSlice: ConfigSliceCreator = (set, get) => ({
 				hostname: '0.0.0.0',
 				port: 3100,
 				memorySize: 1000
-			}
+			},
+			auth: { method: 'none' }
 		}
 	},
 	configLoaded: false,

@@ -1,5 +1,6 @@
 import { Sandbox } from '@app/context/SandboxContext';
 import { createDefaultColumns } from './columns';
+import { FilterConfig, FilterData } from '@/types';
 
 const defaultPredicateString = `
 const _ = require('lodash');

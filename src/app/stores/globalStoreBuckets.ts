@@ -3,6 +3,7 @@ import { GlobalStore } from './globalStore';
 import { createBucketStore, BucketStoreApi } from './bucketStore';
 import { Sandbox } from '@app/context/SandboxContext';
 import { bucketConfigToData, createBucket } from '@app/utils/buckets';
+import { BucketData } from '@/types';
 
 export interface BucketSlice {
 	buckets: Map<string, BucketStoreApi>;
