@@ -3,12 +3,12 @@ import JSON5 from 'json5';
 export function linesToMessages(lines: string[]) {
 	const messages: any[] = [];
 
-	for (let i = 0; i < lines.length - 1; i++) {
+	for (let i = 0; i < lines.length; i++) {
 		if (lines[i].trim().startsWith('{')) {
 			let jsonChunk = '';
 			let foundJson = false;
 
-			for (let j = i; j < lines.length - 1; j++) {
+			for (let j = i; j < lines.length; j++) {
 				jsonChunk += lines[j];
 
 				if (lines[j].trim().endsWith('}')) {

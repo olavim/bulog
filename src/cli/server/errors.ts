@@ -1,40 +1,54 @@
-export class HTTPError extends Error {
-	public status: number;
+import { WebSocketCloseCodes } from '@/codes';
+
+export class BulogError extends Error {
 	public errorCode: string;
+	public httpStatus: number;
+	public wsCloseCode: number;
 
-	constructor(status: number, errorCode: string, errorMessage: string) {
+	constructor(errorCode: string, errorMessage: string, httpStatus: number, wsCloseCode: number) {
 		super(errorMessage);
-		this.status = status;
 		this.errorCode = errorCode;
+		this.httpStatus = httpStatus;
+		this.wsCloseCode = wsCloseCode;
 	}
 }
 
-export class UnauthenticatedError extends HTTPError {
-	constructor(message: string) {
-		super(401, 'ERR_UNAUTHENTICATED', `Unauthenticated: ${message}`);
+class UnauthenticatedError extends BulogError {
+	constructor(message: string, wsCloseCode: number = WebSocketCloseCodes.UNAUTHENTICATED) {
+		super('ERR_UNAUTHENTICATED', `Unauthenticated: ${message}`, 401, wsCloseCode);
 	}
 }
 
-export class UnauthorizedError extends HTTPError {
-	constructor(errorCode: string, message: string) {
-		super(403, errorCode, `Unauthorized: ${message}`);
+export class MissingAuthenticationError extends UnauthenticatedError {
+	constructor() {
+		super('Missing session cookie or bearer token', WebSocketCloseCodes.MISSING_AUTHENTICATION);
+	}
+}
+
+class UnauthorizedError extends BulogError {
+	constructor(
+		errorCode: string,
+		message: string,
+		wsCloseCode: number = WebSocketCloseCodes.UNAUTHORIZED
+	) {
+		super(errorCode, `Unauthorized: ${message}`, 403, wsCloseCode);
 	}
 }
 
 export class InvalidTokenError extends UnauthorizedError {
 	constructor() {
-		super('ERR_TOKEN_INVALID', 'Invalid token');
+		super('ERR_TOKEN_INVALID', 'Invalid token', WebSocketCloseCodes.INVALID_TOKEN);
 	}
 }
 
 export class TokenExpiredError extends UnauthorizedError {
 	constructor() {
-		super('ERR_TOKEN_EXPIRED', 'Token expired');
+		super('ERR_TOKEN_EXPIRED', 'Token expired', WebSocketCloseCodes.TOKEN_EXPIRED);
 	}
 }
 
 export class InvalidTokenClaimsError extends UnauthorizedError {
 	constructor(message: string = 'Invalid token claims') {
-		super('ERR_TOKEN_CLAIMS', message);
+		super('ERR_TOKEN_CLAIMS', message, WebSocketCloseCodes.INVALID_TOKEN_CLAIMS);
 	}
 }

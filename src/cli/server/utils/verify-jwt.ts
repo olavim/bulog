@@ -1,6 +1,5 @@
-import { createRemoteJWKSet, jwtVerify } from 'jose';
-import { InvalidTokenClaimsError, InvalidTokenError, TokenExpiredError } from '../errors.js';
-import { JWTClaimValidationFailed, JWTExpired } from 'jose/errors';
+import { createRemoteJWKSet, compactVerify, JWTPayload } from 'jose';
+import { InvalidTokenError } from '../errors.js';
 
 interface OpenIDConfig {
 	issuer: string;
@@ -22,7 +21,6 @@ interface DiscoveryResult {
 
 interface JWTVerifierOptions {
 	issuerBaseURL: string;
-	audience: string;
 	cacheMaxAge?: number;
 }
 
@@ -54,11 +52,7 @@ function discover({ issuerBaseURL, cacheMaxAge }: DiscoverOptions) {
 	};
 }
 
-export function jwtVerifier({
-	issuerBaseURL,
-	audience,
-	cacheMaxAge = 10 * 60 * 1000
-}: JWTVerifierOptions) {
+export function jwtVerifier({ issuerBaseURL, cacheMaxAge = 10 * 60 * 1000 }: JWTVerifierOptions) {
 	const getDiscovery = discover({ issuerBaseURL, cacheMaxAge });
 
 	return async (jwt: string) => {
@@ -66,21 +60,14 @@ export function jwtVerifier({
 		const getJWKS = createRemoteJWKSet(new URL(discovery.jwksUri), { cacheMaxAge });
 
 		try {
-			const { payload, protectedHeader: header } = await jwtVerify(jwt, getJWKS, {
-				issuer: discovery.issuer,
-				audience,
+			const { payload: payloadStr } = await compactVerify(jwt, getJWKS, {
 				algorithms: discovery.idTokenSigningAlgValuesSupported
 			});
+			const payload = JSON.parse(new TextDecoder().decode(payloadStr)) as JWTPayload;
 
-			return { payload, header, token: jwt };
+			return { payload, token: jwt };
 		} catch (err: any) {
-			if (err instanceof JWTClaimValidationFailed) {
-				throw new InvalidTokenClaimsError();
-			} else if (err instanceof JWTExpired) {
-				throw new TokenExpiredError();
-			} else {
-				throw new InvalidTokenError();
-			}
+			throw new InvalidTokenError();
 		}
 	};
 }

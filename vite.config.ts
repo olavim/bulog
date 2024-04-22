@@ -25,6 +25,7 @@ export default defineConfig({
 		alias: {
 			'@/schemas': path.resolve(dirname, 'src/schemas.ts'),
 			'@/types': path.resolve(dirname, 'src/types.ts'),
+			'@/codes': path.resolve(dirname, 'src/codes.ts'),
 			'@app': path.resolve(dirname, 'src/app')
 		}
 	}

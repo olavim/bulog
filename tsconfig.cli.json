@@ -12,9 +12,10 @@
 		"paths": {
 			"@/schemas": ["./src/schemas.ts"],
 			"@/types": ["./src/types.ts"],
+			"@/codes": ["./src/codes.ts"],
 			"@cli/*": ["./src/cli/*"],
 			"@server/*": ["./src/cli/server/*"]
 		}
 	},
-	"include": ["src/cli", "src/types.ts", "src/schemas.ts"]
+	"include": ["src/cli", "src/*.ts"]
 }

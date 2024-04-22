@@ -1,5 +1,5 @@
 import { createContext, useEffect, useRef, useState } from 'react';
-import { memoize } from 'lodash';
+import lodash from 'lodash';
 import useGlobalEvent from 'beautiful-react-hooks/useGlobalEvent';
 import { ColumnConfig, JSONValue, LogData } from '@/types';
 
@@ -90,7 +90,7 @@ export class Sandbox {
 
 		delete this.pendingCreates[fnId];
 
-		return memoize(
+		return lodash.memoize(
 			async (logs: T[]) => {
 				const evalId = this.nextId();
 				const evalPromise = new Promise<K[]>((resolve) => {
@@ -135,7 +135,7 @@ export class Sandbox {
 
 		delete this.pendingCreateGroups[groupId];
 
-		return memoize(
+		return lodash.memoize(
 			async (logs: T[]) => {
 				const groupEvalId = this.nextId();
 				const evalPromise = new Promise<Array<{ [id: string]: K }>>((resolve) => {
@@ -201,7 +201,7 @@ export function SandboxProvider({ children }: CodeSandboxProviderProps) {
 				sandbox="allow-scripts"
 				src="/sandbox/index.html"
 			/>
-			{ref && <SandboxContext.Provider value={sandbox.current}>{children}</SandboxContext.Provider>}
+			<SandboxContext.Provider value={sandbox.current}>{children}</SandboxContext.Provider>
 		</>
 	);
 }

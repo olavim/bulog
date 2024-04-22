@@ -1,7 +1,7 @@
 import { WebSocket } from 'ws';
 import { Args, Command, Flags } from '@oclif/core';
 import _ from 'lodash';
-import { CLIError } from '@oclif/core/lib/errors';
+import { CLIError } from '@oclif/core/lib/errors/index.js';
 import { getInstanceConfig, watchInstanceConfig } from '@cli/utils/instance.js';
 import { getLogClientConfig, validateLogClientConfig } from '@cli/utils/log-client-config.js';
 import { getAuthConfig } from './get-auth-config.js';
@@ -119,7 +119,7 @@ export class Forward extends Command {
 				const wsProtocol = /^(https|wss):\/\//.test(url) ? 'wss' : 'ws';
 				const urlWithoutProtocol = url.replace(/^((http|ws)s?:\/\/)?/, '');
 
-				socket = new WebSocket(`${wsProtocol}://${urlWithoutProtocol}/api/sockets/in`, {
+				socket = new WebSocket(`${wsProtocol}://${urlWithoutProtocol}/io/logs/write`, {
 					handshakeTimeout: 1000,
 					rejectUnauthorized: !flags.insecure,
 					headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined
@@ -173,6 +173,7 @@ export class Forward extends Command {
 			if (prevChunk) {
 				socket.send(JSON.stringify({ bucket, message: prevChunk, extraFields }));
 			}
+
 			process.exit();
 		});
 

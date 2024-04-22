@@ -1,27 +1,28 @@
-import express, { RequestHandler } from 'express';
+import express from 'express';
 import { ServerAuthConfig, ServerAuthConfigOIDC } from '@/types';
-import { Strategy, Issuer, StrategyVerifyCallback, BaseClient, TokenSet } from 'openid-client';
+import { Strategy as OIDCStrategy, Issuer, BaseClient, TokenSet } from 'openid-client';
 import passport from 'passport';
 import JWTStrategy from '@server/strategies/jwt.js';
-import { UnauthenticatedError } from '@server/errors.js';
+import { VerifyCallback } from 'passport-jwt';
+
+function now() {
+	return Math.round(Date.now() / 1000);
+}
 
 function oidcStrategy(client: BaseClient, authParams: ServerAuthConfigOIDC['authorizationParams']) {
-	return new Strategy(
+	return new OIDCStrategy(
 		{
 			client,
 			sessionKey: 'bulogSession',
 			usePKCE: false,
 			params: Object.fromEntries(authParams.map((param) => [param.key, param.value]))
 		},
-		((tokenset, done) => done(null, tokenset)) as StrategyVerifyCallback<TokenSet>
+		((tokenset: TokenSet, done) => done(null, tokenset)) as VerifyCallback
 	);
 }
 
 function jwtStrategy(authConfig: ServerAuthConfigOIDC) {
-	return new JWTStrategy({
-		issuerBaseURL: authConfig.issuerUrl,
-		audience: authConfig.logClientClaims.audience
-	});
+	return new JWTStrategy({ issuerBaseURL: authConfig.issuerUrl });
 }
 
 async function oidcAuth(authSettings: ServerAuthConfigOIDC) {
@@ -35,11 +36,13 @@ async function oidcAuth(authSettings: ServerAuthConfigOIDC) {
 		redirect_uris: [`${authSettings.baseUrl}/callback`]
 	});
 
-	passport.serializeUser<TokenSet>((tokenset, cb) => cb(null, tokenset as TokenSet));
-	passport.deserializeUser<TokenSet>((tokenset, cb) => cb(null, new TokenSet(tokenset)));
+	passport.serializeUser((user, cb) => cb(null, user));
+	passport.deserializeUser((user, cb) => cb(null, new TokenSet(user as any)));
 
 	passport.use('oidc', oidcStrategy(client, authSettings.authorizationParams));
 	passport.use('jwt', jwtStrategy(authSettings));
+
+	router.use(passport.authenticate(['jwt', 'session'], { session: false }));
 
 	router.get('/login', passport.authenticate('oidc'));
 	router.get('/logout', (req, res) => {
@@ -52,23 +55,27 @@ async function oidcAuth(authSettings: ServerAuthConfigOIDC) {
 		passport.authenticate('oidc', { failureRedirect: '/login', successRedirect: '/' })
 	);
 
-	router.use('/api', passport.authenticate('jwt', { session: false }), (req, _res, next) => {
-		return req.isAuthenticated() ? next() : next(new UnauthenticatedError('Missing token'));
-	});
+	router.use((req, _res, next) => {
+		if (req.isAuthenticated()) {
+			const tokenset = req.user as TokenSet;
+			tokenset.expires_at = tokenset.expires_at ?? now() + 300;
+			const refreshToken = tokenset.refresh_token;
 
-	router.use(async (req, res, next) => {
-		if (!req.isAuthenticated()) {
-			return res.redirect('/login');
-		}
+			req.authInfo = {
+				refresh: async () => {
+					if (!refreshToken) {
+						return false;
+					}
 
-		if (req.user instanceof TokenSet && req.user.expired()) {
-			if (req.user.refresh_token) {
-				const newTokenSet = await client.refresh(req.user.refresh_token);
-				(req.session as any).passport.user.access_token = newTokenSet.access_token;
-				(req.session as any).passport.user.expires_at = newTokenSet.expires_at;
-			} else {
-				return res.redirect('/logout');
-			}
+					const newTokenSet = await client.refresh(refreshToken);
+					req.authInfo!.expiresIn = () => newTokenSet.expires_in!;
+					(req.session as any).passport.user.access_token = newTokenSet.access_token;
+					(req.session as any).passport.user.expires_at = newTokenSet.expires_at;
+					return true;
+				},
+				expired: () => req.authInfo!.expiresIn() <= 0,
+				expiresIn: () => tokenset.expires_in!
+			};
 		}
 
 		next();
@@ -82,5 +89,5 @@ export async function auth(authSettings: ServerAuthConfig) {
 		return await oidcAuth(authSettings);
 	}
 
-	return ((_req, _res, next) => next()) as RequestHandler;
+	return ((_req, _res, next) => next()) as express.RequestHandler;
 }

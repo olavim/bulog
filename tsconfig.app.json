@@ -19,9 +19,10 @@
 		"paths": {
 			"@/schemas": ["./src/schemas.ts"],
 			"@/types": ["./src/types.ts"],
+			"@/codes": ["./src/codes.ts"],
 			"@app/*": ["./src/app/*"]
 		}
 	},
-	"include": ["src/app", "src/types.ts", "src/schemas.ts"],
+	"include": ["src/app", "src/*.ts"],
 	"exclude": ["node_modules", "dist"]
 }

@@ -1,7 +1,7 @@
 import { BaseClient, Issuer, TokenSet, custom } from 'openid-client';
 import axios from 'axios';
 import https from 'https';
-import { CLIError } from '@oclif/core/lib/errors';
+import { CLIError } from '@oclif/core/lib/errors/index.js';
 import { FilledLogClientInstanceAuthConfig } from './get-auth-config.js';
 
 interface GetAuthTokenOpts {
@@ -56,7 +56,7 @@ export const getAuthTokenGetter = async ({ insecure, authConfig }: GetAuthTokenO
 
 			// Verify token auth
 			try {
-				await axiosInstance.get(`${url}/api/sockets/in/.auth`, {
+				await axiosInstance.get(`${url}/io/logs/write/.auth`, {
 					headers: { Authorization: `Bearer ${token}` }
 				});
 			} catch (err: any) {
@@ -70,7 +70,7 @@ export const getAuthTokenGetter = async ({ insecure, authConfig }: GetAuthTokenO
 	return async (url: string) => {
 		// Verify no auth
 		try {
-			await axiosInstance.get(`${url}/api/sockets/in/.auth`);
+			await axiosInstance.get(`${url}/io/logs/write/.auth`);
 		} catch (err: any) {
 			handleAxiosError(err);
 		}

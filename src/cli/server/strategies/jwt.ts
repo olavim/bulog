@@ -1,19 +1,22 @@
-import { JWTHeaderParameters, JWTPayload } from 'jose';
+import { JWTPayload } from 'jose';
 import { Strategy } from 'passport';
 import { TokenSet } from 'openid-client';
+import { Request } from 'express';
 import { jwtVerifier } from '@server/utils/verify-jwt.js';
 import { getToken } from '@server/utils/get-token.js';
 
 export interface SessionStrategyOptions {
 	issuerBaseURL: string;
-	audience: string;
 	cacheMaxAge?: number;
+}
+
+function now() {
+	return Math.round(Date.now() / 1000);
 }
 
 export default class JWTStrategy extends Strategy {
 	private verifyJwt: (token: string) => Promise<{
 		payload: JWTPayload;
-		header: JWTHeaderParameters;
 		token: string;
 	}>;
 
@@ -23,23 +26,31 @@ export default class JWTStrategy extends Strategy {
 		this.verifyJwt = jwtVerifier(opts);
 	}
 
-	async authenticate(req: any) {
-		let token: string;
+	async authenticate(req: Request) {
 		try {
-			token = getToken(req.headers);
-		} catch (err: any) {
-			return this.fail();
-		}
+			const token = getToken(req.headers);
 
-		try {
+			if (!token) {
+				return this.pass();
+			}
+
 			const { payload } = await this.verifyJwt(token);
+			const expiresAt = payload.exp ?? now() + 300;
+
 			req.user = new TokenSet({
 				access_token: token,
-				expires_at: payload.exp ?? 0
+				expires_at: expiresAt
 			});
+
+			req.authInfo = {
+				refresh: async () => false,
+				expired: () => expiresAt <= now(),
+				expiresIn: () => expiresAt - now()
+			};
+
 			this.success(req.user);
 		} catch (err: any) {
-			this.error(err);
+			this.pass();
 		}
 	}
 }

@@ -6,48 +6,59 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import session from 'express-session';
-import { getApiRouter } from './api/index.js';
+import { apiRouter } from './routes/api/index.js';
+import { getIORouter } from './routes/io/index.js';
 import { Comms } from './comms.js';
 import { SystemSignals } from './system-signals.js';
 import { expressWS } from './middlewares/ws.js';
-import { HTTPError, UnauthenticatedError, UnauthorizedError } from './errors.js';
+import { BulogError } from './errors.js';
 import { StaticFrontendConfig } from '@/types';
 import { BulogEnvironment } from '@cli/commands/start.js';
-import { auth as serverAuth } from './middlewares/auth.js';
+import { auth } from './middlewares/auth.js';
 import passport from 'passport';
+import { requireAnyAuth } from './middlewares/requireAuth.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 const isDev = process.env.NODE_ENV === 'development';
+const root = isDev ? path.resolve(dirname, '../../../') : path.resolve(dirname, '../../');
+const appRoot = isDev ? path.resolve(dirname, '../../../src/app') : path.resolve(dirname, '../app');
 
-function serveStatic(app: express.Express, staticConfig: StaticFrontendConfig) {
-	app.use('/assets', (_req, res, next) => {
+function serveStatic(staticConfig: StaticFrontendConfig) {
+	const router = express.Router();
+
+	router.use('/assets', express.static(path.resolve(appRoot, 'assets')), (_req, res, next) => {
 		res.header('Access-Control-Allow-Origin', '*');
 		next();
 	});
 
-	const appRoot = path.resolve(dirname, '../../app');
-
-	app.use(express.static(appRoot));
-
-	app.get('*', (_req, res) => {
-		const template = fs.readFileSync(path.resolve(appRoot, 'index.html'), 'utf-8');
-		const html = template.replace('<!--config-outlet-->', JSON.stringify(staticConfig));
+	router.get('/sandbox/index.html', requireAnyAuth({ redirect: true }), (_req, res) => {
+		const html = fs.readFileSync(path.resolve(appRoot, 'sandbox/index.html'), 'utf-8');
 		res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
 	});
+
+	router.get('/', requireAnyAuth({ redirect: true }), (_req, res) => {
+		const template = fs.readFileSync(path.resolve(appRoot, 'index.html'), 'utf-8');
+		const configScript = `<script>window.staticConfig = ${JSON.stringify(staticConfig)}</script>`;
+		const html = template.replace('</head>', `${configScript}</head>`);
+		res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+	});
+
+	return router;
 }
 
 async function serveVite(
-	app: express.Express,
 	hmrServer: http.Server,
 	staticConfig: StaticFrontendConfig,
 	systemSignals: SystemSignals
 ) {
 	const { createServer: createViteServer } = await import('vite');
 	const viteServer = await createViteServer({
+		base: '/src',
 		server: {
 			middlewareMode: true,
 			hmr: {
+				path: '/__vite_hmr',
 				server: hmrServer
 			}
 		},
@@ -60,36 +71,45 @@ async function serveVite(
 		return false;
 	});
 
-	const appRoot = path.resolve(dirname, '../../../src/app');
+	const router = express.Router();
 
-	app.use(viteServer.middlewares);
+	router.use(viteServer.middlewares);
 
-	app.get('*', async (req, res, next) => {
-		if (req.url.startsWith('/api')) {
-			return next();
-		}
+	const viteServe =
+		(templatePath: string): express.RequestHandler =>
+		async (req, res, next) => {
+			try {
+				let template = fs.readFileSync(templatePath, 'utf-8');
+				template = await viteServer.transformIndexHtml(req.originalUrl, template);
+				const configScript = `<script>window.staticConfig = ${JSON.stringify(staticConfig)}</script>`;
+				const html = template.replace('</head>', `${configScript}</head>`);
+				res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+			} catch (err: any) {
+				viteServer.ssrFixStacktrace(err);
+				next(err);
+			}
+		};
 
-		const url = req.originalUrl;
-		const root = url === '/sandbox/index.html' ? path.resolve(appRoot, 'sandbox') : appRoot;
+	router.get(
+		'/sandbox/index.html',
+		requireAnyAuth({ redirect: true }),
+		viteServe(path.resolve(appRoot, 'sandbox/index.html'))
+	);
+	router.get(
+		'/',
+		requireAnyAuth({ redirect: true }),
+		viteServe(path.resolve(appRoot, 'index.html'))
+	);
 
-		try {
-			let template = fs.readFileSync(path.resolve(root, 'index.html'), 'utf-8');
-			template = await viteServer.transformIndexHtml(url, template);
-			const html = template.replace('<!--config-outlet-->', JSON.stringify(staticConfig));
-			res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
-		} catch (err: any) {
-			viteServer.ssrFixStacktrace(err);
-			next(err);
-		}
-	});
+	return router;
 }
 
 export async function getServer(env: BulogEnvironment, systemSignals: SystemSignals) {
 	const _app = express();
 	const server = https.createServer(
 		{
-			key: fs.readFileSync(path.resolve(dirname, '../../../proto/bulog.key'), 'utf8'),
-			cert: fs.readFileSync(path.resolve(dirname, '../../../proto/bulog.crt'), 'utf8')
+			key: fs.readFileSync(path.resolve(root, 'proto/bulog.key'), 'utf8'),
+			cert: fs.readFileSync(path.resolve(root, 'proto/bulog.crt'), 'utf8')
 		},
 		_app
 	);
@@ -105,12 +125,15 @@ export async function getServer(env: BulogEnvironment, systemSignals: SystemSign
 			saveUninitialized: false,
 			cookie: {
 				httpOnly: true,
-				secure: true
+				secure: true,
+				partitioned: false,
+				sameSite: 'lax'
 			}
 		})
 	);
 	app.use(passport.initialize());
 	app.use(passport.session());
+	app.use(await auth(env.config.auth));
 
 	const comms = new Comms({
 		maxQueueSize: env.memorySize
@@ -126,48 +149,34 @@ export async function getServer(env: BulogEnvironment, systemSignals: SystemSign
 		next();
 	});
 
-	const auth = await serverAuth(env.config.auth);
+	app.get('/favicon.ico', (_req, res) => {
+		res.sendFile(path.resolve(appRoot, 'assets/react.svg'));
+	});
+
+	app.use('/api', requireAnyAuth({ redirect: false }), apiRouter);
+	app.use('/io', getIORouter());
 
 	if (isDev) {
-		app.use((req, res, next) => {
-			if (req.url.startsWith('/@') || req.url.startsWith('/sandbox')) {
-				next();
-			} else {
-				auth(req, res, next);
-			}
-		});
+		app.use('/', await serveVite(server, staticConfig, systemSignals));
 	} else {
-		app.use(auth);
+		app.use('/', serveStatic(staticConfig));
 	}
 
-	app.use('/api', getApiRouter());
-
-	if (isDev) {
-		await serveVite(app, server, staticConfig, systemSignals);
-	} else {
-		serveStatic(app, staticConfig);
-	}
-
-	app.use(((err, req, res, next) => {
-		if (
-			(err instanceof UnauthorizedError || err instanceof UnauthenticatedError) &&
-			!req.url.startsWith('/api')
-		) {
-			// return res.oidc.logout();
-			console.error(err);
-			res.status(401).end(err.message);
+	app.use(((err, _req, res, next) => {
+		if (err instanceof BulogError) {
+			return res
+				.status(err.httpStatus)
+				.json({ status: err.httpStatus, message: err.message, code: err.errorCode });
 		}
 
-		if (err instanceof HTTPError) {
-			res
-				.status(err.status)
-				.json({ status: err.status, message: err.message, code: err.errorCode });
-		} else if (err) {
+		if (err) {
 			console.error(err);
-			res.status(500).end(err.message);
-		} else {
-			next();
+			return res
+				.status(500)
+				.json({ status: 500, message: 'Internal server error', code: 'ERR_INTERNAL' });
 		}
+
+		next();
 	}) as express.ErrorRequestHandler);
 
 	systemSignals.onClose(async () => {

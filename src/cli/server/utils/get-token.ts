@@ -1,5 +1,3 @@
-import { UnauthenticatedError } from '../errors.js';
-
 type HeadersLike = Record<string, unknown> & {
 	authorization?: string;
 };
@@ -15,12 +13,6 @@ const getTokenFromHeader = (headers: HeadersLike) => {
 	return match[1];
 };
 
-export function getToken(headers: HeadersLike): string {
-	const token = getTokenFromHeader(headers);
-
-	if (!token) {
-		throw new UnauthenticatedError('Missing token');
-	}
-
-	return token;
+export function getToken(headers: HeadersLike): string | undefined {
+	return getTokenFromHeader(headers);
 }

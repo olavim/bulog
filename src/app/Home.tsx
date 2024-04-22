@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Tab } from '@app/components/Tab';
 import { Tooltip } from 'react-tooltip';
 import { BucketView } from '@app/components/BucketView';
-import { MdAddCircleOutline } from 'react-icons/md';
+import { MdAddCircleOutline, MdLogout } from 'react-icons/md';
 import { FilterView } from './components/FilterView';
 import useWebSocket from 'react-use-websocket';
 import { globalStore } from './stores/globalStore';
@@ -10,6 +10,8 @@ import { useSandbox } from './hooks/useSandbox';
 import { IoMdSettings } from 'react-icons/io';
 import { SettingsDialog } from './components/settings/SettingsDialog';
 import { LogData } from '@/types';
+import { WebSocketCloseCodes } from '@/codes';
+import { SessionExpiredDialog } from './components/SessionExpiredDialog';
 
 export function Home() {
 	const [host, setHost] = useState<string>();
@@ -30,6 +32,7 @@ export function Home() {
 	const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
 	const [logCountsByBucket, setLogCountsByBucket] = useState<Record<string, number>>({});
 	const [logCountsByFilter, setLogCountsByFilter] = useState<Record<string, number>>({});
+	const [sessionExpired, setSessionExpired] = useState<boolean>(false);
 
 	useEffect(() => {
 		const filterUnsubs = Array.from(filters.keys()).map((filterId) => {
@@ -102,7 +105,18 @@ export function Home() {
 		[addLogs, sandbox]
 	);
 
-	useWebSocket('/api/sockets/out', { onMessage }, host !== undefined && configLoaded);
+	useWebSocket(
+		'/io/logs/read',
+		{
+			onMessage,
+			onClose: (evt) => {
+				if (evt.code === WebSocketCloseCodes.TOKEN_EXPIRED) {
+					setSessionExpired(true);
+				}
+			}
+		},
+		host !== undefined && configLoaded
+	);
 
 	const [selectedBucket, setSelectedBucket] = useState<string | null>(null);
 	const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
@@ -164,6 +178,7 @@ export function Home() {
 				disableStyleInjection
 				clickable
 			/>
+			{sessionExpired && <SessionExpiredDialog />}
 			<SettingsDialog open={settingsOpen} onClose={closeSettings} />
 			<div className="flex flex-col basis-[15rem] grow-0 shrink-0 shadow-xl z-10 overflow-hidden">
 				<div className="shrink-0 grow-0 basis-20 bg-slate-800 flex items-center px-6 text-3xl">
@@ -239,8 +254,8 @@ export function Home() {
 							data-cy="logout-button"
 							onClick={logout}
 						>
-							<IoMdSettings className="text-xl" />
-							<span className="pl-4 text-xs font-medium relative">{'Logout'}</span>
+							<MdLogout className="text-xl" />
+							<span className="pl-4 text-xs font-medium relative">{'Sign out'}</span>
 						</button>
 					</div>
 				</div>
