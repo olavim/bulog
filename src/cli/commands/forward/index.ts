@@ -7,6 +7,7 @@ import { getLogClientConfig, validateLogClientConfig } from '@cli/utils/log-clie
 import { getAuthConfig } from './get-auth-config.js';
 import { getAuthTokenGetter } from './get-auth-token.js';
 import { linesToMessages } from './lines-to-messages.js';
+import { WebSocketCloseCodes } from '@/codes';
 
 export class Forward extends Command {
 	static aliases = ['fw'];
@@ -104,13 +105,15 @@ export class Forward extends Command {
 
 		const connect = async (url: string) => {
 			try {
-				const authToken = await getAuthToken(url);
+				const authToken = await getAuthToken();
 
-				socketCloseListener = (code) => {
+				socketCloseListener = (code, reason) => {
 					process.stdin.pause();
-					if (code === 4000) {
+					if (code === WebSocketCloseCodes.TOKEN_EXPIRED) {
 						// Token expired, try to get new token and reconnect right away
 						socketConnectTimeout = setTimeout(() => connect(url), 0);
+					} else if (code >= 4000) {
+						this.error(reason.toString(), { exit: 1 });
 					} else {
 						socketConnectTimeout = setTimeout(() => connect(url), 5000);
 					}

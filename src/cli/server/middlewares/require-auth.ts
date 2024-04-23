@@ -1,8 +1,18 @@
-import { RequestHandler } from 'express';
 import { MissingAuthenticationError, TokenExpiredError } from '@server/errors.js';
+import { asyncErrorHandler } from '@server/utils/async-error-handler.js';
 
 export function requireAnyAuth(opts: { redirect: boolean }) {
-	return (async (req, res, next) => {
+	return asyncErrorHandler(async (req, res, next) => {
+		if (req.authError) {
+			return next(req.authError);
+		}
+
+		const authConfig = req.bulogEnvironment.config.auth;
+
+		if (authConfig.method === 'none') {
+			return next();
+		}
+
 		if (!req.isAuthenticated()) {
 			return opts.redirect ? res.redirect('/login') : next(new MissingAuthenticationError());
 		}
@@ -12,5 +22,5 @@ export function requireAnyAuth(opts: { redirect: boolean }) {
 		}
 
 		next();
-	}) as RequestHandler;
+	});
 }

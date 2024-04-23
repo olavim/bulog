@@ -64,24 +64,22 @@ export const ServerAuthConfigOIDCSchema = z
 		clientSecret: z.string().min(1, 'Client secret is required'),
 		scope: z.string().min(1, 'Client secret is required').default('openid profile'),
 		authorizationParams: z.array(z.object({ key: z.string().min(1), value: z.string() })),
-		webClientClaims: z.object({
-			audience: z.string().min(1, 'Audience is required'),
-			claims: z.array(
+		webClientClaims: z
+			.array(
 				z.object({
 					key: z.string().min(1, 'Key is required'),
 					value: z.string()
 				})
 			)
-		}),
-		logClientClaims: z.object({
-			audience: z.string().min(1, 'Audience is required'),
-			claims: z.array(
+			.default([]),
+		logClientClaims: z
+			.array(
 				z.object({
 					key: z.string().min(1, 'Key is required'),
 					value: z.string()
 				})
 			)
-		})
+			.default([])
 	})
 	.strict();
 

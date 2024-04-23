@@ -6,6 +6,7 @@ import { InfoBanner } from '../InfoBanner';
 import { ServerConfig, ServerAuthConfigOIDC } from '@/types';
 import { MdAddCircleOutline } from 'react-icons/md';
 import { RiDeleteBinLine } from 'react-icons/ri';
+import { produce } from 'immer';
 
 interface AuthSettingsPageProps {
 	config: ServerConfig;
@@ -32,8 +33,8 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 								clientSecret: '',
 								scope: 'openid profile',
 								authorizationParams: [],
-								webClientClaims: { audience: '', claims: [] },
-								logClientClaims: { audience: '', claims: [] }
+								webClientClaims: [],
+								logClientClaims: []
 							}
 			});
 		},
@@ -41,149 +42,162 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 	);
 
 	const onChangeOidcBaseURL: ChangeEventHandler<HTMLInputElement> = useCallback(
-		(evt) => {
-			const oidcConfig = config.auth as ServerAuthConfigOIDC;
-			onChange({
-				...config,
-				auth: {
-					...oidcConfig,
-					baseUrl: evt.target.value
-				}
-			});
-		},
+		(evt) =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).baseUrl = evt.target.value;
+				})
+			),
 		[config, onChange]
 	);
 
 	const onChangeOidcIssuer: ChangeEventHandler<HTMLInputElement> = useCallback(
-		(evt) => {
-			const oidcConfig = config.auth as ServerAuthConfigOIDC;
-			onChange({
-				...config,
-				auth: {
-					...oidcConfig,
-					issuerUrl: evt.target.value
-				}
-			});
-		},
+		(evt) =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).issuerUrl = evt.target.value;
+				})
+			),
 		[config, onChange]
 	);
 
 	const onChangeOidcClientId: ChangeEventHandler<HTMLInputElement> = useCallback(
-		(evt) => {
-			const oidcConfig = config.auth as ServerAuthConfigOIDC;
-			onChange({
-				...config,
-				auth: {
-					...oidcConfig,
-					clientId: evt.target.value
-				}
-			});
-		},
+		(evt) =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).clientId = evt.target.value;
+				})
+			),
 		[config, onChange]
 	);
 
 	const onChangeOidcClientSecret: ChangeEventHandler<HTMLInputElement> = useCallback(
-		(evt) => {
-			const oidcConfig = config.auth as ServerAuthConfigOIDC;
-			onChange({
-				...config,
-				auth: {
-					...oidcConfig,
-					clientSecret: evt.target.value
-				}
-			});
-		},
+		(evt) =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).clientSecret = evt.target.value;
+				})
+			),
 		[config, onChange]
 	);
 
-	const onChangeWebClientClaimsAudience: ChangeEventHandler<HTMLInputElement> = useCallback(
-		(evt) => {
-			const oidcConfig = config.auth as ServerAuthConfigOIDC;
-			onChange({
-				...config,
-				auth: {
-					...oidcConfig,
-					webClientClaims: {
-						...oidcConfig.webClientClaims,
-						audience: evt.target.value
-					}
-				}
-			});
-		},
+	const onAddAuthorizationParam = useCallback(
+		() =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).authorizationParams.push({ key: '', value: '' });
+				})
+			),
 		[config, onChange]
 	);
-
-	const onChangeLogClientClaimsAudience: ChangeEventHandler<HTMLInputElement> = useCallback(
-		(evt) => {
-			const oidcConfig = config.auth as ServerAuthConfigOIDC;
-			onChange({
-				...config,
-				auth: {
-					...oidcConfig,
-					logClientClaims: {
-						...oidcConfig.logClientClaims,
-						audience: evt.target.value
-					}
-				}
-			});
-		},
-		[config, onChange]
-	);
-
-	const onAddAuthorizationParam = useCallback(() => {
-		const oidcConfig = config.auth as ServerAuthConfigOIDC;
-		onChange({
-			...config,
-			auth: {
-				...oidcConfig,
-				authorizationParams: [...oidcConfig.authorizationParams, { key: '', value: '' }]
-			}
-		});
-	}, [config, onChange]);
 
 	const onDeleteAuthorizationParam = useCallback(
-		(idx: number) => {
-			const oidcConfig = config.auth as ServerAuthConfigOIDC;
-			onChange({
-				...config,
-				auth: {
-					...oidcConfig,
-					authorizationParams: oidcConfig.authorizationParams.toSpliced(idx, 1)
-				}
-			});
-		},
+		(idx: number) =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).authorizationParams.splice(idx, 1);
+				})
+			),
 		[config, onChange]
 	);
 
 	const onChangeAuthorizationParamKey = useCallback(
-		(idx: number, key: string) => {
-			const oidcConfig = config.auth as ServerAuthConfigOIDC;
-			onChange({
-				...config,
-				auth: {
-					...oidcConfig,
-					authorizationParams: oidcConfig.authorizationParams.map((param, i) =>
-						i === idx ? { ...param, key } : param
-					)
-				}
-			});
-		},
+		(idx: number, key: string) =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).authorizationParams[idx].key = key;
+				})
+			),
 		[config, onChange]
 	);
 
 	const onChangeAuthorizationParamValue = useCallback(
-		(idx: number, value: string) => {
-			const oidcConfig = config.auth as ServerAuthConfigOIDC;
-			onChange({
-				...config,
-				auth: {
-					...oidcConfig,
-					authorizationParams: oidcConfig.authorizationParams.map((param, i) =>
-						i === idx ? { ...param, value } : param
-					)
-				}
-			});
-		},
+		(idx: number, value: string) =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).authorizationParams[idx].value = value;
+				})
+			),
+		[config, onChange]
+	);
+
+	const onChangeWebClientClaimsKey = useCallback(
+		(idx: number, key: string) =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).webClientClaims[idx].key = key;
+				})
+			),
+		[config, onChange]
+	);
+
+	const onChangeWebClientClaimsValue = useCallback(
+		(idx: number, value: string) =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).webClientClaims[idx].value = value;
+				})
+			),
+		[config, onChange]
+	);
+
+	const onDeleteWebClientClaim = useCallback(
+		(idx: number) =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).webClientClaims.splice(idx, 1);
+				})
+			),
+		[config, onChange]
+	);
+
+	const onAddWebClientClaim = useCallback(
+		() =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).webClientClaims.push({ key: '', value: '' });
+				})
+			),
+		[config, onChange]
+	);
+
+	const onChangeLogClientClaimsKey = useCallback(
+		(idx: number, key: string) =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).logClientClaims[idx].key = key;
+				})
+			),
+		[config, onChange]
+	);
+
+	const onChangeLogClientClaimsValue = useCallback(
+		(idx: number, value: string) =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).logClientClaims[idx].value = value;
+				})
+			),
+		[config, onChange]
+	);
+
+	const onDeleteLogClientClaim = useCallback(
+		(idx: number) =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).logClientClaims.splice(idx, 1);
+				})
+			),
+		[config, onChange]
+	);
+
+	const onAddLogClientClaim = useCallback(
+		() =>
+			onChange(
+				produce(config, (draft) => {
+					(draft.auth as ServerAuthConfigOIDC).logClientClaims.push({ key: '', value: '' });
+				})
+			),
 		[config, onChange]
 	);
 
@@ -266,7 +280,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 							</h2>
 							<p className="text-sm text-slate-500">
 								Additional URL parameters used when redirecting users to the authorization server to
-								log in. Parameters such as <code>scope</code> and <code>audience</code> are
+								sign in. Parameters such as <code>scope</code> and <code>audience</code> are
 								typically set here.
 							</p>
 							{config.auth.authorizationParams.map((param, idx) => (
@@ -302,33 +316,86 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 							</button>
 						</div>
 					</SettingsSection>
-					<SettingsSection title="Web UI authorization" className="py-5">
+					<SettingsSection title="Web UI authorization" className="py-5 space-y-3">
 						<p className="text-sm text-slate-500">
-							Authorize web UI users based on JWT access token claims. Authorized users can log in
-							to this website.
+							Authorize web UI users based on JWT access token claims, such as <code>aud</code> or{' '}
+							<code>sub</code>. Authorized users can sign in to this website.
 						</p>
-						<div className="space-y-3 mt-5">
-							<h2 className="text-xs font-semibold text-slate-500 leading-none">audience</h2>
-							<ValidatedInput
-								onChange={onChangeWebClientClaimsAudience}
-								value={config.auth.webClientClaims.audience}
-								error={validationErrors['auth.authorizationParams.audience']?.message}
-							/>
-						</div>
+						<p className="text-sm text-slate-500">
+							By default only token issuer and expiration are verified.
+						</p>
+						{config.auth.webClientClaims.map((claim, idx) => (
+							<div key={idx} className="flex items-center py-2 space-x-2">
+								<ValidatedInput
+									className="basis-[8rem]"
+									onChange={(evt) => onChangeWebClientClaimsKey(idx, evt.target.value)}
+									value={claim.key}
+									placeholder="Key"
+									error={validationErrors[`auth.webClientClaims.${idx}.key`]?.message}
+								/>
+								<ValidatedInput
+									className="grow"
+									onChange={(evt) => onChangeWebClientClaimsValue(idx, evt.target.value)}
+									value={claim.value}
+									placeholder="Value"
+									error={validationErrors[`auth.webClientClaims.${idx}.value`]?.message}
+								/>
+								<button
+									className="hover:bg-slate-100 rounded-full w-[2rem] h-[2rem] flex justify-center items-center"
+									onClick={() => onDeleteWebClientClaim(idx)}
+								>
+									<RiDeleteBinLine className="text-red-500 text-lg" />
+								</button>
+							</div>
+						))}
+						<button
+							className="py-1 text-sm text-sky-600 hover:text-sky-500 flex items-center"
+							onClick={onAddWebClientClaim}
+						>
+							<MdAddCircleOutline className="inline-block mr-2" />
+							Add claim
+						</button>
 					</SettingsSection>
-					<SettingsSection title="Log client authorization" className="py-5">
+					<SettingsSection title="Log client authorization" className="py-5 space-y-3">
 						<p className="text-sm text-slate-500">
-							Authorize log clients based on JWT access token claims. Authorized clients can send
-							logs to Bulog. A "log client" typically refers to the <code>bulog forward</code> CLI.
+							Authorize log clients based on JWT access token claims, such as <code>aud</code> or{' '}
+							<code>sub</code>. Authorized clients can send logs to Bulog. A "log client" typically
+							refers to the <code>bulog forward</code> CLI.
 						</p>
-						<div className="space-y-3 mt-5">
-							<h2 className="text-xs font-semibold text-slate-500 leading-none">audience</h2>
-							<ValidatedInput
-								onChange={onChangeLogClientClaimsAudience}
-								value={config.auth.logClientClaims.audience}
-								error={validationErrors['auth.logClientAuthorizationParams.audience']?.message}
-							/>
-						</div>
+						<p className="text-sm text-slate-500">
+							By default only token issuer and expiration are verified.
+						</p>
+						{config.auth.logClientClaims.map((claim, idx) => (
+							<div key={idx} className="flex items-center py-2 space-x-2">
+								<ValidatedInput
+									className="basis-[8rem]"
+									onChange={(evt) => onChangeLogClientClaimsKey(idx, evt.target.value)}
+									value={claim.key}
+									placeholder="Key"
+									error={validationErrors[`auth.logClientClaims.${idx}.key`]?.message}
+								/>
+								<ValidatedInput
+									className="grow"
+									onChange={(evt) => onChangeLogClientClaimsValue(idx, evt.target.value)}
+									value={claim.value}
+									placeholder="Value"
+									error={validationErrors[`auth.logClientClaims.${idx}.value`]?.message}
+								/>
+								<button
+									className="hover:bg-slate-100 rounded-full w-[2rem] h-[2rem] flex justify-center items-center"
+									onClick={() => onDeleteLogClientClaim(idx)}
+								>
+									<RiDeleteBinLine className="text-red-500 text-lg" />
+								</button>
+							</div>
+						))}
+						<button
+							className="py-1 text-sm text-sky-600 hover:text-sky-500 flex items-center"
+							onClick={onAddLogClientClaim}
+						>
+							<MdAddCircleOutline className="inline-block mr-2" />
+							Add claim
+						</button>
 					</SettingsSection>
 				</>
 			)}

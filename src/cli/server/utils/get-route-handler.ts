@@ -5,7 +5,7 @@ export function getRouteHandler(
 	history: any[] = []
 ): any | null {
 	if (path === '' && target.route?.methods[method]) {
-		return target.route.stack[0].handle;
+		return target.route.stack[target.route.stack.length - 1].handle;
 	}
 
 	const stack: any[] = (target._router?.stack ?? target.handle?.stack ?? []).slice();

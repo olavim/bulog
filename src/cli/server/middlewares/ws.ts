@@ -1,33 +1,27 @@
-import { Express, IRouter, NextFunction, Request, Response } from 'express';
+import { Express, IRouter, NextFunction, Request, RequestHandler } from 'express';
 import { Server, ServerResponse } from 'http';
 import { Duplex } from 'stream';
 import { WebSocketServer, WebSocket } from 'ws';
 import { routeExists } from '../utils/route-exists.js';
 import { getRouteHandler } from '../utils/get-route-handler.js';
-import { BulogError } from '../errors.js';
+import { BulogError, InternalServerError } from '../errors.js';
 
-interface RequestWithSocket extends Request {
+interface RequestWithWS extends Request {
 	upgradeMetadata?: {
+		app: Express & WithWS;
 		socket: Duplex;
 		head: Buffer;
 		url: string;
 		method: string;
 	};
-	wsHandled?: boolean;
+	ws: WebSocket;
 }
 
-type WSConnectionHandler = (ws: WebSocket, req: RequestWithSocket, next: NextFunction) => void;
-
-type UpgradeHandler = (
-	app: Express & WithWS,
-	req: RequestWithSocket,
-	res: Response,
-	next: NextFunction
-) => void;
+type WSConnectionHandler = (ws: WebSocket, req: RequestWithWS, next: NextFunction) => void;
 
 export interface WithWS {
 	getWebSocketServers: () => WebSocketServer[];
-	ws: (path: string, handler: WSConnectionHandler) => WebSocketServer;
+	ws: (path: string, ...middlewares: [...RequestHandler[], WSConnectionHandler]) => WebSocketServer;
 }
 
 function internalPath(path: string, ext: string) {
@@ -41,27 +35,25 @@ function upgradePath(path: string) {
 	return internalPath(path, 'upgrade');
 }
 
-function authPath(path: string) {
-	return internalPath(path, 'auth');
-}
-
-function upgrade(wss: WebSocketServer): UpgradeHandler {
-	return (app, req, res, next) => {
-		const upgradeMetadata = req.upgradeMetadata;
+function upgrade(wss: WebSocketServer): RequestHandler {
+	return (req, res, next) => {
+		const reqWithWS = req as RequestWithWS;
+		const upgradeMetadata = reqWithWS.upgradeMetadata;
 
 		if (!upgradeMetadata) {
 			return next();
 		}
 
-		delete req.upgradeMetadata;
-		req.url = upgradeMetadata.url;
-		req.method = upgradeMetadata.method;
+		delete reqWithWS.upgradeMetadata;
+		reqWithWS.url = upgradeMetadata.url;
+		reqWithWS.method = upgradeMetadata.method;
 
-		wss.handleUpgrade(req, upgradeMetadata.socket, upgradeMetadata.head, (ws) => {
-			req.url = upgradePath(upgradeMetadata.url);
-			req.method = 'GET';
+		wss.handleUpgrade(reqWithWS, upgradeMetadata.socket, upgradeMetadata.head, (ws) => {
+			reqWithWS.url = upgradePath(upgradeMetadata.url);
+			reqWithWS.method = 'GET';
+			reqWithWS.ws = ws;
 
-			(app as any).handle(req, res, (err: any) => {
+			(upgradeMetadata.app as any).handle(req, res, (err: any) => {
 				if (err) {
 					if (err instanceof BulogError) {
 						ws.close(err.wsCloseCode, err.message);
@@ -93,21 +85,24 @@ export function withWS<T extends IRouter>(target: T): T & WithWS {
 		return targetWS;
 	}
 
-	targetWS.ws = (path, handler) => {
+	targetWS.ws = (path, ...middlewares) => {
+		if (middlewares.length === 0) {
+			throw new InternalServerError('No connection handler provided');
+		}
+
+		const handler = middlewares.pop() as WSConnectionHandler;
+
 		const wss = new WebSocketServer({ noServer: true });
 		wsServers.push(wss);
 
 		wss.on('connection', (ws, req) => {
-			const reqWithWS = req as RequestWithSocket;
+			const reqWithWS = req as RequestWithWS;
 			handler(ws, reqWithWS, () => {
 				ws.close();
 			});
 		});
 
-		targetWS.get(upgradePath(path), upgrade(wss));
-		targetWS.get(authPath(path), (_req, res) => {
-			res.status(200).json({ status: 'ok' });
-		});
+		targetWS.get(upgradePath(path), ...(middlewares as RequestHandler[]), upgrade(wss) as any);
 
 		return wss;
 	};
@@ -153,7 +148,7 @@ export function expressWS(app: Express, server: Server): Express & WithWS {
 			return;
 		}
 
-		const req = request as RequestWithSocket;
+		const req = request as RequestWithWS;
 		const res = new ServerResponse(req);
 
 		res.writeHead = (statusCode): any => {
@@ -167,16 +162,16 @@ export function expressWS(app: Express, server: Server): Express & WithWS {
 		req.url = upgradeUrl;
 		req.method = 'GET';
 		req.upgradeMetadata = {
+			app: wsApp,
 			socket,
 			head,
 			url: originalUrl,
 			method: originalMethod
 		};
 
-		const handler = getRouteHandler(wsApp, upgradeUrl) as UpgradeHandler | null;
+		const handler = getRouteHandler(wsApp, upgradeUrl);
 		if (handler) {
-			handler(wsApp, req, res as Response, () => {
-				console.log('destroy');
+			handler(req, res, () => {
 				socket.write('HTTP/1.1 404\n\n');
 				socket.destroy();
 			});

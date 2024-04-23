@@ -5,24 +5,34 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-import session from 'express-session';
+import cookieParser from 'cookie-parser';
+import passport from 'passport';
+import mustache from 'mustache-express';
 import { apiRouter } from './routes/api/index.js';
 import { getIORouter } from './routes/io/index.js';
 import { Comms } from './comms.js';
 import { SystemSignals } from './system-signals.js';
 import { expressWS } from './middlewares/ws.js';
-import { BulogError } from './errors.js';
+import {
+	BulogError,
+	InternalServerError,
+	UnauthenticatedError,
+	UnauthorizedError
+} from './errors.js';
 import { StaticFrontendConfig } from '@/types';
 import { BulogEnvironment } from '@cli/commands/start.js';
 import { auth } from './middlewares/auth.js';
-import passport from 'passport';
-import { requireAnyAuth } from './middlewares/requireAuth.js';
+import { requireAnyAuth } from './middlewares/require-auth.js';
+import { cookieSession } from './middlewares/cookie-session.js';
+import { asyncErrorHandler } from './utils/async-error-handler.js';
+import { requireWebClientClaims } from './middlewares/require-claims.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 const isDev = process.env.NODE_ENV === 'development';
 const root = isDev ? path.resolve(dirname, '../../../') : path.resolve(dirname, '../../');
 const appRoot = isDev ? path.resolve(dirname, '../../../src/app') : path.resolve(dirname, '../app');
+const cookieSecret = crypto.randomBytes(64).toString('hex');
 
 function serveStatic(staticConfig: StaticFrontendConfig) {
 	const router = express.Router();
@@ -32,12 +42,17 @@ function serveStatic(staticConfig: StaticFrontendConfig) {
 		next();
 	});
 
-	router.get('/sandbox/index.html', requireAnyAuth({ redirect: true }), (_req, res) => {
-		const html = fs.readFileSync(path.resolve(appRoot, 'sandbox/index.html'), 'utf-8');
-		res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
-	});
+	router.get(
+		'/sandbox/index.html',
+		requireAnyAuth({ redirect: true }),
+		requireWebClientClaims,
+		(_req, res) => {
+			const html = fs.readFileSync(path.resolve(appRoot, 'sandbox/index.html'), 'utf-8');
+			res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+		}
+	);
 
-	router.get('/', requireAnyAuth({ redirect: true }), (_req, res) => {
+	router.get('/', requireAnyAuth({ redirect: true }), requireWebClientClaims, (_req, res) => {
 		const template = fs.readFileSync(path.resolve(appRoot, 'index.html'), 'utf-8');
 		const configScript = `<script>window.staticConfig = ${JSON.stringify(staticConfig)}</script>`;
 		const html = template.replace('</head>', `${configScript}</head>`);
@@ -75,9 +90,8 @@ async function serveVite(
 
 	router.use(viteServer.middlewares);
 
-	const viteServe =
-		(templatePath: string): express.RequestHandler =>
-		async (req, res, next) => {
+	const viteServe = (templatePath: string): express.RequestHandler =>
+		asyncErrorHandler(async (req, res, next) => {
 			try {
 				let template = fs.readFileSync(templatePath, 'utf-8');
 				template = await viteServer.transformIndexHtml(req.originalUrl, template);
@@ -88,16 +102,18 @@ async function serveVite(
 				viteServer.ssrFixStacktrace(err);
 				next(err);
 			}
-		};
+		});
 
 	router.get(
 		'/sandbox/index.html',
 		requireAnyAuth({ redirect: true }),
+		requireWebClientClaims,
 		viteServe(path.resolve(appRoot, 'sandbox/index.html'))
 	);
 	router.get(
 		'/',
 		requireAnyAuth({ redirect: true }),
+		requireWebClientClaims,
 		viteServe(path.resolve(appRoot, 'index.html'))
 	);
 
@@ -117,18 +133,28 @@ export async function getServer(env: BulogEnvironment, systemSignals: SystemSign
 
 	const app = expressWS(_app, server);
 
+	app.engine('mst', mustache());
+	app.set('view engine', 'mst');
+	app.set('views', path.resolve(dirname, 'views'));
+	app.set('view cache', !isDev);
+
+	app.use((req, res, next) => {
+		req.bulogEnvironment = env;
+		req.bulogComms = comms;
+		req.systemSignals = systemSignals;
+		res.header('Access-Control-Allow-Origin', '*');
+		next();
+	});
+
+	app.use(cookieParser());
 	app.use(
-		session({
+		cookieSession({
 			name: 'bulogSession',
-			secret: crypto.randomBytes(64).toString('hex'),
-			resave: false,
-			saveUninitialized: false,
-			cookie: {
-				httpOnly: true,
-				secure: true,
-				partitioned: false,
-				sameSite: 'lax'
-			}
+			secret: cookieSecret,
+			httpOnly: true,
+			secure: true,
+			partitioned: false,
+			sameSite: 'lax'
 		})
 	);
 	app.use(passport.initialize());
@@ -141,20 +167,12 @@ export async function getServer(env: BulogEnvironment, systemSignals: SystemSign
 
 	const staticConfig: StaticFrontendConfig = { authAllowed: true };
 
-	app.use((req, res, next) => {
-		req.bulogEnvironment = env;
-		req.bulogComms = comms;
-		req.systemSignals = systemSignals;
-		res.header('Access-Control-Allow-Origin', '*');
-		next();
-	});
-
 	app.get('/favicon.ico', (_req, res) => {
 		res.sendFile(path.resolve(appRoot, 'assets/react.svg'));
 	});
 
-	app.use('/api', requireAnyAuth({ redirect: false }), apiRouter);
-	app.use('/io', getIORouter());
+	app.use('/api', requireAnyAuth({ redirect: false }), requireWebClientClaims, apiRouter);
+	app.use('/io', requireAnyAuth({ redirect: false }), getIORouter());
 
 	if (isDev) {
 		app.use('/', await serveVite(server, staticConfig, systemSignals));
@@ -162,21 +180,42 @@ export async function getServer(env: BulogEnvironment, systemSignals: SystemSign
 		app.use('/', serveStatic(staticConfig));
 	}
 
-	app.use(((err, _req, res, next) => {
-		if (err instanceof BulogError) {
-			return res
-				.status(err.httpStatus)
-				.json({ status: err.httpStatus, message: err.message, code: err.errorCode });
+	app.use(((err, req, res, next) => {
+		if (res.headersSent) {
+			return next(err);
 		}
 
-		if (err) {
+		const bulogErr = err instanceof BulogError ? err : new InternalServerError(err.message);
+
+		if (bulogErr instanceof InternalServerError) {
 			console.error(err);
-			return res
-				.status(500)
-				.json({ status: 500, message: 'Internal server error', code: 'ERR_INTERNAL' });
 		}
 
-		next();
+		const done = () => {
+			if ((req as any).ws) {
+				(req as any).ws.close(bulogErr.wsCloseCode, bulogErr.httpStatusMessage);
+				return;
+			}
+
+			if (req.accepts('html')) {
+				return res.status(bulogErr.httpStatus).render('error', {
+					httpStatus: bulogErr.httpStatus,
+					httpStatusMessage: bulogErr.httpStatusMessage,
+					httpStatusMessageLong: bulogErr.httpStatusMessageLong,
+					errorCode: bulogErr.errorCode,
+					errorMessage: bulogErr.detailMessage,
+					devMessage: isDev ? bulogErr.devMessage : undefined,
+					showLogout: bulogErr instanceof UnauthorizedError,
+					showLogin: bulogErr instanceof UnauthenticatedError
+				});
+			}
+
+			res
+				.status(bulogErr.httpStatus)
+				.json({ status: bulogErr.httpStatus, message: bulogErr.message, code: bulogErr.errorCode });
+		};
+
+		done();
 	}) as express.ErrorRequestHandler);
 
 	systemSignals.onClose(async () => {
