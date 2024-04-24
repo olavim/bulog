@@ -50,7 +50,10 @@ export const ColumnSettings = memo(function ColumnSettings(props: ColumnSettings
 	return (
 		<div className="w-full items-start flex flex-col grow space-y-4">
 			<div className="flex flex-col w-full space-y-2">
-				<label htmlFor="column-name-input" className="text-xs text-gray-800 font-medium">
+				<label
+					htmlFor="column-name-input"
+					className="text-sm text-slate-600 font-medium h-[24px] flex items-center"
+				>
 					{'Name'}
 				</label>
 				<input
@@ -58,11 +61,14 @@ export const ColumnSettings = memo(function ColumnSettings(props: ColumnSettings
 					onChange={handleChangeName}
 					id="column-name-input"
 					data-cy="column-name-input"
-					className="text-xs font-normal basis-[35px] w-full border border-gray-300 rounded py-1 px-3 text-gray-600"
+					className="text-xs font-normal basis-[34px] w-full border border-slate-200 rounded py-1 px-3 text-slate-600"
 				/>
 			</div>
 			<div className="flex flex-col grow w-full space-y-2">
-				<label htmlFor="column-pattern-input" className="text-xs text-gray-800 font-medium">
+				<label
+					htmlFor="column-pattern-input"
+					className="text-sm text-slate-600 font-medium h-[24px] flex items-center"
+				>
 					{'Formatter'}
 				</label>
 				<CodeMirror

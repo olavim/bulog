@@ -133,11 +133,13 @@ export const BucketView = memo(function BucketView(props: BucketLogsProps) {
 			)}
 			{selectedColumn && (
 				<Drawer title="Column details" onClose={onDeselect}>
-					<ColumnSettings
-						column={selectedColumn}
-						onChange={handleSetColumn}
-						onDelete={handleDeleteColumn}
-					/>
+					<div className="w-full px-6">
+						<ColumnSettings
+							column={selectedColumn}
+							onChange={handleSetColumn}
+							onDelete={handleDeleteColumn}
+						/>
+					</div>
 				</Drawer>
 			)}
 		</div>
