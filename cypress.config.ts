@@ -1,11 +1,12 @@
 import { defineConfig } from 'cypress';
 import { WebSocket } from 'ws';
 
-const host = '127.0.0.1:3400';
+const host = 'localhost:3400';
 
 export default defineConfig({
 	e2e: {
 		baseUrl: `http://${host}`,
+		experimentalSkipDomainInjection: ['localhost'],
 		setupNodeEvents(on) {
 			on('task', {
 				log(message) {
@@ -13,11 +14,13 @@ export default defineConfig({
 					return null;
 				},
 				sendLogsToBulog(logs: object[]) {
-					const socket = new WebSocket(`ws://${host}/api/sockets/in`, {
+					const socket = new WebSocket(`ws://${host}/io/logs/write`, {
 						handshakeTimeout: 1000
 					});
-					socket.on('open', () => {
+					socket.on('open', async () => {
+						console.log('sending logs');
 						for (const log of logs) {
+							await new Promise((res) => setTimeout(res, 0));
 							socket.send(JSON.stringify(log));
 						}
 					});

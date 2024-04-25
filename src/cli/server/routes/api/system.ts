@@ -29,10 +29,9 @@ systemRouter.post(
 			req.bulogEnvironment.flags.port === undefined
 				? config.server.defaults.port
 				: req.bulogEnvironment.flags.port;
+		const nextProtocol = config.server.https.enabled ? 'https' : 'http';
 
-		const nextRedirectableHost = nextHost === '0.0.0.0' ? '127.0.0.1' : nextHost;
-
-		res.status(200).json({ redirect: `${req.protocol}://${nextRedirectableHost}:${nextPort}` });
+		res.status(200).json({ host: nextHost, port: nextPort, protocol: nextProtocol });
 		req.systemSignals.reboot();
 	})
 );

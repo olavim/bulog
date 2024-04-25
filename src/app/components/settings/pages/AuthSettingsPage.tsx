@@ -3,7 +3,7 @@ import { SettingsSection } from '@app/components/settings/SettingsSection';
 import { ZodIssue } from 'zod';
 import { ValidatedInput } from '@app/components/ValidatedInput';
 import { InfoBanner } from '../InfoBanner';
-import { ServerConfig, ServerAuthConfigOIDC } from '@/types';
+import { ServerConfig } from '@/types';
 import { MdAddCircleOutline } from 'react-icons/md';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import { produce } from 'immer';
@@ -20,23 +20,22 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 	const onChangeAuthMethod: ChangeEventHandler<HTMLSelectElement> = useCallback(
 		(evt) => {
 			const method = evt.target.value as 'none' | 'oidc';
-			onChange({
-				...config,
-				auth:
-					method === 'none'
-						? { method: 'none' }
-						: {
-								method: 'oidc',
-								baseUrl: '',
-								issuerUrl: '',
-								clientId: '',
-								clientSecret: '',
-								scope: 'openid profile',
-								authorizationParams: [],
-								webClientClaims: [],
-								logClientClaims: []
-							}
-			});
+			onChange(
+				produce(config, (draft) => {
+					draft.auth.method = method;
+					if (method === 'oidc' && !draft.auth.oidc) {
+						draft.auth.oidc = {
+							baseUrl: '',
+							issuerUrl: '',
+							clientId: '',
+							clientSecret: '',
+							authorizationParams: [],
+							webClientClaims: [],
+							logClientClaims: []
+						};
+					}
+				})
+			);
 		},
 		[config, onChange]
 	);
@@ -45,7 +44,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		(evt) =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).baseUrl = evt.target.value;
+					draft.auth.oidc!.baseUrl = evt.target.value;
 				})
 			),
 		[config, onChange]
@@ -55,7 +54,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		(evt) =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).issuerUrl = evt.target.value;
+					draft.auth.oidc!.issuerUrl = evt.target.value;
 				})
 			),
 		[config, onChange]
@@ -65,7 +64,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		(evt) =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).clientId = evt.target.value;
+					draft.auth.oidc!.clientId = evt.target.value;
 				})
 			),
 		[config, onChange]
@@ -75,7 +74,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		(evt) =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).clientSecret = evt.target.value;
+					draft.auth.oidc!.clientSecret = evt.target.value;
 				})
 			),
 		[config, onChange]
@@ -85,7 +84,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		() =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).authorizationParams.push({ key: '', value: '' });
+					draft.auth.oidc!.authorizationParams.push({ key: '', value: '' });
 				})
 			),
 		[config, onChange]
@@ -95,7 +94,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		(idx: number) =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).authorizationParams.splice(idx, 1);
+					draft.auth.oidc!.authorizationParams.splice(idx, 1);
 				})
 			),
 		[config, onChange]
@@ -105,7 +104,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		(idx: number, key: string) =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).authorizationParams[idx].key = key;
+					draft.auth.oidc!.authorizationParams[idx].key = key;
 				})
 			),
 		[config, onChange]
@@ -115,7 +114,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		(idx: number, value: string) =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).authorizationParams[idx].value = value;
+					draft.auth.oidc!.authorizationParams[idx].value = value;
 				})
 			),
 		[config, onChange]
@@ -125,7 +124,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		(idx: number, key: string) =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).webClientClaims[idx].key = key;
+					draft.auth.oidc!.webClientClaims[idx].key = key;
 				})
 			),
 		[config, onChange]
@@ -135,7 +134,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		(idx: number, value: string) =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).webClientClaims[idx].value = value;
+					draft.auth.oidc!.webClientClaims[idx].value = value;
 				})
 			),
 		[config, onChange]
@@ -145,7 +144,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		(idx: number) =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).webClientClaims.splice(idx, 1);
+					draft.auth.oidc!.webClientClaims.splice(idx, 1);
 				})
 			),
 		[config, onChange]
@@ -155,7 +154,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		() =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).webClientClaims.push({ key: '', value: '' });
+					draft.auth.oidc!.webClientClaims.push({ key: '', value: '' });
 				})
 			),
 		[config, onChange]
@@ -165,7 +164,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		(idx: number, key: string) =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).logClientClaims[idx].key = key;
+					draft.auth.oidc!.logClientClaims[idx].key = key;
 				})
 			),
 		[config, onChange]
@@ -175,7 +174,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		(idx: number, value: string) =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).logClientClaims[idx].value = value;
+					draft.auth.oidc!.logClientClaims[idx].value = value;
 				})
 			),
 		[config, onChange]
@@ -185,7 +184,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		(idx: number) =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).logClientClaims.splice(idx, 1);
+					draft.auth.oidc!.logClientClaims.splice(idx, 1);
 				})
 			),
 		[config, onChange]
@@ -195,7 +194,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 		() =>
 			onChange(
 				produce(config, (draft) => {
-					(draft.auth as ServerAuthConfigOIDC).logClientClaims.push({ key: '', value: '' });
+					draft.auth.oidc!.logClientClaims.push({ key: '', value: '' });
 				})
 			),
 		[config, onChange]
@@ -241,7 +240,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 							</p>
 							<ValidatedInput
 								onChange={onChangeOidcBaseURL}
-								value={config.auth.baseUrl}
+								value={config.auth.oidc.baseUrl}
 								error={validationErrors['auth.baseUrl']?.message}
 							/>
 						</div>
@@ -254,7 +253,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 							</p>
 							<ValidatedInput
 								onChange={onChangeOidcIssuer}
-								value={config.auth.issuerUrl}
+								value={config.auth.oidc.issuerUrl}
 								error={validationErrors['auth.issuerUrl']?.message}
 							/>
 						</div>
@@ -262,7 +261,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 							<h2 className="text-xs font-semibold text-slate-500 leading-none">Client ID</h2>
 							<ValidatedInput
 								onChange={onChangeOidcClientId}
-								value={config.auth.clientId}
+								value={config.auth.oidc.clientId}
 								error={validationErrors['auth.clientId']?.message}
 							/>
 						</div>
@@ -270,7 +269,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 							<h2 className="text-xs font-semibold text-slate-500 leading-none">Client secret</h2>
 							<ValidatedInput
 								onChange={onChangeOidcClientSecret}
-								value={config.auth.clientSecret}
+								value={config.auth.oidc.clientSecret}
 								error={validationErrors['auth.clientSecret']?.message}
 							/>
 						</div>
@@ -283,7 +282,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 								sign in. Parameters such as <code>scope</code> and <code>audience</code> are
 								typically set here.
 							</p>
-							{config.auth.authorizationParams.map((param, idx) => (
+							{config.auth.oidc.authorizationParams.map((param, idx) => (
 								<div key={idx} className="flex items-center space-x-2">
 									<ValidatedInput
 										className="basis-[8rem]"
@@ -316,7 +315,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 							</button>
 						</div>
 					</SettingsSection>
-					<SettingsSection title="Web UI authorization" className="py-5 space-y-3">
+					<SettingsSection title="Web UI authorization" className="pt-5 space-y-3">
 						<p className="text-sm text-slate-500">
 							Authorize web UI users based on JWT access token claims, such as <code>aud</code> or{' '}
 							<code>sub</code>. Authorized users can sign in to this website.
@@ -324,7 +323,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 						<p className="text-sm text-slate-500">
 							By default only token issuer and expiration are verified.
 						</p>
-						{config.auth.webClientClaims.map((claim, idx) => (
+						{config.auth.oidc.webClientClaims.map((claim, idx) => (
 							<div key={idx} className="flex items-center py-2 space-x-2">
 								<ValidatedInput
 									className="basis-[8rem]"
@@ -365,7 +364,7 @@ export function AuthSettingsPage(props: AuthSettingsPageProps) {
 						<p className="text-sm text-slate-500">
 							By default only token issuer and expiration are verified.
 						</p>
-						{config.auth.logClientClaims.map((claim, idx) => (
+						{config.auth.oidc.logClientClaims.map((claim, idx) => (
 							<div key={idx} className="flex items-center py-2 space-x-2">
 								<ValidatedInput
 									className="basis-[8rem]"

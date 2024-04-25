@@ -1,60 +1,37 @@
-import { ChangeEventHandler, useCallback, useEffect, useMemo, useState } from 'react';
+import { ChangeEventHandler, useCallback, useEffect, useState } from 'react';
 import { SettingsSection } from '@app/components/settings/SettingsSection';
 import { ZodIssue } from 'zod';
 import { ValidatedInput } from '@app/components/ValidatedInput';
 import { MdOutlineRestartAlt } from 'react-icons/md';
-import { rebootServer, getEnvironment } from '@app/api/system';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { rebootServer } from '@app/api/system';
+import { useQuery } from '@tanstack/react-query';
 import { CgSpinner } from 'react-icons/cg';
 import { IoMdWarning } from 'react-icons/io';
 import { ServerConfig } from '@/types';
 
 interface ServerDefaultSettingsPageProps {
 	config: ServerConfig;
-	remoteConfig: ServerConfig;
 	validationErrors: Record<string, ZodIssue>;
 	unsavedChanges: boolean;
 	onChange: (config: ServerConfig) => void;
 }
 
 export function ServerDefaultSettingsPage(props: ServerDefaultSettingsPageProps) {
-	const { config, remoteConfig, validationErrors, unsavedChanges, onChange } = props;
+	const { config, validationErrors, unsavedChanges, onChange } = props;
 
 	const [rebootClicked, setRebootClicked] = useState(false);
 
-	const queryClient = useQueryClient();
-	const { data: environment } = useQuery({
-		queryKey: ['environment'],
-		queryFn: getEnvironment
-	});
-
-	const redirectUrl = useMemo(() => {
-		if (!environment) {
-			return window.location.href;
-		}
-		const nextHost = environment.host.config
-			? remoteConfig.defaults.hostname
-			: environment.host.value;
-		const nextPort = environment.port.config ? remoteConfig.defaults.port : environment.port.value;
-		const nextRedirectableHost = nextHost === '0.0.0.0' ? '127.0.0.1' : nextHost;
-		return `${window.location.protocol}//${nextRedirectableHost}:${nextPort}`;
-	}, [remoteConfig.defaults.hostname, remoteConfig.defaults.port, environment]);
-
 	const { isPending: isServerRebooting } = useQuery({
 		queryKey: ['health'],
-		queryFn: () => fetch(`${redirectUrl}/api/health`),
+		queryFn: () => fetch(`${window.location.origin}/api/health`),
 		enabled: rebootClicked
 	});
 
 	useEffect(() => {
-		queryClient.invalidateQueries({ queryKey: ['environment'], refetchType: 'all' });
-	}, [config, queryClient]);
-
-	useEffect(() => {
 		if (rebootClicked && !isServerRebooting) {
-			window.location.href = redirectUrl;
+			window.location.reload();
 		}
-	}, [isServerRebooting, rebootClicked, redirectUrl]);
+	}, [isServerRebooting, rebootClicked]);
 
 	const onChangeHostname: ChangeEventHandler<HTMLInputElement> = useCallback(
 		(evt) => {
@@ -87,10 +64,9 @@ export function ServerDefaultSettingsPage(props: ServerDefaultSettingsPageProps)
 	);
 
 	const onClickReboot = useCallback(async () => {
-		console.log(redirectUrl);
 		setRebootClicked(true);
 		await rebootServer();
-	}, [redirectUrl]);
+	}, []);
 
 	return (
 		<div className="flex flex-col max-h-full">
@@ -141,8 +117,8 @@ export function ServerDefaultSettingsPage(props: ServerDefaultSettingsPageProps)
 			</SettingsSection>
 			<SettingsSection title="Restart server" className="space-y-5 pt-5">
 				<p className="text-sm text-slate-500">
-					Restart the server and reload the page. You will be redirected to the correct URL if
-					connection details have changed.
+					Restart the server and reload the page. You will need to manually navigate to the correct
+					URL if the server's connection details have changed.
 				</p>
 				<div className="flex items-center">
 					<button

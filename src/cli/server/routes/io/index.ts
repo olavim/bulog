@@ -34,8 +34,10 @@ export const getIORouter = () => {
 
 	ioRouter.ws('/logs/write', requireLogClientClaims, (ws, req) => {
 		handleTokenExpiration(ws, req);
+		console.log('write connection');
 
 		ws.on('message', (data) => {
+			console.log('message');
 			try {
 				const { bucket, message, extraFields } = JSON.parse(data.toString());
 				req.bulogComms.broadcast(bucket, message, extraFields);
@@ -47,6 +49,7 @@ export const getIORouter = () => {
 
 	ioRouter.ws('/logs/read', requireWebClientClaims, (ws, req) => {
 		handleTokenExpiration(ws, req);
+		console.log('connection');
 
 		const id = req.bulogComms.addMessageListener((logs) => {
 			ws.send(JSON.stringify(logs));

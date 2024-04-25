@@ -30,7 +30,13 @@ export function ImportExportPage(props: ImportExportPageProps) {
 	const [importDraft, setImportDraft] = useState<Partial<BulogConfig> | null>(null);
 	const [importError, setImportError] = useState<boolean>(false);
 
-	const onChangeImportFile = useCallback((file: File) => {
+	const onChangeImportFile = useCallback((file: File | null) => {
+		if (!file) {
+			setImportDraft(null);
+			setImportError(false);
+			return;
+		}
+
 		const reader = new FileReader();
 		reader.onload = (e) => {
 			const text = e.target?.result as string;
@@ -68,7 +74,7 @@ export function ImportExportPage(props: ImportExportPageProps) {
 					Import settings from a file.
 				</p>
 				<div>
-					<FileInput onChange={onChangeImportFile} className="w-full" />
+					<FileInput onChange={onChangeImportFile} accept=".json" className="w-full" />
 				</div>
 				{importError && <InfoBanner variant="error">Selected file cannot be imported</InfoBanner>}
 				<div className="space-y-1">

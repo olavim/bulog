@@ -10,7 +10,7 @@ export interface ConfigSlice {
 	config: BulogConfig;
 	configLoaded: boolean;
 	loadConfig: (sandbox: Sandbox) => Promise<void>;
-	saveConfig: (config?: BulogConfig) => Promise<void>;
+	saveConfig: (config?: BulogConfig, uploadData?: Record<string, File>) => Promise<void>;
 }
 
 type ConfigSliceCreator = StateCreator<GlobalStore, [['zustand/immer', never]], [], ConfigSlice>;
@@ -25,7 +25,8 @@ export const createConfigSlice: ConfigSliceCreator = (set, get) => ({
 				port: 3100,
 				memorySize: 1000
 			},
-			auth: { method: 'none' }
+			auth: { method: 'none' },
+			https: { enabled: false, key: false, cert: false }
 		}
 	},
 	configLoaded: false,
@@ -64,7 +65,7 @@ export const createConfigSlice: ConfigSliceCreator = (set, get) => ({
 			state.configLoaded = true;
 		});
 	},
-	saveConfig: async (config) => {
+	saveConfig: async (config, uploadData) => {
 		if (!config) {
 			const filters = get().filters;
 			const filterConfigs = {} as { [id: string]: FilterConfig };
@@ -81,6 +82,6 @@ export const createConfigSlice: ConfigSliceCreator = (set, get) => ({
 			config = { filters: filterConfigs, buckets: bucketConfigs, server: get().config.server };
 		}
 
-		await saveConfig(config);
+		await saveConfig(config, uploadData);
 	}
 });

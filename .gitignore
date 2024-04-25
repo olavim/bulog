@@ -9,6 +9,7 @@
 # testing
 /coverage
 /cypress/downloads
+/cypress/screenshots
 
 # prototyping
 /proto

@@ -12,6 +12,7 @@ declare global {
 			bulogComms: CommsInterface;
 			systemSignals: SystemSignals;
 			authError?: BulogError;
+			effectiveProtocol: 'http' | 'https';
 		}
 		export interface AuthInfo {
 			refresh: () => Promise<boolean>;

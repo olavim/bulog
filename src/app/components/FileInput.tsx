@@ -1,13 +1,19 @@
-import { ChangeEventHandler, useCallback, useRef, useState } from 'react';
+import { ChangeEventHandler, useCallback, useEffect, useRef, useState } from 'react';
+import { FaRegFileLines } from 'react-icons/fa6';
+import { RiDeleteBinLine } from 'react-icons/ri';
 
 interface FileInputProps {
-	onChange: (file: File) => void;
+	onChange: (file: File | null) => void;
+	file?: File;
+	accept?: string;
+	existingFileName?: string;
+	inputProps?: React.HTMLProps<HTMLInputElement>;
 }
 
 export function FileInput(
 	props: FileInputProps & Omit<React.HTMLProps<HTMLDivElement>, keyof FileInputProps>
 ) {
-	const { onChange, ...rest } = props;
+	const { onChange, file, existingFileName, accept, inputProps, ...rest } = props;
 
 	const importFileInputRef = useRef<HTMLInputElement>(null);
 	const [fileName, setFileName] = useState<string | null>(null);
@@ -30,27 +36,58 @@ export function FileInput(
 		[onChange]
 	);
 
+	const onDeleteFile = useCallback(() => {
+		setFileName(null);
+		onChange(null);
+	}, [onChange]);
+
+	useEffect(() => {
+		if (importFileInputRef.current && file) {
+			const dataTransfer = new DataTransfer();
+			dataTransfer.items.add(file);
+			importFileInputRef.current.files = dataTransfer.files;
+		}
+	}, [file]);
+
 	return (
 		<div {...rest}>
 			<div className="h-[30px] w-full flex space-x-2">
-				<div className="h-full grow flex items-center px-4 border border-slate-300 rounded">
-					<span className="text-sm text-slate-500">{fileName ?? 'No file selected'}</span>
+				<div className="h-full grow flex items-center px-1 border border-slate-300 rounded">
+					{(fileName || existingFileName) && (
+						<FaRegFileLines className="text-slate-500 text-lg ml-1" />
+					)}
+					<span className="text-sm text-slate-500 grow ml-2">
+						{fileName ?? existingFileName ?? 'No file selected'}
+					</span>
+					{(fileName || existingFileName) && (
+						<button
+							className="hover:bg-slate-100 rounded-full w-[24px] h-[24px] flex justify-center items-center"
+							onClick={onDeleteFile}
+						>
+							<RiDeleteBinLine className="text-red-500 text-lg" />
+						</button>
+					)}
 				</div>
-				<button
-					className="h-full font-medium bg-gray-50 hover:bg-gray-50/50 active:bg-white border border-slate-300 text-left px-4 rounded flex items-center"
-					onClick={onClickImportFile}
-				>
-					<span className="grow text-sm text-slate-500">{'Browse...'}</span>
-				</button>
+				{!fileName && !existingFileName && (
+					<>
+						<button
+							className="h-full w-[6rem] font-medium bg-gray-50 hover:bg-gray-50/50 active:bg-white border border-slate-300 text-center rounded flex items-center"
+							onClick={onClickImportFile}
+						>
+							<span className="grow text-sm text-slate-500">{'Browse...'}</span>
+						</button>
+						<input
+							{...inputProps}
+							onChange={onChangeFile}
+							multiple={false}
+							ref={importFileInputRef}
+							accept={accept}
+							type="file"
+							hidden
+						/>
+					</>
+				)}
 			</div>
-			<input
-				onChange={onChangeFile}
-				multiple={false}
-				ref={importFileInputRef}
-				accept=".json"
-				type="file"
-				hidden
-			/>
 		</div>
 	);
 }

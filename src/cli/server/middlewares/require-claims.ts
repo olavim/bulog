@@ -7,7 +7,7 @@ export const requireLogClientClaims = asyncErrorHandler(async (req, _res, next) 
 	}
 
 	try {
-		req.authInfo?.verifyClaims(authConfig.logClientClaims);
+		req.authInfo?.verifyClaims(authConfig.oidc.logClientClaims);
 		next();
 	} catch (err: any) {
 		next(err);
@@ -21,7 +21,7 @@ export const requireWebClientClaims = asyncErrorHandler(async (req, _res, next) 
 	}
 
 	try {
-		req.authInfo?.verifyClaims(authConfig.webClientClaims);
+		req.authInfo?.verifyClaims(authConfig.oidc.webClientClaims);
 		next();
 	} catch (err: any) {
 		next(err);

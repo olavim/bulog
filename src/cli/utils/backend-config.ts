@@ -3,17 +3,13 @@ import path from 'path';
 import { parse, stringify } from '@iarna/toml';
 import envPaths from 'env-paths';
 import z32 from 'z32';
+import _ from 'lodash';
 import { BulogConfigSchema } from '@/schemas';
 import { fromZodError } from 'zod-validation-error';
 import { z } from 'zod';
 import { BulogConfig } from '@/types';
 import { BulogEnvironment } from '@cli/commands/start.js';
-
-const fileExistsAsync = (path: string) =>
-	fs.promises.stat(path).then(
-		() => true,
-		() => false
-	);
+import { fileExistsAsync } from '@cli/utils/file-exists-async.js';
 
 const paths = envPaths('bulog');
 
@@ -50,20 +46,33 @@ async function ensureExists(path: string, schema: z.ZodTypeAny) {
 	}
 }
 
-async function getBackendConfigPaths(instance: string, opts: { tempConfig: boolean }) {
-	const dir = opts.tempConfig ? paths.temp : path.resolve(paths.config, instance);
-	const buckets = opts.tempConfig ? bucketsTempPath : getBucketsConfigPath(instance);
-	const filters = opts.tempConfig ? filtersTempPath : getFiltersConfigPath(instance);
-	const server = opts.tempConfig ? serverTempPath : getServerConfigPath(instance);
+export async function getBackendConfigPaths(
+	instance: string,
+	tempConfig: boolean
+): Promise<{ root: string; buckets: string; filters: string; server: string }>;
+export async function getBackendConfigPaths(
+	env: BulogEnvironment
+): Promise<{ root: string; buckets: string; filters: string; server: string }>;
+export async function getBackendConfigPaths(
+	instanceOrEnv: BulogEnvironment | string,
+	tempConfig?: boolean
+): Promise<{ root: string; buckets: string; filters: string; server: string }> {
+	const instance = typeof instanceOrEnv === 'string' ? instanceOrEnv : instanceOrEnv.flags.instance;
+	const temp = typeof instanceOrEnv === 'string' ? tempConfig! : instanceOrEnv.flags['temp-config'];
 
-	await fs.promises.mkdir(dir, { recursive: true });
+	const root = temp ? paths.temp : path.resolve(paths.config, instance);
+	const buckets = temp ? bucketsTempPath : getBucketsConfigPath(instance);
+	const filters = temp ? filtersTempPath : getFiltersConfigPath(instance);
+	const server = temp ? serverTempPath : getServerConfigPath(instance);
+
+	await fs.promises.mkdir(root, { recursive: true });
 	await Promise.all([
 		ensureExists(buckets, BulogConfigSchema.shape.buckets),
 		ensureExists(filters, BulogConfigSchema.shape.filters),
 		ensureExists(server, BulogConfigSchema.shape.server)
 	]);
 
-	return { buckets, filters, server };
+	return { root, buckets, filters, server };
 }
 
 async function migrateBackendConfig(instance: string) {
@@ -102,39 +111,40 @@ async function migrateBackendConfig(instance: string) {
 }
 
 export async function resetTempConfigs() {
-	if (fs.existsSync(bucketsTempPath)) {
-		await fs.promises.unlink(bucketsTempPath);
-	}
-
-	if (fs.existsSync(filtersTempPath)) {
-		await fs.promises.unlink(filtersTempPath);
-	}
-
-	if (fs.existsSync(serverTempPath)) {
-		await fs.promises.unlink(serverTempPath);
+	const files = await fs.promises.readdir(paths.temp);
+	for (const file of files) {
+		await fs.promises.unlink(path.join(paths.temp, file));
 	}
 }
 
 export async function validateBackendConfigs(instance: string) {
 	await migrateBackendConfig(instance);
-	const paths = await getBackendConfigPaths(instance, { tempConfig: false });
+	const paths = await getBackendConfigPaths(instance, false);
+
+	const buckets = parse(await fs.promises.readFile(paths.buckets, 'utf-8'));
+	const filters = parse(await fs.promises.readFile(paths.filters, 'utf-8'));
+	const server = parse(await fs.promises.readFile(paths.server, 'utf-8')) as any;
 
 	try {
-		const buckets = parse(await fs.promises.readFile(paths.buckets, 'utf-8'));
 		BulogConfigSchema.shape.buckets.parse(buckets);
 	} catch (e: any) {
 		throw new ConfigValidationError(fromZodError(e).toString(), paths.buckets);
 	}
 
 	try {
-		const filters = parse(await fs.promises.readFile(paths.filters, 'utf-8'));
 		BulogConfigSchema.shape.filters.parse(filters);
 	} catch (e: any) {
 		throw new ConfigValidationError(fromZodError(e).toString(), paths.filters);
 	}
 
+	const [httpsCertExists, httpsKeyExists] = await Promise.all([
+		fileExistsAsync(path.resolve(paths.root, 'https.crt')),
+		fileExistsAsync(path.resolve(paths.root, 'https.key'))
+	]);
+	_.set(server, 'https.cert', httpsCertExists);
+	_.set(server, 'https.key', httpsKeyExists);
+
 	try {
-		const server = parse(await fs.promises.readFile(paths.server, 'utf-8'));
 		BulogConfigSchema.shape.server.parse(server);
 	} catch (e: any) {
 		throw new ConfigValidationError(fromZodError(e).toString(), paths.server);
@@ -150,19 +160,29 @@ export async function getBackendConfig(
 	const instance = typeof instanceOrEnv === 'string' ? instanceOrEnv : instanceOrEnv.flags.instance;
 	const temp = typeof instanceOrEnv === 'string' ? tempConfig! : instanceOrEnv.flags['temp-config'];
 
-	const paths = await getBackendConfigPaths(instance, { tempConfig: temp });
+	const paths = await getBackendConfigPaths(instance, temp);
 	const [buckets, filters, server] = await Promise.all([
 		fs.promises.readFile(paths.buckets, 'utf-8').then((data) => parse(data)),
 		fs.promises.readFile(paths.filters, 'utf-8').then((data) => parse(data)),
 		fs.promises.readFile(paths.server, 'utf-8').then((data) => parse(data))
 	]);
+
+	const [httpsCertExists, httpsKeyExists] = await Promise.all([
+		fileExistsAsync(path.resolve(paths.root, 'https.crt')),
+		fileExistsAsync(path.resolve(paths.root, 'https.key'))
+	]);
+
+	_.set(server, 'https.cert', httpsCertExists);
+	_.set(server, 'https.key', httpsKeyExists);
+
 	return BulogConfigSchema.parse({ buckets, filters, server });
 }
 
 export async function saveBackendConfig(env: BulogEnvironment, config: BulogConfig) {
-	const paths = await getBackendConfigPaths(env.flags.instance, {
-		tempConfig: env.flags['temp-config']
-	});
+	const paths = await getBackendConfigPaths(env);
+	const serverConfig = { ...config.server };
+	delete (serverConfig.https as Partial<typeof serverConfig.https>).cert;
+	delete (serverConfig.https as Partial<typeof serverConfig.https>).key;
 	await Promise.all([
 		fs.promises.writeFile(paths.buckets, stringify(config.buckets as any)),
 		fs.promises.writeFile(paths.filters, stringify(config.filters as any)),

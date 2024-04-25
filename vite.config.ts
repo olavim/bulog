@@ -17,6 +17,15 @@ export default defineConfig({
 			input: {
 				main: path.resolve(dirname, 'src/app/index.html'),
 				sandbox: path.resolve(dirname, 'src/app/sandbox/index.html')
+			},
+			output: {
+				manualChunks: (id) => {
+					if (id.includes('node_modules')) {
+						return 'vendor';
+					} else {
+						return 'main';
+					}
+				}
 			}
 		}
 	},

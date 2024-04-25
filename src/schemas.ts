@@ -49,20 +49,12 @@ const ServerDefaultsConfigSchema = z
 	.strict()
 	.default({});
 
-export const ServerAuthConfigNoneSchema = z
-	.object({
-		method: z.literal('none')
-	})
-	.strict();
-
 export const ServerAuthConfigOIDCSchema = z
 	.object({
-		method: z.literal('oidc'),
 		baseUrl: z.string().url().min(1, 'Base URL is required'),
 		issuerUrl: z.string().url().min(1, 'Issuer URL is required'),
 		clientId: z.string().min(1, 'Client ID is required'),
 		clientSecret: z.string().min(1, 'Client secret is required'),
-		scope: z.string().min(1, 'Client secret is required').default('openid profile'),
 		authorizationParams: z.array(z.object({ key: z.string().min(1), value: z.string() })),
 		webClientClaims: z
 			.array(
@@ -84,13 +76,63 @@ export const ServerAuthConfigOIDCSchema = z
 	.strict();
 
 export const ServerAuthConfigSchema = z
-	.union([ServerAuthConfigNoneSchema, ServerAuthConfigOIDCSchema])
+	.union([
+		z.object({
+			method: z.literal('none'),
+			oidc: ServerAuthConfigOIDCSchema.optional()
+		}),
+		z.object({
+			method: z.literal('oidc'),
+			oidc: ServerAuthConfigOIDCSchema.required()
+		})
+	])
 	.default({ method: 'none' });
+
+export const ServerHTTPSConfigDisabledSchema = z
+	.object({
+		enabled: z.literal(false),
+		key: z.boolean().default(false),
+		cert: z.boolean().default(false)
+	})
+	.strict();
+
+export const ServerHTTPSConfigEnabledSchema = z
+	.object({
+		enabled: z.literal(true),
+		key: z.literal(true),
+		cert: z.literal(true)
+	})
+	.strict();
+
+export const ServerHTTPSConfigSchema = z
+	.object({
+		enabled: z.boolean().default(false),
+		key: z.boolean().default(false),
+		cert: z.boolean().default(false)
+	})
+	.default({ enabled: false, key: false, cert: false })
+	.superRefine((val, ctx) => {
+		if (val.enabled && !val.cert) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: 'Certificate file is required when HTTPS is enabled',
+				path: ['cert']
+			});
+		}
+		if (val.enabled && !val.key) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: 'Private key file is required when HTTPS is enabled',
+				path: ['key']
+			});
+		}
+	});
 
 export const ServerConfigSchema = z
 	.object({
 		defaults: ServerDefaultsConfigSchema,
-		auth: ServerAuthConfigSchema
+		auth: ServerAuthConfigSchema,
+		https: ServerHTTPSConfigSchema
 	})
 	.strict()
 	.default({});

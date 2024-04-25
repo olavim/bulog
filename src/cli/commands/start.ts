@@ -8,6 +8,7 @@ import { releaseInstance, reserveInstance, saveInstanceConfig } from '@cli/utils
 import { SystemSignals } from '@cli/server/system-signals.js';
 import { getServer } from '@server/index.js';
 import type { Server } from 'http';
+import https from 'https';
 import { Socket } from 'net';
 import isValidFilename from 'valid-filename';
 import { InferredFlags } from '@oclif/core/lib/interfaces';
@@ -89,7 +90,7 @@ export class Start extends Command {
 		}
 
 		const getEnv = async (): Promise<BulogEnvironment> => {
-			const { server: config } = await getBackendConfig(flags.instance, flags.tempConfig);
+			const { server: config } = await getBackendConfig(flags.instance, flags['temp-config']);
 			return {
 				flags,
 				config,
@@ -99,7 +100,7 @@ export class Start extends Command {
 			};
 		};
 
-		if (flags.tempConfig) {
+		if (flags['temp-config']) {
 			await resetTempConfigs();
 		} else {
 			try {
@@ -118,6 +119,7 @@ export class Start extends Command {
 		const startServer = async () => {
 			const env = await getEnv();
 			server = await getServer(env, systemSignals);
+			env.config.https.enabled = server instanceof https.Server;
 
 			server.on('connection', (socket) => {
 				const connectionId = nextConnectionId;
@@ -135,7 +137,8 @@ export class Start extends Command {
 					server.listen(env.port, env.host, resolve);
 				});
 
-				const url = `https://${env.host}:${env.port}`;
+				const protocol = env.config.https.enabled ? 'https' : 'http';
+				const url = `${protocol}://${env.host}:${env.port}`;
 				this.log(`Bulog is running at ${url}`);
 
 				await saveInstanceConfig(flags.instance, url);

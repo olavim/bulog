@@ -14,13 +14,14 @@ import { WebSocketCloseCodes } from '@/codes';
 import { SessionExpiredDialog } from './components/SessionExpiredDialog';
 
 export function Home() {
-	const [host, setHost] = useState<string>();
+	const [wsOrigin, setWsOrigin] = useState<string>();
 
 	useEffect(() => {
-		if (window.location.host !== host) {
-			setHost(window.location.host);
+		const nextWSUrl = window.location.origin.replace(/^http/, 'ws');
+		if (nextWSUrl !== wsOrigin) {
+			setWsOrigin(nextWSUrl);
 		}
-	}, [host]);
+	}, [wsOrigin]);
 
 	const sandbox = useSandbox();
 	const configLoaded = globalStore.use.configLoaded();
@@ -106,7 +107,7 @@ export function Home() {
 	);
 
 	useWebSocket(
-		'/io/logs/read',
+		`${wsOrigin}/io/logs/read`,
 		{
 			onMessage,
 			onClose: (evt) => {
@@ -115,7 +116,7 @@ export function Home() {
 				}
 			}
 		},
-		host !== undefined && configLoaded
+		wsOrigin !== undefined && configLoaded
 	);
 
 	const [selectedBucket, setSelectedBucket] = useState<string | null>(null);

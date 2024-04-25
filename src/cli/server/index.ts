@@ -26,11 +26,11 @@ import { requireAnyAuth } from './middlewares/require-auth.js';
 import { cookieSession } from './middlewares/cookie-session.js';
 import { asyncErrorHandler } from './utils/async-error-handler.js';
 import { requireWebClientClaims } from './middlewares/require-claims.js';
+import { getBackendConfigPaths } from '@cli/utils/backend-config.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 const isDev = process.env.NODE_ENV === 'development';
-const root = isDev ? path.resolve(dirname, '../../../') : path.resolve(dirname, '../../');
 const appRoot = isDev ? path.resolve(dirname, '../../../src/app') : path.resolve(dirname, '../app');
 const cookieSecret = crypto.randomBytes(64).toString('hex');
 
@@ -72,10 +72,13 @@ async function serveVite(
 		base: '/src',
 		server: {
 			middlewareMode: true,
-			hmr: {
-				path: '/__vite_hmr',
-				server: hmrServer
-			}
+			hmr:
+				process.env.DISABLE_VITE_HMR !== 'true'
+					? {
+							path: '/__vite_hmr',
+							server: hmrServer
+						}
+					: false
 		},
 		appType: 'custom'
 	});
@@ -120,23 +123,29 @@ async function serveVite(
 	return router;
 }
 
+async function getHttpServer(app: express.Express, env: BulogEnvironment) {
+	const { root: configRoot } = await getBackendConfigPaths(env);
+	if (env.config.https.enabled) {
+		const [cert, key] = await Promise.all([
+			fs.promises.readFile(path.resolve(configRoot, 'https.crt'), 'utf8'),
+			fs.promises.readFile(path.resolve(configRoot, 'https.key'), 'utf8')
+		]);
+		return https.createServer({ cert, key }, app);
+	}
+
+	return http.createServer(app);
+}
+
 export async function getServer(env: BulogEnvironment, systemSignals: SystemSignals) {
 	const _app = express();
-	const server = https.createServer(
-		{
-			key: fs.readFileSync(path.resolve(root, 'proto/bulog.key'), 'utf8'),
-			cert: fs.readFileSync(path.resolve(root, 'proto/bulog.crt'), 'utf8')
-		},
-		_app
-	);
-	// const server = http.createServer(app);
-
+	const server = await getHttpServer(_app, env);
 	const app = expressWS(_app, server);
 
 	app.engine('mst', mustache());
 	app.set('view engine', 'mst');
 	app.set('views', path.resolve(dirname, 'views'));
 	app.set('view cache', !isDev);
+	app.set('trust proxy', true);
 
 	app.use((req, res, next) => {
 		req.bulogEnvironment = env;

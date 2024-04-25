@@ -5,7 +5,11 @@ const { spawn } = await import('child_process');
 const { onExit } = await import('signal-exit');
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
-const watchDirs = [path.resolve(dirname, '../src/cli'), path.resolve(dirname, 'dev.js')];
+const watchDirs = [
+	path.resolve(dirname, '../src/cli'),
+	path.resolve(dirname, '../src/schemas.ts'),
+	path.resolve(dirname, 'dev.js')
+];
 const ignored = [path.resolve(dirname, '../src/cli/server/views')];
 
 let childExitPromise;

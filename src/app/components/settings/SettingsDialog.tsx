@@ -18,6 +18,7 @@ import { SettingsTabPanel } from './SettingsTabPanel';
 import { AuthSettingsPage } from './pages/AuthSettingsPage';
 import { IoMdKey } from 'react-icons/io';
 import { BulogConfig, BucketConfig, FilterConfig, ServerConfig } from '@/types';
+import { HTTPSSettingsPage } from './pages/HTTPSSettingsPage';
 
 interface SettingsDialogProps {
 	open: boolean;
@@ -38,6 +39,7 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 	const [configDraft, setConfigDraft] = useState<BulogConfig>(config);
 	const [configDraftChanged, setConfigDraftChanged] = useState<boolean>(false);
 	const [validationErrors, setValidationErrors] = useState<ZodIssue[]>([]);
+	const [uploadData, setUploadData] = useState<Record<string, File>>({});
 
 	const filterValidationErrors = useMemo(() => {
 		const issues: Record<string, Record<string, ZodIssue>> = {};
@@ -101,6 +103,11 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 			resetConfig();
 		}
 	}, [buckets, filters, config, configLoaded, configTimeoutElapsed, resetConfig]);
+
+	const onChangeUploadData = useCallback((uploadData: Record<string, File>) => {
+		setUploadData(uploadData);
+		setConfigDraftChanged(true);
+	}, []);
 
 	const onChangeBucketConfig = useCallback(
 		(config: BucketConfig) => {
@@ -187,13 +194,13 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 			setValidationErrors([]);
 			setConfigTimeoutElapsed(false);
 			setConfigDraftChanged(false);
-			await saveConfig(result.data);
+			await saveConfig(result.data, uploadData);
 			loadConfig(sandbox);
 			setTimeout(() => setConfigTimeoutElapsed(true), 1000);
 		} else {
 			setValidationErrors(result.error.issues);
 		}
-	}, [configDraft, loadConfig, sandbox, saveConfig]);
+	}, [configDraft, loadConfig, sandbox, saveConfig, uploadData]);
 
 	if (!open) {
 		return null;
@@ -323,7 +330,6 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 						>
 							<ServerDefaultSettingsPage
 								config={configDraft.server}
-								remoteConfig={config.server}
 								validationErrors={serverValidationErrors}
 								unsavedChanges={!configLoaded || !configTimeoutElapsed || configDraftChanged}
 								onChange={onChangeServerConfig}
@@ -338,6 +344,19 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
 								config={configDraft.server}
 								validationErrors={serverValidationErrors}
 								onChange={onChangeServerConfig}
+							/>
+						</SettingsTabPanel>
+						<SettingsTabPanel
+							id="system:https"
+							visible={tab === 'system:https'}
+							disabled={!configLoaded || !configTimeoutElapsed}
+						>
+							<HTTPSSettingsPage
+								config={configDraft.server}
+								uploadData={uploadData}
+								validationErrors={serverValidationErrors}
+								onChange={onChangeServerConfig}
+								onChangeUploadData={onChangeUploadData}
 							/>
 						</SettingsTabPanel>
 					</div>

@@ -7,18 +7,18 @@ import {
 	LogClientConfigSchema,
 	LogClientInstanceAuthConfigSchema,
 	LogClientInstanceConfigSchema,
-	ServerAuthConfigNoneSchema,
 	ServerAuthConfigOIDCSchema,
 	ServerAuthConfigSchema,
-	ServerConfigSchema
+	ServerConfigSchema,
+	ServerHTTPSConfigSchema
 } from '@/schemas';
 
 export type ColumnConfig = z.infer<typeof ColumnConfigSchema>;
 export type BucketConfig = z.infer<typeof BucketConfigSchema>;
 export type FilterConfig = z.infer<typeof FilterConfigSchema>;
-export type ServerAuthConfigNone = z.infer<typeof ServerAuthConfigNoneSchema>;
 export type ServerAuthConfigOIDC = z.infer<typeof ServerAuthConfigOIDCSchema>;
 export type ServerAuthConfig = z.infer<typeof ServerAuthConfigSchema>;
+export type ServerHTTPSConfig = z.infer<typeof ServerHTTPSConfigSchema>;
 export type ServerConfig = z.infer<typeof ServerConfigSchema>;
 export type BulogConfig = z.infer<typeof BulogConfigSchema>;
 export type LogClientInstanceAuthConfig = z.infer<typeof LogClientInstanceAuthConfigSchema>;

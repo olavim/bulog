@@ -3,13 +3,13 @@ Cypress.Commands.add('sendLogsToBulog', (logs) => {
 });
 
 Cypress.Commands.add('resetBulog', () => {
-	const url = Cypress.config().baseUrl;
+	const url = Cypress.config().baseUrl!;
 
-	cy.intercept('/api/config/reset')
+	cy.intercept('/api/config/reset', { statusCode: 200 })
 		.as('resetConfig')
 		.then(() => fetch(`${url}/api/config/reset`, { method: 'POST' }));
 
-	cy.intercept('/api/system/cache/reset')
+	cy.intercept('/api/system/cache/reset', { statusCode: 200 })
 		.as('resetCache')
 		.then(() => fetch(`${url}/api/system/cache/reset`, { method: 'POST' }));
 
@@ -46,7 +46,8 @@ Cypress.Commands.add('dnd', (from, to) => {
 			force: true,
 			isPrimary: true,
 			button: 0
-		});
+		})
+		.wait(100);
 });
 
 const resizeObserverLoopErrRe = /^[^(ResizeObserver loop limit exceeded)]/;

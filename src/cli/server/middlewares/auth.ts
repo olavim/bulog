@@ -102,7 +102,7 @@ async function oidcAuth(authSettings: ServerAuthConfigOIDC) {
 
 export async function auth(authSettings: ServerAuthConfig) {
 	if (authSettings.method === 'oidc') {
-		return await oidcAuth(authSettings);
+		return await oidcAuth(authSettings.oidc);
 	}
 
 	return ((_req, _res, next) => next()) as express.RequestHandler;

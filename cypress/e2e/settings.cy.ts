@@ -6,7 +6,7 @@ describe('settings tests', () => {
 	it('change server settings', () => {
 		cy.visit('/');
 		cy.get('[data-cy=settings-button]').click();
-		cy.get('[data-cy=settings-tab-system]').click();
+		cy.get('[data-cy="settings-tab-system:serverDefaults"]').click();
 		cy.get('[data-cy=server-defaults-hostname-input]').clear().type('localhost');
 		cy.get('[data-cy=server-defaults-port-input]').clear().type('1234');
 		cy.get('[data-cy=server-defaults-memorySize-input]').clear().type('1234');
@@ -23,6 +23,30 @@ describe('settings tests', () => {
 			expect(body.server.defaults.memorySize).to.eq(1234);
 
 			cy.wait('@configIn').its('response.body').should('deep.eq', body);
+		});
+	});
+
+	it.only('enable https', () => {
+		cy.visit('/');
+		cy.get('[data-cy=settings-button]').click();
+		cy.get('[data-cy="settings-tab-system:https"]').click();
+		cy.get('[data-cy=https-enabled-checkbox]').click();
+		cy.get('[data-cy=https-cert-file-input]').selectFile('cypress/fixtures/https.crt', {
+			force: true
+		});
+		cy.get('[data-cy=https-key-file-input]').selectFile('cypress/fixtures/https.key', {
+			force: true
+		});
+
+		cy.intercept('GET', '/api/config').as('config');
+
+		cy.get('[data-cy=apply-changes-button]').click();
+
+		cy.wait('@config').then((interception) => {
+			const body = interception.response?.body;
+			expect(body.server.https.enabled).to.eq(true);
+			expect(body.server.https.cert).to.eq(true);
+			expect(body.server.https.key).to.eq(true);
 		});
 	});
 
@@ -163,7 +187,7 @@ describe('settings tests', () => {
 		});
 	});
 
-	it.only('delete bucket', () => {
+	it('delete bucket', () => {
 		cy.visit('/');
 		cy.sendLogsToBulog([
 			{ bucket: 'bucket-1', message: 1 },

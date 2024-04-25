@@ -1,6 +1,7 @@
 import { WebSocketCloseCodes } from '@/codes';
 
-const httpStatusMessages: { [key: number]: [string, string] } = {
+const httpStatusMessages: { [key: number]: [string] | [string, string] } = {
+	400: ['Bad Request'],
 	401: ['Unauthenticated', 'Access denied due to missing credentials.'],
 	403: ['Unauthorized', 'Access denied due to invalid or insufficient credentials.'],
 	500: [
@@ -13,12 +14,12 @@ export class BulogError extends Error {
 	public errorCode: string;
 	public httpStatus: number;
 	public httpStatusMessage: string;
-	public httpStatusMessageLong: string;
+	public httpStatusMessageLong?: string;
 	public wsCloseCode: number;
 	public detailMessage?: string;
 	public devMessage?: string;
 
-	constructor(errorCode: string, httpStatus: number, wsCloseCode: number) {
+	constructor(errorCode: string, httpStatus: number, wsCloseCode: number = 1008) {
 		super(httpStatusMessages[httpStatus][0]);
 		this.errorCode = errorCode;
 		this.httpStatus = httpStatus;
@@ -41,16 +42,23 @@ export class UnauthenticatedError extends BulogError {
 	}
 }
 
+export class UnauthorizedError extends BulogError {
+	constructor(errorCode: string, wsCloseCode: number = WebSocketCloseCodes.UNAUTHORIZED) {
+		super(errorCode, 403, wsCloseCode);
+	}
+}
+
+export class BadRequestError extends BulogError {
+	constructor(message: string) {
+		super('ERR_BAD_REQUEST', 400);
+		this.detailMessage = message;
+	}
+}
+
 export class MissingAuthenticationError extends UnauthenticatedError {
 	constructor() {
 		super(WebSocketCloseCodes.MISSING_AUTHENTICATION);
 		this.detailMessage = 'No session cookie or bearer token was provided';
-	}
-}
-
-export class UnauthorizedError extends BulogError {
-	constructor(errorCode: string, wsCloseCode: number = WebSocketCloseCodes.UNAUTHORIZED) {
-		super(errorCode, 403, wsCloseCode);
 	}
 }
 
